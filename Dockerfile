@@ -44,25 +44,25 @@ RUN ./install_github.r 'igordot/scooter' --ref '2a639459d3848e111717624497797441
 RUN apt-get update -qq && \
     R -e "install.packages('remotes', repos='http://cran.r-project.org')"
 
-RUN apt-get update -qq && \
-    R -e "remotes::install_github('satijalab/seurat-wrappers@community-vignette', force = TRUE)" 
+#RUN apt-get update -qq && \
+#    R -e "remotes::install_github('satijalab/seurat-wrappers@community-vignette', force = TRUE)" 
 
 # Set the CRAN mirror to RStudio's
-ENV R_CRAN_MIRROR=https://cran.rstudio.com/
+#ENV R_CRAN_MIRROR=https://cran.rstudio.com/
 
 # Set the RStudio Package Manager CRAN repository
 # ENV R_PACKAGEMANAGER=https://packagemanager.rstudio.com/cran/latest
 
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libcurl4-openssl-dev \
-    libssl-dev \
-    libxml2-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+#RUN apt-get update && apt-get install -y \
+#    libcurl4-openssl-dev \
+#    libssl-dev \
+#    libxml2-dev \
+#    && apt-get clean \
+#    && rm -rf /var/lib/apt/lists/*
     
-RUN R -e "remotes::install_version('Seurat', '4.4.0', repos=c('${R_CRAN_MIRROR}', 'https://satijalab.r-universe.dev', getOption('repos')))"
+#RUN R -e "remotes::install_version('Seurat', '4.4.0', repos=c('${R_CRAN_MIRROR}', 'https://satijalab.r-universe.dev', getOption('repos')))"
 # RUN R -e "remotes::install_version('Seurat', '4.4.0', repos=c('${R_PACKAGEMANAGER}', 'https://satijalab.r-universe.dev', getOption('repos')))"
 
 # install R packages from CRAN
