@@ -1,11 +1,11 @@
-FROM rocker/tidyverse:4.2.3
+FROM rocker/rstudio:4.3.3
 MAINTAINER a.chroni@stjude.org
 WORKDIR /rocker-build/
 
 # https://packagemanager.rstudio.com/cran/2024-04-24
 # https://packagemanager.rstudio.com/cran/latest
-RUN RSPM="https://packagemanager.rstudio.com/cran/2024-04-24" \
-  && echo "options(repos = c(CRAN='$RSPM'), download.file.method = 'libcurl')" >> /usr/local/lib/R/etc/Rprofile.site
+# RUN RSPM="https://packagemanager.rstudio.com/cran/2024-04-24" \
+#  && echo "options(repos = c(CRAN='$RSPM'), download.file.method = 'libcurl')" >> /usr/local/lib/R/etc/Rprofile.site
   
   
   
