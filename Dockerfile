@@ -1,4 +1,4 @@
-FROM rocker/rstudio:4.3.3
+FROM rocker/rstudio:4.4.0
 MAINTAINER a.chroni@stjude.org
 WORKDIR /rocker-build/
 
@@ -38,11 +38,11 @@ RUN apt-get -y --no-install-recommends install \
 
 # install R packages from GitHub
 # scooter 
-RUN ./install_github.r 'igordot/scooter' --ref '2a639459d3848e111717624497797441cfbf1747' 
+# RUN ./install_github.r 'igordot/scooter' --ref '2a639459d3848e111717624497797441cfbf1747' 
 
 # install Seurat-related packges
-RUN apt-get update -qq && \
-    R -e "install.packages('remotes', repos='http://cran.r-project.org')"
+# RUN apt-get update -qq && \
+#     R -e "install.packages('remotes', repos='http://cran.r-project.org')"
 
 #RUN apt-get update -qq && \
 #    R -e "remotes::install_github('satijalab/seurat-wrappers@community-vignette', force = TRUE)" 
@@ -94,10 +94,12 @@ RUN install2.r \
     purrr \
     RColorBrewer \
     RcppPlanc \
+    remotes \
     reshape2 \
     rliger \
     rlist \  
     R.utils \
+    scooter \
     SeuratObject \
     SingleR \
     shiny \
