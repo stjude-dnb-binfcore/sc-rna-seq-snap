@@ -19,7 +19,7 @@ mkdir -p ${prefix}/input
 mkdir -p ${prefix}/results
 mkdir -p ${prefix}/results/01_logs
 mkdir -p ${prefix}/results/02_cellranger_count
-mkdir -p ${prefix}/results/02_cellranger_count/DefaultParameters
+mkdir -p ${prefix}/results/02_cellranger_count/ForcedCells8000Parameters
 
 ########################################################################
 # File in which we store the output text to verify the job execution order.
