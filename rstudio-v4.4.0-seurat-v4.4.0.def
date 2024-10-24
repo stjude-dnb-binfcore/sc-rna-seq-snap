@@ -1,0 +1,169 @@
+BootStrap: docker
+From: ubuntu:20.04
+
+%runscript
+  #
+  # This is what runs when you run "singularity run rstudio_4.4.0.sif"
+  #
+  exec rserver "${@}"
+
+%environment
+  #
+  # You can modify environment variables here if you download software
+  #
+  export PATH=/usr/lib/rstudio-server/bin:${PATH}
+
+%post
+  apt-get update
+  apt-get install -y --no-install-recommends \
+    locales \
+    aptitude \
+    gnupg \
+    software-properties-common \
+    dirmngr 
+
+  # No need to modify
+  # Install apptainer
+  add-apt-repository -y ppa:apptainer/ppa
+  apt update
+  apt install -y apptainer-suid
+
+  # No need to modify
+  # Configure default locale
+  echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+  locale-gen en_US.utf8
+  /usr/sbin/update-locale LANG=en_US.UTF-8
+  export LC_ALL=en_US.UTF-8
+  export LANG=en_US.UTF-8
+
+  # No need to modify
+  # Installing R itself, and not RStudio
+  #echo "deb https://cran.r-project.org/bin/linux/ubuntu focal-cran40/" > /etc/apt/sources.list.d/r.list
+  apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+  add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/"
+  add-apt-repository "deb http://mirror.math.princeton.edu/pub/ubuntu/ focal-backports main restricted universe"
+  apt-get update --fix-missing
+
+  apt-cache policy r-base
+
+  # Install dependencies.
+  #
+  # External packages you want to add go here
+  # Google: "apt-get install <some_package> ubuntu 20.04"
+  # Packages you install with apt-get do not have to be added to environment variables
+  #
+  # These all are necessary to run "install.packages()" inside the container
+  #
+  aptitude install -y \
+    r-base=4.4.0-1.2004.0 \
+    r-base-core=4.4.0-1.2004.0 \
+    r-base-dev=4.4.0-1.2004.0 \
+    r-recommended \
+    r-base-html \
+    r-doc-html \
+    r-cran-magick \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    libcairo2-dev \
+    libxt-dev \
+    libpng-dev \
+    libfreetype6-dev \
+    libtiff5-dev \
+    libjpeg-dev \
+    libgsl-dev \
+    librsvg2-dev \
+    libnode-dev \
+    libv8-dev \
+    software-properties-common \
+    libharfbuzz-dev \
+    librsvg2-dev \
+    libproj-dev \
+    libbz2-dev \
+    liblzma-dev \
+    zlib1g-dev \
+    libfribidi-dev \
+    python3-pip \
+    python3-dev \
+    cmake \
+    bedtools \
+    openjdk-8-jre-headless \
+    g++ \
+    libopenblas-base \
+    liblapack3 \
+    libgeos-dev \
+    pkg-config \
+    jags \
+    git-all \
+    libudunits2-dev \
+    libmagick++-dev \
+    libgdal-dev \
+    libhdf5-dev \
+    libpoppler-cpp-dev \
+    libfftw3-dev \
+    libglpk-dev \
+    libgmp-dev \
+    curl 
+
+  # Add a default CRAN mirror
+  #
+  # URL to Package Manager: https://packagemanager.posit.co/client/#/repos/cran/setup
+  #
+  echo "options(repos = c(CRAN = 'https://packagemanager.posit.co/cran/__linux__/focal/latest'))" >> /usr/lib/R/etc/Rprofile.site
+  #echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/lib/R/etc/Rprofile.site
+
+  # Install RStudio
+  apt-get install -y --no-install-recommends \
+    ca-certificates \
+    wget \
+    gdebi-core
+  wget \
+    --no-verbose \
+    -O rstudio-server.deb \
+    "https://download2.rstudio.org/server/focal/amd64/rstudio-server-2023.12.1-402-amd64.deb"
+  gdebi -n rstudio-server.deb
+  rm -f rstudio-server.deb
+
+  # Install MACS2 for ArchR and such
+  #pip install MACS2
+  pip install leidenalg
+  
+  # Enable copilot
+  echo "copilot-enabled=1" >> /etc/rstudio/rsession.conf
+
+  # Install R Packages into base R
+  #
+  # Deps
+  Rscript -e 'install.packages("BiocManager")'
+  Rscript -e 'install.packages("devtools")'
+  Rscript -e 'install.packages("remotes")'
+  
+
+  # Wanted packages
+  #Rscript -e 'devtools::install_version("Seurat", "4.4.0")'
+  #Rscript -e 'install.packages("Seurat")'
+  
+  Rscript -e 'BiocManager::install(c("miQC", "scater", "scDblFinder", "SingleCellExperiment"))'
+  Rscript -e 'devtools::install_version("tidyverse", "1.3.0")'
+  Rscript -e 'devtools::install_github("igordot/scooter")'
+  
+  Rscript -e 'install.packages(c("celldex", "clustree", "cowplot",
+                                  "data.table", "flexmix", "flextable",
+                                  "forcats", "fs", "future",
+                                  "GGally", "ggh4x", "ggplot2",
+                                  "ggpmisc", "ggrepel", "ggthemes",
+                                  "grid", "harmony", "igraph",
+                                  "irlba", "knitr", "leiden",
+                                  "optparse", "patchwork", "purrr",
+                                  "RColorBrewer", "RcppPlanc", "remotes",
+                                  "reshape2", "rliger", "rlist",
+                                  "R.utils", "SeuratObject", "SingleR",
+                                  "shiny", "SoupX", "stringr",
+                                  "tidytext", "tidyverse", "tinytex",
+                                  "yaml"
+                                  ))'
+
+  Rscript -e 'remotes::install_version("Seurat", "4.4.0", repos = c("https://satijalab.r-universe.dev", getOption("repos")))'
+
+  
+    
