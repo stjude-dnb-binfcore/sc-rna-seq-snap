@@ -37,6 +37,7 @@ cd /home/rstudio/sc-rna-seq-snap/analyses/<module_of_interest>
 
 ```
 ├── analyses
+|  ├── cellranger-analysis
 |  └── fastqc-analysis
 ├── figures
 ├── LICENSE
