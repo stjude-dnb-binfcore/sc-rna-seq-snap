@@ -1,7 +1,0 @@
-#!/bin/bash
-time=`date`
-name=${LSB_JOBNAME}
-echo "Online: name=${name} time=${time}" >> /research_jude/rgs01_jude/dept/DNB/core_operations/Bioinformatics/achroni/GitHub/pipeline-testing/sc-rna-seq-snap/analyses/cellranger-analysis/output.txt
-sleep 10
-echo "Done: name=${name}" >> /research_jude/rgs01_jude/dept/DNB/core_operations/Bioinformatics/achroni/GitHub/pipeline-testing/sc-rna-seq-snap/analyses/cellranger-analysis/output.txt
-bash /research_jude/rgs01_jude/dept/DNB/core_operations/Bioinformatics/achroni/GitHub/pipeline-testing/sc-rna-seq-snap/analyses/cellranger-analysis/j1.sh
