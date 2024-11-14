@@ -56,7 +56,7 @@ done
 
 
 # Submit job 1 - note no dependencies!
-bsub -P run_CellRanger -q standard -n 1 -R "rusage[mem=2GB]" -R "span[hosts=1]" -J j1 -o ${prefix}/j1.out -e ${prefix}/j1.err "singularity exec ${rootdir}/rstudio_4.4.0_seurat_4.4.0_latest.sif bash ${prefix}/j1.bsub"
+bsub -P run_CellRanger -q standard -n 1 -R "rusage[mem=2GB]" -R "span[hosts=1]" -J j1 -o ${prefix}/j1.out -e ${prefix}/j1.err "bash ${prefix}/j1.bsub"
 
 # Job 2 depend on the successful completion of job 1
 
