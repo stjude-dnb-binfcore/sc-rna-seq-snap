@@ -1,6 +1,6 @@
 # Pipeline for running and summarizing Cell Ranger count for single or multiple libraries for sc-/sn-RNA-Seq Analysis in 10X Genomics data
 
-## Usage
+## Usage within the container
 
 To run all the scripts in this module from the command line sequentially, use:
 

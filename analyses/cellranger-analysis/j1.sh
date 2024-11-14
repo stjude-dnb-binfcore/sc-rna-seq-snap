@@ -5,8 +5,8 @@ set -o pipefail
 
 ########################################################################
 # Load modules
-module load python/3.9.9
-module load cellranger/8.0.1
+#module load python/3.9.9
+#module load cellranger/8.0.1
 ########################################################################
 
 # Set up running directory
@@ -26,13 +26,16 @@ cellranger_parameters=$(cat ../../project_parameters.Config.yaml | grep 'cellran
 cellranger_parameters=${cellranger_parameters//\"/}  # Removes all double quotes
 echo "$cellranger_parameters"  # Output: This is a string with quotes.
 
+########################################################################
+# Read root path
+rootdir=$(realpath "./../..")
+echo "$rootdir"
 
 ########################################################################
 # Create directories to save output files to
 mkdir -p ./results/01_logs
 mkdir -p ./results/02_cellranger_count
 mkdir -p ./results/02_cellranger_count/${cellranger_parameters}
-echo "./results/02_cellranger_count/${cellranger_parameters}"
 
 ########################################################################
 # If your `project_metadata` is not in `*.txt` file format
@@ -41,8 +44,8 @@ cat "${metadata_dir}"/project_metadata.tsv | sed 's/,/\t/g' > ./input/project_me
 
 ########################################################################
 # Run CellRanger for all libraries
-python ./util/run_cellranger.py --file=./input/project_metadata.txt \
-                                --transcriptome=${genome_reference_path}  \
+singularity exec ${rootdir}/rstudio_4.4.0_seurat_4.4.0_latest.sif python3 ./util/run_cellranger.py --file=./input/project_metadata.txt \
+                                --transcriptome=${genome_reference_path} \
                                 --create_bam=true \
                                 --output_dir=./results/02_cellranger_count/${cellranger_parameters}/
                                 # --force_cells=8000                                
