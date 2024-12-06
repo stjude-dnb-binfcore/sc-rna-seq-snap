@@ -55,17 +55,30 @@ use_SoupX_filtering_summary_report: "NO" #set value for 05_run_summary_report.Rm
 use_scDblFinder_filtering_summary_report: "NO" #set value for 05_run_summary_report.Rmd
 
 # `./analyses/integrative-analysis`
-use_seurat_integration: 'YES'
-use_harmony_integration: 'NO'
-use_liger_integration: 'NO'
-integration_method: 'seurat' #options:'seurat', 'harmony', 'inmf'
+use_seurat_integration: "YES"
+use_harmony_integration: "NO"
+use_liger_integration: "NO"
+integration_method: "seurat" #options:"seurat", "harmony", "inmf"
 num_dim_seurat: 30
 num_dim_seurat_integration: 50
-big_data_value: FALSE #options:'TRUE' or 'FALSE'
+big_data_value: FALSE #options:"TRUE" or "FALSE"
 num_dim_harmony: 30
 n_neighbors_value: 20
-variable_value: 'ID'
+variable_value: "ID"
 reference_list_value: NULL
 PCA_Feature_List_value: NULL
 
+# `./analyses/cluster-cell-calling`
+future_globals_value_clustering_module: 1048576000 # 1048576000, 1000 * 1024^2
+resolution_clustering_module: "custom_multiple" # "custom_multiple", "default_multiple" or define value of resolution, e.g., 0.5
+integration_method_clustering_module: "harmony" # other options: "seurat", "harmony", "inmf"
+num_dim_clustering_module: 30 
+reduction_value_clustering_module: "harmony" # seurat: "pca"; harmony: "harmony"; liger: "inmf"
+resolution_list_clustering_module: c(0.1, 0.5, 1) # c(0.1, 0.5, 1); c(0.5); NULL; This can be a single or multiple resolutions or NULL; Initially, we use a list of multiple resolutions and then we run the module again with the single resolution that fits the data best. if no list is provided, then it will calculate the clusters by the default list
+resolution_list_default_clustering_module: c(0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+algorithm_value_clustering_module: 4 # Leiden algorthim
+
+resolution_find_markers: "default_multiple" # "custom_multiple", "default_multiple" or define value of resolution, e.g., 0.5
+resolution_list_find_markers: 0.1 # this will be the single resolution that fits the data the best
+n_value_find_markers: 10 # number of top genes to explore
 
