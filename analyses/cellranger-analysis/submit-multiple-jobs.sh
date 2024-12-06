@@ -7,12 +7,16 @@
 #BSUB -R "rusage[mem=2500]"
 #BSUB -o submit-multiple-jobs.out
 #BSUB -e submit-multiple-jobs.err
-#BSUB -cwd "./sc-rna-seq-snap/analyses/cellranger-analysis"
+#BSUB -cwd "."
 
 ########################################################################
-# Set up running directory
-prefix="./sc-rna-seq-snap/analyses/cellranger-analysis"
-cd "$(dirname "${BASH_SOURCE[0]}")" 
+# Read root path
+rootdir=$(realpath "./../..")
+echo "$rootdir" 
+
+########################################################################
+# Set up variables
+prefix="${rootdir}/analyses/cellranger-analysis"
 
 ########################################################################
 # Create directories to save output files to
@@ -49,6 +53,7 @@ for ((i=1; i<=2; i++)); do
     print_job "${prefix}/${output_file}" 10 > "${prefix}/${jobname}.bsub"
     echo "bash ${prefix}/${jobname}.sh" >> "${prefix}/${jobname}.bsub"
 done
+
 
 # Submit job 1 - note no dependencies!
 bsub -P run_CellRanger -q standard -n 1 -R "rusage[mem=2GB]" -R "span[hosts=1]" -J j1 -o ${prefix}/j1.out -e ${prefix}/j1.err "bash ${prefix}/j1.bsub"

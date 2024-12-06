@@ -7,12 +7,17 @@
 #BSUB -R "rusage[mem=2500]"
 #BSUB -o waiter.out
 #BSUB -e waiter.err
-#BSUB -cwd "./sc-rna-seq-snap/analyses/cellranger-analysis"
+#BSUB -cwd "."
+
+########################################################################
+# Read container path and file
+rootdir=$(realpath "./../..")
+echo "$rootdir" 
 
 ########################################################################
 # Set up variables
+prefix="${rootdir}/analyses/cellranger-analysis"
 queue="standard"
-prefix="./sc-rna-seq-snap/analyses/cellranger-analysis"
 
 ########################################################################
 # Function to check if there are any running jobs with the title pattern `ID.DST<some number here>`
@@ -27,6 +32,7 @@ check_jobs() {
         return 1  # Matching jobs found
     fi
 }
+ 
 
 # Loop until no matching jobs are found
 while true; do
