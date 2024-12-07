@@ -67,5 +67,5 @@ n_neighbors_value: 20
 variable_value: 'ID'
 reference_list_value: NULL
 PCA_Feature_List_value: NULL
-
+future_globals_value_integration_module: 20971520000 # Seurat: 20971520000, 2000 * 1024^2; Harmony: 1048576000, 1000 * 1024^2; Liger: 1048576000, 1000 * 1024^2
 
