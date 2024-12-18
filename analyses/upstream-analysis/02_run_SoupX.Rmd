@@ -280,7 +280,7 @@ We will summarize the estimated and removed background due to contamination per 
 
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
 tables1 <- contamination_summary
-cat("  \n<div align=\"center\", style=\"font-size:80%\">  \n")
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
 caption_value = "Summary of contamination fraction per sample"
 print(knitr::kable(tables1, align = "lcccc", caption = caption_value))
 cat("  \n</div>  \n")

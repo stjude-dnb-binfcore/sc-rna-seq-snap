@@ -357,7 +357,7 @@ write_tsv(cells_table, paste0(results_dir, "/", "number_of_cells_per_sample.tsv"
 
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
 tables1 <- cells_table
-cat("  \n<div align=\"center\", style=\"font-size:80%\">  \n")
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
 caption_value = "Summary of number of cells per sample at each QC step"
 print(knitr::kable(tables1, align = "lcccc", caption = caption_value))
 cat("  \n</div>  \n")
@@ -390,7 +390,7 @@ seurat_obj <- Process_Seurat(seurat_obj = seurat_obj, nfeatures_value = nfeature
 # Save output files
 
 ```{r save_seurat}
-#saveRDS(seurat_obj, file = paste0(results_dir, "/", "seurat_obj_merged_filtered.rds"))
+saveRDS(seurat_obj, file = paste0(results_dir, "/", "seurat_obj_merged_filtered.rds"))
 ```
 
 ```{r echo=FALSE}

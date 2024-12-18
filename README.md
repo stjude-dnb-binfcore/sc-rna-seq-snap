@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="figures/img/ScRNASeqSnap_logo.png" alt="ScRNASeqSnap repository logo" width="560px" />
+  <img src="figures/img/SCRNA_Logo_Primary.png" alt="ScRNASeqSnap repository logo" width="560px" />
 </p>
 <p align="center">
   <a href="https://www.repostatus.org/#active"><img src="https://www.repostatus.org/badges/latest/active.svg?style=for-the-badge" alt="The project has reached a stable, usable state and is being actively developed." /></a>
@@ -72,13 +72,21 @@ git pull
 
 ```
 ├── analyses
+|  ├── cell-contamination-removal-analysis
+|  ├── cell-types-annotation
 |  ├── cellranger-analysis
+|  ├── cluster-cell-calling
 |  ├── fastqc-analysis
+|  ├── integrative-analysis
+|  ├── README.md
 |  └── upstream-analysis
 ├── figures
 ├── LICENSE
 ├── project_parameters.Config.yaml
 ├── README.md
+├── run-container
+├── run-rstudio.sh
+├── run-terminal.sh
 └── SECURITY.md
 ```
 

@@ -299,7 +299,7 @@ multiqc_fastqc_df <- read.table(multiqc_fastqc_results_file, header = TRUE, sep 
 
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
 tables1 <- multiqc_general_stats_df
-cat("  \n<div style=\"font-size:80%\">  \n")
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
 print(knitr::kable(tables1,  align = "lcccc", caption = "General Statistics per sample"))
 cat("  \n</div>  \n")
 cat("  \n\\pagebreak  \n")
@@ -309,7 +309,7 @@ cat("  \n\\pagebreak  \n")
 
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
 tables1 <- multiqc_fastqc_df
-cat("  \n<div style=\"font-size:80%\">  \n")
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
 print(knitr::kable(tables1,  align = "lcccc", caption = "Summary FastQC per sample"))
 cat("  \n</div>  \n")
 cat("  \n\\pagebreak  \n")
@@ -330,7 +330,7 @@ cellranger_results_df <- readr::read_tsv(cellranger_results_file, guess_max = 10
 
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
 tables1 <- cellranger_results_df
-cat("  \n<div style=\"font-size:80%\">  \n")
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
 print(knitr::kable(tables1,  align = "lcccc", caption = "Summary of CellRanger QC per sample"))
 cat("  \n</div>  \n")
 cat("  \n\\pagebreak  \n")
@@ -371,7 +371,7 @@ Here, `r print_message`.
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
 if (use_SoupX_filtering == "YES"){
   tables1 <- contamination_summary
-  cat("  \n<div style=\"font-size:80%\">  \n")
+  cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
   print(knitr::kable(tables1,  align = "lcccc", caption = "Summary of contamination fraction per sample"))
   cat("  \n</div>  \n")
   cat("  \n\\pagebreak  \n")
@@ -421,7 +421,7 @@ Here, `r print_message`.
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
 if (use_scDblFinder_filtering == "YES"){
   tables1 <- doublets_metrics
-  cat("  \n<div style=\"font-size:80%\">  \n")
+  cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
   print(knitr::kable(tables1, align = "lcccc", caption = "Summary of doublets detection per sample"))
   cat("  \n</div>  \n")
   cat("  \n\\pagebreak  \n")
@@ -464,7 +464,7 @@ Filter_object_plots_file <- c(dir(path = Filter_object_plots_dir,  pattern = ".p
 
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
 tables1 <- cells_table
-cat("  \n<div style=\"font-size:80%\">  \n")
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
 print(knitr::kable(tables1, align = "lcccc", caption = "Summary of number of cells per sample at each QC step"))
 cat("  \n</div>  \n")
 cat("  \n\\pagebreak  \n")
