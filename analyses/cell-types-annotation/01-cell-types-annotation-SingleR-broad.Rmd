@@ -1,0 +1,398 @@
+---
+title: "Cell types annotation with SingleR using a broad resolution reference for sc-/sn-RNA-Seq Analysis in 10X Genomics data"
+author: "Antonia Chroni for SJCRH DNB_BINF_Core"
+papersize: a4
+fontsize: 11pt
+links-as-notes: true
+output:
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    df_print: paged
+    code_folding: hide
+    toc_depth: 2
+    highlight: tango
+    number_sections: TRUE
+  pdf_document:
+    toc: TRUE
+    highlight: tango
+    number_sections: TRUE
+    latex_engine: lualatex
+    keep_tex: FALSE
+    fig_caption: yes
+    fig_crop: no
+    fig_height: 2
+    fig_width: 3
+    toc_depth: 2
+always_allow_html: TRUE
+urlcolor: blue
+linkcolor: black
+citecolor: blue
+geometry: margin=1in
+header-includes: 
+  - \usepackage{titling}
+  - \usepackage{fancyhdr}
+  - \usepackage{graphicx}
+  - \usepackage{float}
+params:
+  data_file: '.'
+  input_data: '.'
+  integration_method: '.'
+  redution_value: '.' 
+  condition_value: '.'
+  use_min.diff.med: '.'
+  min.diff.med_value: '.'
+  root_dir: './'
+  PROJECT_NAME: '.'
+  PI_NAME: '.'
+  TASK_ID: '.'
+  PROJECT_LEAD_NAME: '.'
+  DEPARTMENT: '.'
+  LEAD_ANALYSTS: '.'
+  GROUP_LEAD: '.'
+  CONTACT_EMAIL: '.'
+  PIPELINE: '.'
+  START_DATE: '.'
+  COMPLETION_DATE: '.'
+---
+```{r logo-file, echo=FALSE}
+attach(params)
+# Insert logo on the top of the html report 
+logo_file <- file.path(root_dir, "figures", "img", "DNB-BINF-Core-logo.png")
+htmltools::img(src = knitr::image_uri(logo_file), alt = "logo", style = "position:absolute; top:0; left:0; padding:0px; height:120px;")
+detach(params)
+```
+
+\addtolength{\headheight}{2.0cm} 
+\fancypagestyle{plain}{} 
+\thispagestyle{fancy}
+\fancyhead[L]{\includegraphics[height=120px]{`r logo_file`}}
+\renewcommand{\headrulewidth}{0pt}
+
+<style type="text/css">
+:root {--DNB_BINF_Core_color: #00427B;}
+
+h1.title {margin-top: 130px;
+          margin-bottom: 25px;
+          font-size: 36px;}
+
+.nobullet li {list-style-type: none;}
+
+.reporthead {font-size: 20px;}
+
+body { /* Normal */
+  font-size: 16px;
+  font-style: Arial, Helvetica, sans-serif;}
+
+h1 {color: var(--DNB_BINF_Core_color);
+    font-size: 28px;
+    margin-top: 50px;}
+
+h2 {color: var(--DNB_BINF_Core_color);
+    font-size: 20px;}
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+  background-color: var(--DNB_BINF_Core_color);}
+</style>
+
+<a href="https://wiki.stjude.org/display/CAB">
+
+</a>
+
+\pagebreak
+
+<div class="reporthead"><br/>
+**PI: `r params$PI_NAME`**  
+**Project: `r params$PROJECT_NAME`**  
+Task: `r params$TASK_ID`  
+Project Lead(s): `r params$PROJECT_LEAD_NAME`  
+Department: `r params$DEPARTMENT`  
+
+<br />  
+
+DNB Bioinformatics Core Analysis Team: 
+<br />  
+
+>**Lead Analyst(s): `r params$LEAD_ANALYSTS`**  
+>Group Lead: `r params$GROUP_LEAD`  
+<br />
+>**Contact E-mail:** `r params$CONTACT_EMAIL`  
+>**DNB Bioinformatics Core Pipeline:** `r params$PIPELINE`  
+
+Date started: `r params$START_DATE`  
+Date completed:  `r params$COMPLETION_DATE`  
+Report generated: `r format(Sys.time(), '%H:%M:%S %Z %m/%d/%Y')` \
+
+Reviewed by: _____________________   Date: ____________ \
+</div>
+\pagebreak
+  
+# Information about this notebook
+
+For more information, see [SingleR](https://bioconductor.org/packages/release/bioc/vignettes/SingleR/inst/doc/SingleR.html) and the [SingleR book](https://bioconductor.org/books/release/SingleRBook/introduction.html).
+
+# Set up
+```{r load-library, echo=TRUE}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(Seurat)
+  library(SingleR)
+  library(scooter)
+  library(knitr)
+  }) 
+```
+
+```{r echo=FALSE, warning=FALSE}
+opts_chunk$set(fig.align='center',
+               external=TRUE,
+               echo=FALSE,
+               warning=FALSE,
+               fig.pos='H')
+a4width <- 8.3
+a4height <- 11.7
+```
+
+# Directories and paths to file Inputs/Outputs
+
+```{r set-dir-and-file-names, echo=TRUE}
+attach(params)
+analysis_dir <- file.path(root_dir, "analyses", "cell-types-annotation") 
+
+# Input files
+cell_types_palette_file <- file.path(root_dir, "figures", "palettes", "cell_types_palette.tsv")
+
+# Create results_dir
+module_results_dir <- file.path(analysis_dir, "results")
+if (!dir.exists(module_results_dir)) {
+  dir.create(module_results_dir)}
+
+results_dir <- file.path(module_results_dir, "01_cell_types_annotation_SingleR")
+if (!dir.exists(results_dir)) {
+  dir.create(results_dir)}
+
+broad_results_dir <- file.path(results_dir, "01_annotations_broad") 
+if (!dir.exists(broad_results_dir)) {
+  dir.create(broad_results_dir)}
+
+# Create plots directory
+module_plots_dir <- file.path(analysis_dir, "plots") 
+if (!dir.exists(module_plots_dir)) {
+  dir.create(module_plots_dir)}
+
+plots_dir <- file.path(module_plots_dir, "01_cell_types_annotation_SingleR") 
+if (!dir.exists(plots_dir)) {
+  dir.create(plots_dir)}
+
+broad_plots_dir <- file.path(plots_dir, "01_annotations_broad") 
+if (!dir.exists(broad_plots_dir)) {
+  dir.create(broad_plots_dir)}
+
+source(paste0(root_dir, "/figures/scripts/theme_plot.R"))
+source(paste0(analysis_dir, "/util/function-cell-type-fractions.R"))
+```
+
+# Read seurat object
+First, we will use the `seurat_obj_integrated_{integration_method}.rds` object as generated from the pipeline in the `input_data` module. This object contains all samples of the project integrated by the integration method of choice as defined in the `params` and the clusters. 
+
+```{r read-object, echo=TRUE}
+seurat_obj <- readRDS(data_file)
+```
+
+# Cell types annotation with SingleR
+
+SingleR is an automatic annotation method for single-cell RNA sequencing data developed by [Aran et al. 2019](https://www.nature.com/articles/s41590-018-0276-y). Given a reference dataset of samples (single-cell or bulk) with known labels, it labels new cells from a test dataset based on similarity to the reference. Thus, the burden of manually interpreting clusters and defining marker genes only has to be done once, for the reference dataset, and this biological knowledge can be propagated to new datasets in an automated manner.
+
+Here, we use a reference to annotate each cell in the object via the SingleR() function. This identifies marker genes from the reference and uses them to compute assignment scores (based on the Spearman correlation across markers) for each cell in the test dataset against each label in the reference. The label with the highest score is the assigned to the test cell, possibly with further fine-tuning to resolve closely related labels.
+
+In addition to the labels, SingleR() returns a number of helpful diagnostics about the annotation process that can be used to determine whether the assignments are appropriate. Unambiguous assignments corroborated by expression of canonical markers add confidence to the results; conversely, low-confidence assignments can be pruned out to avoid adding noise to downstream analyses. Here, we will also perform some common sanity checks for that.
+
+## Broad cell type annotations
+
+```{r identify-cell-types-broad, echo=TRUE}
+# label.main - Broad cell type annotation
+seurat_obj_broad <- SingleR(test = seurat_obj@assays[["RNA"]]@data, ref = bpe, labels = bpe$label.main)
+
+# Add metadata
+new.data <- seurat_obj_broad %>%
+  as.data.frame() %>%
+  add_column(project = "project")
+seurat_obj <- AddMetaData(seurat_obj, metadata = new.data)
+seurat_obj@meta.data$singler.broad <- seurat_obj_broad$pruned.labels
+#head(seurat_obj@meta.data)
+
+# Create table
+summary_table_pruned <- table(cell_type_broad = seurat_obj@meta.data$singler.broad) %>% #pruned labels
+  as.data.frame() %>% 
+  mutate(cells_number_pruned = Freq) %>% 
+  dplyr::select(-Freq)
+
+summary_table <- table(cell_type_broad = seurat_obj@meta.data$labels) %>% # all labels
+  as.data.frame() %>% 
+  mutate(cells_number_all = Freq) %>% 
+  dplyr::select(-Freq) %>%
+  left_join(summary_table_pruned)
+```
+
+We will check and compare the pruned labels and the initial labels by summarizing the identified broad cell type annotations.
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+tables1 <- summary_table
+cat("  \n<div align=\"center\", style=\"font-size:80%\">  \n")
+print(knitr::kable(tables1, caption = "Broad cell type annotations before vs after label pruning"))
+cat("  \n</div>  \n")
+cat("  \n\\pagebreak  \n")
+```
+
+# Annotation diagnostics
+
+## Based on the scores within cells
+The most obvious diagnostic reported by SingleR() is the nested matrix of per-cell scores in the scores field. This contains the correlation-based scores prior to any fine-tuning for each cell (row) and reference label (column). Ideally, we would see unambiguous assignments where, for any given cell, one label’s score is clearly larger than the others.
+
+plotScoreHeatmap() displays the scores for all cells across all reference labels, which allows users to inspect the confidence of the predicted labels across the dataset. Ideally, each cell (i.e., column of the heatmap) should have one score that is obviously larger than the rest, indicating that it is unambiguously assigned to a single label. A spread of similar scores for a given cell indicates that the assignment is uncertain, though this may be acceptable if the uncertainty is distributed across similar cell types that cannot be easily resolved.
+
+```{r plotScoreHeatmap-broad, fig.width = 15, fig.height = 15, fig.fullwidth = TRUE, echo=TRUE}
+print(plotScoreHeatmap(seurat_obj_broad))
+```
+
+The scores matrix has several caveats associated with its interpretation. Only the pre-tuned scores are stored in this matrix, as scores after fine-tuning are not comparable across all labels. This means that the label with the highest score for a cell may not be the cell’s final label if fine-tuning is applied. Moreover, the magnitude of differences in the scores has no clear interpretation; indeed, plotScoreHeatmap() dispenses with any faithful representation of the scores and instead adjusts the values to highlight any differences between labels within each cell.
+
+## Based on the deltas across cells
+Another diagnostic is based on the per-cell “deltas”, i.e., the difference between the score for the assigned label and the median across all labels for each cell. 
+
+SingleR() will set a threshold on the delta for each label using an outlier-based strategy. Specifically, we identify cells with deltas that are small outliers relative to the deltas of other cells with the same label. This assumes that, for any given label, most cells assigned to that label are correct. We focus on outliers to avoid difficulties with setting a fixed threshold, especially given that the magnitudes of the deltas are about as uninterpretable as the scores themselves. Pruned labels are reported in the pruned.labels field where low-quality assignments are replaced with NA.
+
+If fine-tuning was performed, we can apply an even more stringent filter based on the difference between the highest and second-highest scores after fine-tuning. Cells will only pass the filter if they are assigned to a label that is clearly distinguishable from any other label. In practice, this approach tends to be too conservative as assignments involving closely related labels are heavily penalized. This can be defined as `use_min.diff.med` in `params`.
+
+The pruneScores() function will remove potentially poor-quality or ambiguous assignments based on the deltas. The minimum threshold on the deltas is defined using an outlier-based approach that accounts for differences in the scale of the correlations in various contexts - see ?pruneScores for more details. SingleR() will also report the pruned scores automatically in the pruned.labels field where low-quality assignments are replaced with NA.
+
+```{r}
+if (use_min.diff.med == "YES"){
+  to.remove <- pruneScores(seurat_obj, min.diff.med = min.diff.med_value)
+} else {
+  to.remove <- is.na(seurat_obj@meta.data$pruned.labels)
+}
+  
+# Create table
+summary_table <- table(cell_type_broad = seurat_obj@meta.data$labels, Removed = to.remove) %>%
+  as.data.frame() %>% 
+  pivot_wider(names_from = "Removed", values_from = "Freq") 
+```
+
+We will summarize the identified broad cell type annotations to be removed.
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+tables1 <- summary_table
+cat("  \n<div align=\"center\", style=\"font-size:80%\">  \n")
+print(knitr::kable(tables1, caption = "Broad cell type annotations to be removed"))
+cat("  \n</div>  \n")
+cat("  \n\\pagebreak  \n")
+```
+
+Low deltas indicate that the assignment is uncertain, which is especially relevant if the cell’s true label does not exist in the reference. This entire process can be visualized ans inspected using the plotScoreDistribution() function, which displays the per-label distribution of the deltas across cells.
+
+```{r plotDeltaDistribution-broad, fig.width = 15, fig.height = 15, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(broad_plots_dir, "/", glue::glue("plotDeltaDistribution_broad.png"))
+print(plotDeltaDistribution(seurat_obj_broad, ncol = 3))
+ggsave(file = name, width = 15, height = 15, device = "png")
+```
+
+# Remove cells with low-quality assignments of cell type annotations
+
+```{r echo=TRUE}
+# cells to remove
+cells_to_remove <- length(colnames(seurat_obj)[which(is.na(seurat_obj@meta.data$singler.broad))])
+
+# Remove cells from the object
+seurat_obj@meta.data <- seurat_obj@meta.data %>%
+  filter(!is.na(singler.broad))
+
+# cells to keep
+cells_to_keep <- length(seurat_obj@meta.data$singler.broad)
+```
+
+Here, we will remove `r cells_to_remove` cells due to low-quality assignments of cell type annotations. We will include the remaining `r cells_to_keep` cells in the following plots.
+
+# Plotting cell type annotations
+
+```{r define-parameters-for-plots, echo=TRUE}
+# Read color palette
+palette_df <- readr::read_tsv(cell_types_palette_file, guess_max = 100000, show_col_types = FALSE) 
+
+# Define and order palette
+palette <- palette_df$hex_codes
+names(palette) <- palette_df$cell_type_names
+```
+
+## Broad cell type annotations: before vs after integration
+
+```{r plot-singler-comparison-broad-before-vs-after-integration, fig.width = 15, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(broad_plots_dir, "/", glue::glue("plot-singler-comparison-broad-before-vs-after-integration.png"))
+p1.before.broad <- DimPlot(seurat_obj, group.by = 'singler.broad', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle("Broad cell type annotations: merged") 
+p1.after.broad <- DimPlot(seurat_obj, reduction = redution_value, group.by = 'singler.broad', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle(glue::glue("Broad cell type annotations: {integration_method} integration")) 
+print(p1.before.broad + p1.after.broad)
+ggsave(file = name, width = 15, height = 6, device = "png")
+```
+
+```{r plot-cell-types-broad-project-fractions, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(broad_plots_dir, "/", glue::glue("plot-singler-broad-project-fractions.png"))
+p.project <- print(cell_type_fractions_broad(df = seurat_obj@meta.data,
+                                             condition = "project",
+                                             color_df = palette,
+                                             title_value = "Broad"))
+ggsave(file = name, width = 6, height = 5, device = "png")
+```
+
+## Broad cell type annotations and fractions per ID
+
+```{r plot-cell-types-broad-ID, fig.width = 25, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(broad_plots_dir, "/", glue::glue("plot-singler-broad-ID.png"))
+p1.after.broad <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = "ID", group.by = 'singler.broad', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle(glue::glue("Broad cell type annotations: {integration_method} integration")))
+ggsave(file = name, width = 25, height = 6, device = "png")
+```
+
+```{r plot-cell-types-broad-ID-fractions, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(broad_plots_dir, "/", glue::glue("plot-singler-broad-ID-fractions.png"))
+p.ID <- print(cell_type_fractions_broad(df = seurat_obj@meta.data,
+                                  condition = "ID",
+                                  color_df = palette,
+                                  title_value = "Broad"))
+ggsave(file = name, width = 6, height = 5, device = "png")
+```
+
+## Broad cell type annotations and fractions per condition
+
+```{r plot-cell-types-broad-condition, fig.width = 15, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(broad_plots_dir, "/", glue::glue("plot-singler-broad-condition.png"))
+p1.after.broad <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = condition_value, group.by = 'singler.broad', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle(glue::glue("Broad cell type annotations: {integration_method} integration")))
+ggsave(file = name, width = 15, height = 6, device = "png")
+```
+
+```{r plot-cell-types-broad-condition-fractions, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(broad_plots_dir, "/", glue::glue("plot-singler-broad-condition-fractions.png"))
+p.condition <- print(cell_type_fractions_broad(df = seurat_obj@meta.data,
+                                         condition = condition_value,
+                                         color_df = palette,
+                                         title_value = "Broad"))
+ggsave(file = name, width = 6, height = 5, device = "png")
+```
+
+# Save output files
+
+```{r save-output, echo=TRUE}
+reduction_names <- c(paste0("umap")) # Export the reductions to Seurat
+metadata <- as_data_frame_seurat(seurat_obj, reduction = reduction_names, metadata = TRUE)
+  
+write_tsv(metadata, file = paste0(broad_results_dir, "/", "metadata", ".tsv")) # Save metadata
+saveRDS(seurat_obj, file = paste0(broad_results_dir, "/", "seurat_obj_SingleR_broad.rds"))
+```
+
+```{r echo=FALSE}
+detach(params)
+```
+\pagebreak
+
+# Session Info
+
+```{r echo=FALSE}
+sessionInfo()
+```
