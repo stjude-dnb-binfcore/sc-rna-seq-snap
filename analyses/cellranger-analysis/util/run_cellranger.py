@@ -44,7 +44,7 @@ args = parser.parse_args()
 #If all info for a single sample command are enter, then submit a single cellranger count command to the HPC
 if args.id != None and args.sample != None and args.fastqs != None and args.transcriptome != None:
 	
-	SingleCommand = 'python ./util/run_CellRanger.py' + args.id + ' -q standard -o ./results/01_logs/' + args.id + '.out -e ./results/01_logs/' + args.id + '.err -n 4 -R "rusage[mem=4000] span[hosts=1]" ' + 'cellranger count --id=' + args.id + ' --fastqs=' + args.fastqs + ' --sample=' + args.sample + ' --transcriptome=' + args.transcriptome + ' --create-bam=' + args.create_bam + ' --jobmode=lsf '
+	SingleCommand = 'bsub -P CellRangerCount -J CellRangerCount_' + args.id + ' -q standard -o ./results/01_logs/' + args.id + '.out -e ./results/01_logs/' + args.id + '.err -n 4 -R "rusage[mem=4000] span[hosts=1]" ' + 'cellranger count --id=' + args.id + ' --fastqs=' + args.fastqs + ' --sample=' + args.sample + ' --transcriptome=' + args.transcriptome + ' --create-bam=' + args.create_bam + ' --jobmode=lsf '
 	
 	if args.lanes != None:
 		SingleCommand = SingleCommand + '--lanes ' + str(args.lanes) + ' '
