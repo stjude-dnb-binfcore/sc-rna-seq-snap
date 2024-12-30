@@ -137,27 +137,16 @@ RUN wget -P /tmp https://download2.rstudio.org/server/jammy/amd64/rstudio-server
 
 # Install CellRanger v8.0.1
 # You will need to download the desired version from here: https://www.10xgenomics.com/support/software/cell-ranger/downloads/previous-versions
-# Save on your `/tmp/` locally
-# You should also replace the link with the one from the most recent download
-RUN curl -o /tmp/cellranger-8.0.1.tar.gz "https://cf.10xgenomics.com/releases/cell-exp/cellranger-8.0.1.tar.gz?Expires=1733244151&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA&Signature=Oev2Ml0L0ns0vQRE8ToqCFLGQIJjh~~2dVe1y6C7RvhnSsIViSBTyz1vlKgELLqgo1q8mvb-X1qsEZWXMwVmHzifnO6UseqQxDo2qKbfF9FMwCorTXtBcFiM~irstt2JqKEp9-LJ6zLLAwyXPDJPGvPHcnhp08Wt1S7HN-RWSdWGqbNeFXWjVSZeqG3OooUnB4S3Ykq5aJW9tSUBrCo6s2sR7mC-a0uwf-aawbXSSv3cvnTaAeyuMEFtH7G8QZnOmCCYlNG9~JtomynscwBvf3Hax1IVF8x4kEmCbdaKmBFrPqN8ifVz-FrsnXm3K9Smb2ArkKg6Ur-kIeJ-Q7FK4A__"
-RUN tar -xvzf /tmp/cellranger-8.0.1.tar.gz -C /opt
-
-# Install pip for Python 3.9
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
+# Save on the same folder where Dockerfile is located
+# You should also replace the link with the one from the most recent download as the url expires after 1-2 days
+RUN curl -o cellranger-8.0.1.tar.gz "https://cf.10xgenomics.com/releases/cell-exp/cellranger-8.0.1.tar.gz?Expires=1733387810&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA&Signature=EEQ85~Ek1~O32n3Og5thXwhUy5WkoMODkh3ssf~WyRQ47sGkMs-uW6SBRRoDVxyQMZzWzNBqpxgesMvNCTxJpPQogB9vK~6rUlIPtwxdoeG-HdWjQvrOZNw5wrUSt3iITZiI9HFrqgakuNz0d79TBX4aBUsLv4~FAqtswhBeP1-nRr5t2U5BDVWSQjW-55mZiTI6gADSSO4PXzYYCy9PTS9RVQ65tqtRWl~u8jmtcdJkzUKoTikHp5ipoLKkwMva1ZGTX6X9MW1Ukanpw2Jv1fKSI0rO9NfLjea19QUgC6jXzZEHO21UPc-pLJv2UrH6lYR~AaAN-MG4p7n5mIjSRQ__"
+RUN tar -xvzf cellranger-8.0.1.tar.gz -C /opt
 
 # Set default CRAN mirror
 RUN echo "options(repos = c(CRAN = 'https://packagemanager.posit.co/cran/__linux__/jammy/latest'))" >> /usr/local/lib/R/etc/Rprofile.site
 
-# Install Python packages
-RUN pip3 install MACS2 leidenalg multiqc
-
 # Enable RStudio Copilot
 RUN echo "copilot-enabled=1" >> /etc/rstudio/rsession.conf
-
-# Install necessary system libraries for HDF5 
-# The hdf5r package depends on the underlying HDF5 C libraries. 
-RUN apt-get update && \
-    apt-get install -y libhdf5-dev
 
 # Install R packages
 RUN Rscript -e 'install.packages("usethis")' && \
@@ -170,12 +159,6 @@ RUN Rscript -e 'devtools::install_github("welch-lab/RcppPlanc")'
 RUN Rscript -e 'devtools::install_github("kharchenkolab/numbat")'
 RUN Rscript -e 'devtools::install_github("welch-lab/liger")'
 
-#RUN Rscript -e 'install.packages("hdf5r")'
-RUN Rscript -e 'install.packages("hdf5r", type = "source")'
-
-#You can also add the following line to your Dockerfile to ensure the library path is set correctly:
-ENV LD_LIBRARY_PATH=/path/to/hdf5/libs:$LD_LIBRARY_PATH
-
 RUN Rscript -e 'install.packages(c("clustree", "cowplot", "data.table"))'
 RUN Rscript -e 'install.packages(c("flexmix", "flextable", "forcats"))'
 RUN Rscript -e 'install.packages(c("fs", "future", "GGally"))'
@@ -185,12 +168,39 @@ RUN Rscript -e 'install.packages(c("harmony", "igraph", "irlba"))'
 RUN Rscript -e 'install.packages(c("knitr", "optparse"))'
 RUN Rscript -e 'install.packages(c("patchwork", "purrr", "RColorBrewer"))'
 RUN Rscript -e 'install.packages(c("remotes", "reshape2", "rliger"))'
-RUN Rscript -e 'install.packages(c("rlist", "R.utils", "SeuratObject"))'
+RUN Rscript -e 'install.packages(c("rlist", "R.utils", "SeuratObject", "SeuratWrappers"))'
 RUN Rscript -e 'install.packages(c("shiny", "SoupX", "stringr"))'
 RUN Rscript -e 'install.packages(c("tidytext", "tidyverse", "tinytex", "yaml"))'
 
+# Install necessary system libraries for HDF5 
+# The hdf5r package depends on the underlying HDF5 C libraries. 
+# apt-get update is used to update the package list.
+# apt-get install -y installs the required packages. You can install multiple packages in one command (just separate them with spaces).
+# rm -rf /var/lib/apt/lists/* removes the apt cache to keep the image size small.
+RUN apt-get update && \
+    apt-get install -y \
+    apt-get install -y libhdf5-dev libssl1.1 && \
+    rm -rf /var/lib/apt/lists/*
+    
+#You can also add the following line to your Dockerfile to ensure the library path is set correctly:
+#ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/usr/R/x86_64-pc-linux-gnu-library/4.4/rtracklayer/libs/hdf5/lib
+
+#RUN Rscript -e 'install.packages("hdf5r")'
+RUN Rscript -e 'install.packages("hdf5r", type = "source")'
+#RUN Rscript -e 'install.packages("hdf5r", configure.args="--with-hdf5=/usr/bin/h5cc")'
+
 # Seurat
 RUN Rscript -e 'remotes::install_version("Seurat", "4.4.0", repos = c("https://packagemanager.posit.co/cran/__linux__/jammy/latest"))'
+
+# Install pip for Python 3.9
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
+
+# Install Python packages
+RUN pip3 install MACS2 leidenalg multiqc
+
+#inside your container script
+mkdir /lsf_bin
+ENV export PATH=$PATH:/lsf_bin
 
 # Set the entrypoint to rserver
 ENTRYPOINT ["/init"]
