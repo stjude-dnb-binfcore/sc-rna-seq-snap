@@ -1,239 +1,160 @@
-BootStrap: docker
-From: ubuntu:20.04
+#
+# Combined build stages
+#
+# singularity build --fakeroot combined.sif combined.def 2>&1 | tee combined.build_log.txt
+# singularity build --fakeroot --sandbox /scratch_local/sandbox combined.sif
+# singularity shell --fakeroot --writable /scratch_local/sandbox
+#
+# bsub -R "rusage[mem=64GB]" singularity build --fakeroot combined.sif combined.def
+#
+# This full build can take around one hour, but may be somewhat faster if run
+# with multiple CPUs as mksquashfs seems to be able to use multiple cores.
+#
 
-%runscript
-  #
-  # This is what runs when you run "singularity run rstudio_4.4.0.sif"
-  #
-  exec rserver "${@}"
+# https://hub.docker.com/layers/rocker/rstudio/4.4.0/images/sha256-d3ab1f3f4e0d7f5db50a60df40b142a32463ecae279d9a463813f6d92bac36a7
 
-%environment
-  #
-  # You can modify environment variables here if you download software
-  #
-  export PATH=/usr/lib/rstudio-server/bin:/opt/cellranger-8.0.1/bin:${PATH}
-  export LD_LIBRARY_PATH=/opt/cellranger-8.0.1/lib:${LD_LIBRARY_PATH}
-  export TEXLIVE_INSTALL_NO_CONTEXT_CACHE=1
-  export NOPERLDOC=1
+Bootstrap: docker
+From: rocker/rstudio:4.4.0
 
 %post
-  apt-get update
-  apt-get install -y --no-install-recommends \
-    locales \
-    aptitude \
-    gnupg \
-    software-properties-common \
-    dirmngr 
+    #
+    # Ensure core system software is up to date and ready
+    #
 
-  # No need to modify
-  # Install apptainer
-  add-apt-repository -y ppa:apptainer/ppa
-  apt update
-  apt install -y apptainer-suid
+    apt-get -y update
+    apt-get -y install gdebi-core python3-pip python3-venv
 
-  # No need to modify
-  # Configure default locale
-  echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
-  locale-gen en_US.utf8
-  /usr/sbin/update-locale LANG=en_US.UTF-8
-  export LC_ALL=en_US.UTF-8
-  export LANG=en_US.UTF-8
+    #
+    # Set up virtual env; we need this to keep the existing numpy/scipy/pandas
+    # versions cohesive; otherwise, we get mistmatches with e.g. multiqc in the
+    # analysis pipelines. After activating the virtual env, we should have:
+    #
+    # (container-venv) Apptainer> pip3 list
+    # Package         Version
+    # --------------- -----------
+    # numpy           2.2.1
+    # pandas          2.2.3
+    # scipy           1.14.1
+    #
+    # Note: need to "source" the virtual env activate script, not just run it.
+    #
 
-  # No need to modify
-  # Installing R itself, and not RStudio
-  #echo "deb https://cran.r-project.org/bin/linux/ubuntu focal-cran40/" > /etc/apt/sources.list.d/r.list
-  apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
-  add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/"
-  add-apt-repository "deb http://mirror.math.princeton.edu/pub/ubuntu/ focal-backports main restricted universe"
-  apt-get update --fix-missing
+    python3 -m venv /opt/container-venv
+    . /opt/container-venv/bin/activate
 
-  apt-cache policy r-base
+    # Avoids BiocManager errors in Rhtslib; "fatal error: lzma.h: No such file or directory" etc
+    apt-get -y install liblzma-dev libbz2-dev
 
-  # Install dependencies.
-  #
-  # External packages you want to add go here
-  # Google: "apt-get install <some_package> ubuntu 20.04"
-  # Packages you install with apt-get do not have to be added to environment variables
-  #
-  # These all are necessary to run "install.packages()" inside the container
-  #
-  aptitude install -y \
-    r-base=4.4.0-1.2004.0 \
-    r-base-core=4.4.0-1.2004.0 \
-    r-base-dev=4.4.0-1.2004.0 \
-    r-recommended \
-    r-base-html \
-    r-doc-html \
-    r-cran-magick \
-    libcurl4-openssl-dev \
-    libssl-dev \
-    libxml2-dev \
-    libcairo2-dev \
-    libxt-dev \
-    libpng-dev \
-    libfreetype6-dev \
-    libtiff5-dev \
-    libjpeg-dev \
-    libgsl-dev \
-    librsvg2-dev \
-    libnode-dev \
-    libv8-dev \
-    software-properties-common \
-    libharfbuzz-dev \
-    librsvg2-dev \
-    libproj-dev \
-    libbz2-dev \
-    liblzma-dev \
-    zlib1g-dev \
-    libfribidi-dev \
-    python3-pip \
-    python3-dev \
-    cmake \
-    bedtools \
-    openjdk-8-jre-headless \
-    g++ \
-    libopenblas-base \
-    liblapack3 \
-    libgeos-dev \
-    pkg-config \
-    jags \
-    git-all \
-    libudunits2-dev \
-    libmagick++-dev \
-    libgdal-dev \
-    libhdf5-dev \
-    libpoppler-cpp-dev \
-    libfftw3-dev \
-    libglpk-dev \
-    libgmp-dev \
-    libgit2-dev \
-    curl \
-    build-essential \
-    autoconf \
-    automake \
-    flex \
-    bison \
-    fastqc \
-    gdebi-core && \
-  apt-get clean && \
-  rm -rf /var/lib/apt/lists/*
+    # Avoids BiocManager errors in bluster; "libglpk.so.40: cannot open shared object file: No such file or directory"
+    apt-get -y install libglpk-dev
 
+    # Avoids BiocManager errors in infercnv: "libjags.so.4: cannot open shared object file: No such file or directory"
+    apt-get -y install r-cran-rjags
 
-   # Remove any existing version of Pandoc (if installed)
-   apt-get update && apt-get remove -y pandoc
+    # Avoids errors in "Rscript -e 'devtools::install_github("welch-lab/RcppPlanc")'"
+    apt-get -y install cmake libhdf5-dev
 
-   # Install necessary tools for downloading and installing the .deb package
-    apt-get install -y \
-    wget \
-    gdebi-core \
-    curl \
-    libssl-dev \
-    libcurl4-openssl-dev \
-    zlib1g-dev
+    # Needed for pipeline stages
+    apt-get install -y openjdk-8-jre-headless fastqc multiqc curl
 
-# Install pandoc/1.19.2.1 to avoid conflixt with texlive 
-# Set the Pandoc version and the URL for the release
- PANDOC_VERSION="1.19.2.1"
- PANDOC_URL="https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb"
+    # Needed for the cluster-cell-calling stage etc
+    pip3 install pandas leidenalg
 
-    # Download and install Pandoc .deb package
-    wget ${PANDOC_URL} -O /tmp/pandoc.deb \
-    && gdebi -n /tmp/pandoc.deb \
-    && rm /tmp/pandoc.deb
+    #
+    # Use latest R sources to avoid e.g. "matrixStats" version too low for "MatrixGenerics"
+    #
+
+    echo "options(repos = c(CRAN = 'https://packagemanager.posit.co/cran/__linux__/jammy/latest'))" >> /usr/local/lib/R/etc/Rprofile.site
+
+    #
+    # Install required R package managers
+    #
+
+    Rscript -e 'install.packages("usethis")'
+    Rscript -e 'install.packages(c("BiocManager", "devtools", "remotes"))'
+
+    #
+    # This is a fairly time consuming section; lots built from source.
+    #
+
+    Rscript -e 'BiocManager::install(c("miQC"))'
+    Rscript -e 'BiocManager::install(c("scater"))'
+    Rscript -e 'BiocManager::install(c("scDblFinder"))'
+    Rscript -e 'BiocManager::install(c("celldex"))'
+    Rscript -e 'BiocManager::install(c("SingleR"))'
+    Rscript -e 'BiocManager::install(c("infercnv"))'
+
+    #
+    # Some github-based R modules; RcppPlanc needs previously installed cmake
+    # and libhdf5-dev
+    #
+
+    Rscript -e 'devtools::install_github("igordot/scooter")'
+    Rscript -e 'devtools::install_github("welch-lab/RcppPlanc")'
+    Rscript -e 'devtools::install_github("kharchenkolab/numbat")'
+    Rscript -e 'devtools::install_github("welch-lab/liger")'
+
+    #
+    # Removed "grid" from installs as triggered the warning message:
+    # "package 'grid' is a base package, and should not be updated"
+    # "grid" was then subsequently ignored by the installer anyway.
+    #
+
+    Rscript -e 'install.packages(c("clustree", "cowplot", "data.table"))'
+    Rscript -e 'install.packages(c("flexmix", "flextable", "forcats"))'
+    Rscript -e 'install.packages(c("fs", "future", "GGally"))'
+    Rscript -e 'install.packages(c("ggh4x", "ggplot2", "ggpmisc"))'
+    Rscript -e 'install.packages(c("ggrepel", "ggthemes"))'
+    Rscript -e 'install.packages(c("harmony", "igraph", "irlba"))'
+    Rscript -e 'install.packages(c("knitr", "optparse"))'
+    Rscript -e 'install.packages(c("patchwork", "purrr", "RColorBrewer"))'
+    Rscript -e 'install.packages(c("remotes", "reshape2", "rliger"))'
+    Rscript -e 'install.packages(c("rlist", "R.utils", "SeuratObject"))'
+    Rscript -e 'install.packages(c("shiny", "SoupX", "stringr"))'
+    Rscript -e 'install.packages(c("tidytext", "tidyverse", "tinytex", "yaml"))'
+
+    # Prevent errors in dependencies for the following
+    apt-get -y update
+
+    #
+    # Was Rscript -e 'remotes::install_version("Seurat", "4.4.0", repos = c("https://packagemanager.posit.co/cran/__linux__/jammy/latest"))'
+    # but we specified the latest CRAN repo earlier so repo URL is redundant.
+    # Default version of Seurat is higher than 4.4.0 and is incompatible with
+    # input object format so install specific version. We also need to fix the
+    # SeuratWrappers, as the existing version is incompatible with 4.4.0:
+    #
+    # https://github.com/satijalab/seurat-wrappers/issues/169
+    #
+    # We need to install the Seurat wrappers first, as otherwise they will
+    # override the install of Seurat 4.4.0 with a later version of Seurat.
+    #
+    Rscript -e 'remotes::install_github("satijalab/seurat-wrappers@community-vignette")'
+    Rscript -e 'remotes::install_version("Seurat", version = "4.4.0")'
+
+    #
+    # As per Antonia's request via Teams, 12/16/2024 09:46.
+    #
+
+    Rscript -e 'install.packages("Signac")'
     
-  # Install TexLive prerequisites
-  apt-get update && \
-  apt-get install -y wget unzip tar \
-  make fontconfig perl openjdk-8-jre libgetopt-long-descriptive-perl \
-  libdigest-perl-md5-perl libncurses5 \
-  python3-pygments && \
-  rm -rf /var/lib/apt/lists/*
+    
+    # Install CellRanger v8.0.1
+    # You will need to download the desired version from here: https://www.10xgenomics.com/support/software/cell-ranger/downloads/previous-versions
+    # Save on the same folder where Dockerfile is located
+    # You should also replace the link with the one from the most recent download as the url expires after 1-2 days
+    # Set environment variables
+    curl -o cellranger-8.0.1.tar.gz "https://cf.10xgenomics.com/releases/cell-exp/cellranger-8.0.1.tar.gz?Expires=1735627055&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA&Signature=Bn20s3ftEjQ6jD2HqiXz3GmLAf7U-GVnMyng-R1jN8fd9XyVu1B5kRVG5FLIor9LiXyVLRG0beBSx0QIf-0qthevVbwzl3ycNyfol33zRzcJqVPGhlyud6KSZFoqGeRf2FhEKmj7dIjCBWd0O0Sval63ABz~CjgCOIcPdHrldJcVNO1WFw4JXd0np~GyLcHbX4vuSoogNhnv52yYooELkpbnbeBuMekXojo2jIecbnb2yxBYxKDrmsNQ8ew8T2aMeWbLz9hphw8s0jvINITPriYdloqrpSgWAgfXzYEfiEyAATpE6hu6CU0I9dSOGn8lNkQP51PgZFxtA4Wte5qz3A__"
+    tar -xvzf cellranger-8.0.1.tar.gz -C /opt
 
-  # Install TexLive to the container
-  wget --no-check-certificate http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz && \
-  tar xzf install-tl-unx.tar.gz && rm install-tl-unx.tar.gz && \
-  cd install-tl* && \
-  echo "selected_scheme scheme-full" > install.profile && \
-  echo "tlpdbopt_install_docfiles 0" >> install.profile && \
-  echo "tlpdbopt_install_srcfiles 0" >> install.profile && \
-  echo "tlpdbopt_autobackup 0" >> install.profile && \
-  echo "tlpdbopt_sys_bin /usr/bin" >> install.profile && \
-  ./install-tl -profile install.profile && cd .. && rm -rf install-tl*
 
-  # Symlink TexLive binaries to PATH
-  /usr/local/texlive/2024/bin/x86_64-linux/tlmgr path add
+%environment
+    export LC_ALL=C
+    # Set virtual environment variables
+    export VIRTUAL_ENV=/opt/container-venv
+    export PATH=/opt/container-venv/bin:$PATH
 
-  # Install CellRanger v8.0.1
-  # You will need to download the desired version from here: https://www.10xgenomics.com/support/software/cell-ranger/downloads/previous-versions
-  # Save on your `/tmp/` locally
-  # You should also replace the link with the one from the most recent download
-  curl -o /tmp/cellranger-8.0.1.tar.gz "https://cf.10xgenomics.com/releases/cell-exp/cellranger-8.0.1.tar.gz?Expires=1733244151&Key-Pair-Id=APKAI7S6A5RYOXBWRPDA&Signature=Oev2Ml0L0ns0vQRE8ToqCFLGQIJjh~~2dVe1y6C7RvhnSsIViSBTyz1vlKgELLqgo1q8mvb-X1qsEZWXMwVmHzifnO6UseqQxDo2qKbfF9FMwCorTXtBcFiM~irstt2JqKEp9-LJ6zLLAwyXPDJPGvPHcnhp08Wt1S7HN-RWSdWGqbNeFXWjVSZeqG3OooUnB4S3Ykq5aJW9tSUBrCo6s2sR7mC-a0uwf-aawbXSSv3cvnTaAeyuMEFtH7G8QZnOmCCYlNG9~JtomynscwBvf3Hax1IVF8x4kEmCbdaKmBFrPqN8ifVz-FrsnXm3K9Smb2ArkKg6Ur-kIeJ-Q7FK4A__"
-  tar -xvzf /tmp/cellranger-8.0.1.tar.gz -C /opt
+%runscript
+    # Adjust as needed!
+    . /opt/container-venv/bin/activate
+	exec "$@"
 
-  # Add a default CRAN mirror
-  #
-  # URL to Package Manager: https://packagemanager.posit.co/client/#/repos/cran/setup
-  #
-  echo "options(repos = c(CRAN = 'https://packagemanager.posit.co/cran/__linux__/focal/latest'))" >> /usr/lib/R/etc/Rprofile.site
-  #echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl')" >> /usr/lib/R/etc/Rprofile.site
-
-  # Install RStudio
-  apt-get update
-  apt-get install psmisc
-  apt-get install -y --no-install-recommends \
-    ca-certificates 
-  wget \
-    --no-verbose \
-    -O rstudio-server.deb \
-    "https://download2.rstudio.org/server/focal/amd64/rstudio-server-2023.12.1-402-amd64.deb"
-  gdebi -n rstudio-server.deb
-  rm -f rstudio-server.deb
-
-  # Install MACS2 for ArchR and such
-  pip install MACS2
-  pip install leidenalg
-  pip install multiqc
-  
-  # Enable copilot
-  echo "copilot-enabled=1" >> /etc/rstudio/rsession.conf
-  
-  # Install necessary system libraries for HDF5 
-  # The hdf5r package depends on the underlying HDF5 C libraries. 
-  apt-get update && \
-    apt-get install -y libhdf5-dev
-  
-  # Install R Packages into base R
-  #
-  # Setup
-  #
-  Rscript -e 'options(repos = c(CRAN = "https://packagemanager.posit.co/cran/__linux__/focal/latest"))'
-
-  # Deps
-  Rscript -e 'install.packages("usethis")'
-  Rscript -e 'install.packages(c("BiocManager", "devtools", "remotes"), repos = "https://packagemanager.posit.co/cran/__linux__/focal/latest")'
-
-  # Wanted packages
-  Rscript -e 'BiocManager::install(c("miQC", "scater", "scDblFinder", "SingleCellExperiment", "celldex", "SingleR", "infercnv"))'
-  Rscript -e 'devtools::install_github("igordot/scooter")'
-  Rscript -e 'devtools::install_github("welch-lab/RcppPlanc")'
-  Rscript -e 'devtools::install_github("kharchenkolab/numbat")'
-  Rscript -e 'devtools::install_github("welch-lab/liger")'
-
-  #Rscript -e 'install.packages("hdf5r")'
-  Rscript -e 'install.packages("hdf5r", type = "source")'
-
-  Rscript -e 'install.packages(c("clustree", "cowplot", "data.table"))'
-  Rscript -e 'install.packages(c("flexmix", "flextable", "forcats"))'
-  Rscript -e 'install.packages(c("fs", "future", "GGally"))'
-  Rscript -e 'install.packages(c("ggh4x", "ggplot2", "ggpmisc"))'
-  Rscript -e 'install.packages(c("ggrepel", "ggthemes", "grid"))'
-  Rscript -e 'install.packages(c("harmony", "igraph", "irlba"))'
-  Rscript -e 'install.packages(c("knitr", "optparse"))'
-  Rscript -e 'install.packages(c("patchwork", "purrr", "RColorBrewer"))'
-  Rscript -e 'install.packages(c("remotes", "reshape2", "rliger"))'
-  Rscript -e 'install.packages(c("rlist", "R.utils", "SeuratObject"))'
-  Rscript -e 'install.packages(c("shiny", "SoupX", "stringr"))'
-  Rscript -e 'install.packages(c("tidytext", "tidyverse", "tinytex", "yaml"))'
- 
-
-  Rscript -e 'remotes::install_version("Seurat", "4.4.0", repos = c("https://packagemanager.posit.co/cran/__linux__/focal/latest"))'

@@ -21,7 +21,7 @@ module load singularity/4.1.1
 
 1. Pull the singularity container from the `sc-rna-seq-snap` root_dir
 ```
-singularity pull docker://achronistjude/rstudio_4.4.0_seurat_4.4.0:latest
+singularity pull docker://achronistjude/snap_rstudio_4.4.0_seurat_4.4.0:latest
 ```
 
 2. Start the singularity container
@@ -67,10 +67,10 @@ These folders cache history and user info. Then, kill the interactive session, s
 
 3. Build container (if needed)
 
-If the user does not have access to the `rstudio_4.4.0_seurat_4.4.0_latest.sif`, they can build their own. 
+If the user does not have access to the `snap_rstudio_4.4.0_seurat_4.4.0_latest.sif`, they can build their own. 
 User can rename the `.sif` file, if they want to (not needed). Run the following from the `./run-container` dir:
 ```
-singularity build rstudio_4.4.0_seurat_4.4.0_latest.sif rstudio_r_4.4.0_seurat_4.4.0.def
+singularity build snap_rstudio_4.4.0_seurat_4.4.0_latest.sif rstudio_r_4.4.0_seurat_4.4.0.def
 ```
 
 Then, the user can start the container as explained in the step (3).
@@ -80,14 +80,14 @@ Then, the user can start the container as explained in the step (3).
 
 1. Pull the docker container from the `sc-rna-seq-snap` root_dir
 ```
-docker pull docker://achroni/rstudio_4.4.0_seurat_4.4.0:latest
+docker pull docker://achroni/snap_rstudio_4.4.0_seurat_4.4.0:latest
 ```
 
 2. Start the docker container
 
 To run from the terminal
 ```
-docker run --platform linux/amd64 --name review -d -e PASSWORD=ANYTHING -p 8787:8787 -v $PWD:/home/rstudio/sc-rna-seq-snap docker://achroni/rstudio_4.4.0_seurat_4.4.0:latest
+docker run --platform linux/amd64 --name review -d -e PASSWORD=ANYTHING -p 8787:8787 -v $PWD:/home/rstudio/sc-rna-seq-snap docker://achroni/snap_rstudio_4.4.0_seurat_4.4.0:latest
 ```
 
 ```
@@ -107,8 +107,11 @@ bash run-upstream-analysis.sh
 
 ## Authors
 
-Antonia Chroni, PhD ([@AntoniaChroni](https://github.com/AntoniaChroni)) and 
-Walid Abu Al-Afia ([@walidabualafia](https://github.com/walidabualafia))
+Antonia Chroni, PhD ([@AntoniaChroni](https://github.com/AntoniaChroni)), 
+Walid Abu Al-Afia ([@walidabualafia](https://github.com/walidabualafia)), and
+John Grime ([@JohnGrime](https://github.com/JohnGrime))
+
+
 
 
 ## Contact
