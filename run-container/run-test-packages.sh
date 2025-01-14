@@ -3,13 +3,22 @@
 set -e
 set -o pipefail
 
+########################################################################
+pwd
+echo $PATH
+echo $LD_LIBRARY_PATH
+which python
+
+########################################################################
 # set up running directory
 cd "$(dirname "${BASH_SOURCE[0]}")" 
+pwd
 
 ########################################################################
 # Read container path and file
 containerdir=$(realpath "$(dirname "${BASH_SOURCE[0]}")/..")
 echo "$containerdir"
+
 
 ################################################################################################################
 # Run other dependencies

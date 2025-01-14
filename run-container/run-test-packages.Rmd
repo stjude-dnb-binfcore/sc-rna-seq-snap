@@ -1,5 +1,5 @@
 ---
-title: "Data exploratory analysis"
+title: "Debugging step: Verify installations"
 author: "Antonia Chroni for SJCRH DNB_BINF_Core"
 papersize: a4
 fontsize: 11pt
@@ -55,7 +55,7 @@ suppressPackageStartupMessages({
   library(scooter)
   library(RcppPlanc)
   library(numbat)
-  
+
   library(clustree)
   library(cowplot)
   library(data.table)
@@ -90,6 +90,7 @@ suppressPackageStartupMessages({
   library(Seurat)
   library(SeuratObject)
   library(shiny)
+  library(Signac)
   library(SoupX)
   library(stringr)
   library(tidytext)
