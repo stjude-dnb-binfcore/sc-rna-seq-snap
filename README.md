@@ -8,17 +8,11 @@
 
 # Single cell RNA Seq Snap workflow (ScRNASeqSnap)
 
-This repository contains tools and workflows for analyzing single cell and single nuclei RNA (sc/snRNA) data from 10X sequencing technology. 
+This repository contains tools and workflows for analyzing single cell and single nuclei RNA (sc/snRNA) data from 10X sequencing technology. Analysis modules in the main branch are ready to be used. 
 
-There are a Singularity and Docker image that contain all tools, packages, and dependencies necessary to run the code and analyses modules in the `sc-rna-seq-snap` repository. For more information on how to run the container and package versioning, please see [./run-container/README.md](https://github.com/AntoniaChroni/sc-rna-seq-snap/blob/main/run-container/README.md).
+There is a Docker image that contain all tools, packages, and dependencies necessary to run the code and analyses modules in the `sc-rna-seq-snap` repository. For more information on how to run the container and package versioning, please see [./run-container/README.md](https://github.com/AntoniaChroni/sc-rna-seq-snap/blob/main/run-container/README.md).
 
 The `sc-rna-seq-snap` repository is an initiative of the [Bioinformatics Core at the Department of Developmental Neurobiology at the St. Jude Children's Research Hospital](https://www.stjude.org/research/departments/developmental-neurobiology/shared-resources/bioinformatic-core.html).
-
-
-Analysis modules in the main branch are ready to be used. 
-
-⚠️ 🚧 🚧 ⚠️
-The container is currently under development and code review process. 
 
 
 ## To access the code in this repository:

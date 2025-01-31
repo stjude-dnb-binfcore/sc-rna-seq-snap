@@ -169,7 +169,7 @@ suppressPackageStartupMessages({
   library(RColorBrewer)
   
   # Evaluate Seurat R expressions asynchronously when possible using future package
-  options(future.globals.maxSize = 8388608000) #8000 * 1024^2
+  options(future.globals.maxSize = future_globals_value) 
   plan(multisession, workers = parallelly::availableCores())})
 ```
 

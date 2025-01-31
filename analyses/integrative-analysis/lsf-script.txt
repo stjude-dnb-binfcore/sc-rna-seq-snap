@@ -1,7 +1,7 @@
 #BSUB -P project
 #BSUB -J run-integrative-analysis
 #BSUB -oo job.out -eo job.err
-#BSUB -n 8
+#BSUB -n 12
 #BSUB -R "rusage[mem=96GB] span[hosts=1]"
 #BSUB -cwd "."
 

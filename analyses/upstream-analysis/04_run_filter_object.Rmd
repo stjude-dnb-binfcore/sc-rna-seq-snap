@@ -159,7 +159,7 @@ suppressPackageStartupMessages({
   library(knitr)
   
   # Evaluate Seurat R expressions asynchronously when possible using future package
-  options(future.globals.maxSize = 214748364800) #200 * 1024^3
+  options(future.globals.maxSize = future_globals_value) 
   plan(multisession, workers = parallelly::availableCores())})
 ```
 

@@ -7,7 +7,7 @@
 Parameters according to the project and analysis strategy will need to be specified in the following scripts:
 - `project_parameters.Config.yaml`: define `fastqc_dir` path(s) to input data with `*R2*.fastq.gz` files.
 
-If the module needs to be run more than one time, user will need to remove the `02-multiqc-reports` folder or the code will give an error at that step. Files and folder related to the MultiQC step will be generated every time a new run is performed. Folder cna be deleted manually or from the node as:
+If the module needs to be run more than one time, user will need to remove the `02-multiqc-reports` folder or the code will give an error at that step. Files and folder related to the MultiQC step will be generated every time a new run is performed. Folder can be deleted manually or from the node as:
 
 ```
 rm -r 02-multiqc-reports

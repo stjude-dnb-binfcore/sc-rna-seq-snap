@@ -38,7 +38,7 @@ The pipeline allows for the user to include/exclude methods and adjust the pipel
 
 If the user does not wish to include results from step (2), this can be defined in the `project_parameters.Config.yaml` file. 
 
-### (1) Estimating and filtering out ambient mRNA (`empty droplets`)
+### (1) Estimating and filtering out ambient mRNA (empty droplets)
 
 [SoupX](https://cran.r-project.org/web/packages/SoupX/vignettes/pbmcTutorial.html) profiles “the soup”, i.e., collection of cell-free mRNAs floating in the input solution. The soup looks different for each input solution and strongly resembles the expression pattern obtained by summing all the individual cells.
 
@@ -46,6 +46,21 @@ SoupX calculates `Cell-specific contamination fraction` (Estimate (or manually s
 
 The CellRanger output from the `cellranger-analysis` module is used for this step.
  -  Contamination summary table and Cell-specific contamination fraction plot are generated.
+
+
+Please note that if there is no cluster variabiltiy in the library, SoupX algorithm will fail when running `autoEstCont` by default:
+
+```
+sc <- autoEstCont(sc_raw, forceAccept = TRUE)
+```
+
+This means that the algorithm was not able to identify genes that are very specific to one cluster of cells. The determination of how specific is “very specific” is based on the gene’s `tf-idf` value for the cluster it is specific to. See the quickMarkers help or [this](https://constantamateur.github.io/2020-04-10-scDE/) for an explanation of what this means. The default of `tfidfMin=1` demands that genes by reasonably specific, so if th user is getting a low number of genes for estimation they can consider decreasing this value. This list is further reduced by keeping only genes that are “highly expressed” in the soup (as these give more accurate estimates of rho), where highly expressed is controlled by `soupQuantile`. The default value sounds strict, but in practice many genes with tf-idf over 1 tend to pass it.
+
+If this is the case, the user will need to adjust as following in the `01_run_SoupX.Rmd` script:
+
+```
+sc <- autoEstCont(sc_raw, forceAccept = TRUE, tfidfMin = 0.1, soupQuantile = 0.9)
+```
 
 
 ### (2) Seurat QC metrics

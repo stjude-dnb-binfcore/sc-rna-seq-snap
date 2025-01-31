@@ -2,7 +2,7 @@
 #BSUB -J fastqc-analysis
 #BSUB -oo job.out -eo job.err
 #BSUB -n 2
-#BSUB -R "rusage[mem=4GB] span[hosts=1]"
+#BSUB -R "rusage[mem=16GB] span[hosts=1]"
 #BSUB -cwd "."
 
 singularity exec ../../rstudio_4.4.0_seurat_4.4.0_latest.sif bash run-fastqc-analysis.sh

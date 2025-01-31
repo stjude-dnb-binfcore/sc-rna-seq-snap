@@ -246,7 +246,7 @@ Note that the anchor-based RPCA integration represents a faster and more conserv
 ```{r use-seurat-integration, echo = TRUE}
 # We will use the Seurat ‘anchor-based’ workflow, if defined in `params`.
 if (use_seurat_integration == "YES"){
-  print_message <- "we use the Seurat ‘anchor-based’ workflow"
+  print_message <- "we use the Seurat 'anchor-based' workflow"
   
   # Make seurat_list
   seurat_obj_list <- list()

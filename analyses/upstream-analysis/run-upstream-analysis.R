@@ -43,6 +43,8 @@ Final_summary_report_dir <- file.path(analysis_dir, "plots", "05_Final_summary_r
 ################################################################################################################
 # Run Rmd scripts to process data per method
 ################################################################################################################
+future_globals_value = 214748364800 #200 * 1024^3; # 150 * 1024^3; other options: 1000 * 1024^2 = 1048576000; 8000 * 1024^2 =8388608000
+################################################################################################################
 # (1) Estimating and filtering out ambient mRNA (`empty droplets`)
 rmarkdown::render('01_run_SoupX.Rmd', 
                    clean = FALSE,
