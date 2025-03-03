@@ -1,0 +1,429 @@
+---
+title: "Clone phylogeny analysis for sc-/sn-RNA-Seq Analysis in 10X Genomics data"
+author: "Antonia Chroni for SJCRH DNB_BINF_Core"
+papersize: a4
+fontsize: 11pt
+links-as-notes: true
+output:
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    df_print: paged
+    code_folding: hide
+    toc_depth: 2
+    highlight: tango
+    number_sections: TRUE
+  pdf_document:
+    toc: TRUE
+    highlight: tango
+    number_sections: TRUE
+    latex_engine: lualatex
+    keep_tex: FALSE
+    fig_caption: yes
+    fig_crop: no
+    fig_height: 2
+    fig_width: 3
+    toc_depth: 2
+always_allow_html: TRUE
+urlcolor: blue
+linkcolor: black
+citecolor: blue
+geometry: margin=1in
+header-includes: 
+  - \usepackage{titling}
+  - \usepackage{fancyhdr}
+  - \usepackage{graphicx}
+  - \usepackage{float}
+params:
+  cell_type_label: '.'
+  root_dir: './'
+  PROJECT_NAME: '.'
+  PI_NAME: '.'
+  TASK_ID: '.'
+  PROJECT_LEAD_NAME: '.'
+  DEPARTMENT: '.'
+  LEAD_ANALYSTS: '.'
+  GROUP_LEAD: '.'
+  CONTACT_EMAIL: '.'
+  PIPELINE: '.'
+  START_DATE: '.'
+  COMPLETION_DATE: '.'
+---
+
+```{r logo-file, echo=FALSE}
+attach(params)
+# Insert logo on the top of the html report 
+logo_file <- file.path(root_dir, "figures", "img", "DNB-BINF-Core-logo.png")
+htmltools::img(src = knitr::image_uri(logo_file), alt = "logo", style = "position:absolute; top:0; left:0; padding:0px; height:120px;")
+detach(params)
+```
+
+\addtolength{\headheight}{2.0cm} 
+\fancypagestyle{plain}{} 
+\thispagestyle{fancy}
+\fancyhead[L]{\includegraphics[height=120px]{`r logo_file`}}
+\renewcommand{\headrulewidth}{0pt}
+
+<style type="text/css">
+:root {--DNB_BINF_Core_color: #00427B;}
+
+h1.title {margin-top: 130px;
+          margin-bottom: 25px;
+          font-size: 36px;}
+
+.nobullet li {list-style-type: none;}
+
+.reporthead {font-size: 20px;}
+
+body { /* Normal */
+  font-size: 16px;
+  font-style: Arial, Helvetica, sans-serif;}
+
+h1 {color: var(--DNB_BINF_Core_color);
+    font-size: 28px;
+    margin-top: 50px;}
+
+h2 {color: var(--DNB_BINF_Core_color);
+    font-size: 20px;}
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+  background-color: var(--DNB_BINF_Core_color);}
+</style>
+
+<a href="https://wiki.stjude.org/display/CAB">
+
+</a>
+
+\pagebreak
+
+<div class="reporthead"><br/>
+**PI: `r params$PI_NAME`**  
+**Project: `r params$PROJECT_NAME`**  
+Task: `r params$TASK_ID`  
+Project Lead(s): `r params$PROJECT_LEAD_NAME`  
+Department: `r params$DEPARTMENT`  
+
+<br />  
+
+DNB Bioinformatics Core Analysis Team: 
+<br />  
+
+>**Lead Analyst(s): `r params$LEAD_ANALYSTS`**  
+>Group Lead: `r params$GROUP_LEAD`  
+<br />
+>**Contact E-mail:** `r params$CONTACT_EMAIL`  
+>**DNB Bioinformatics Core Pipeline:** `r params$PIPELINE`  
+
+Date started: `r params$START_DATE`  
+Date completed:  `r params$COMPLETION_DATE`  
+Report generated: `r format(Sys.time(), '%H:%M:%S %Z %m/%d/%Y')` \
+
+Reviewed by: _____________________   Date: ____________ \
+</div>
+\pagebreak
+  
+# Information about this notebook
+
+This notebook is tasked to generate the plots from the [Numbat analysis](https://kharchenkolab.github.io/numbat/articles/results.html). 
+
+
+# Set up
+```{r load-library, echo=TRUE}
+attach(params)
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(Seurat)
+  library(numbat)
+  library(knitr)
+  library(patchwork)
+}) 
+```
+
+# Directories and paths to file Inputs/Outputs
+
+```{r set-dir-and-file-names, echo=TRUE}
+root_dir <- yaml$root_dir
+analysis_dir <- file.path(root_dir, "analyses", "clone-phylogeny-analysis") 
+module_results_dir <- file.path(analysis_dir, "results")
+module_plots_dir <- file.path(analysis_dir, "plots") 
+numbat_plots_dir <-file.path(module_plots_dir, "06-create-numbat-plots") 
+numbat_results_dir <- file.path(module_results_dir, paste0("06-create-numbat-plots"))
+run_numbat_results_dir <- file.path(module_results_dir, "05-run-numbat") 
+#seurat_dir <- file.path(module_results_dir, paste0("01-create-count-mat"))
+
+#annotation_results_dir <- file.path(root_dir, "analyses", "cell-types-annotation", "results") 
+#annotations_dir <- yaml$annotations_dir_rshiny_app
+#annotations_all_results_dir <- file.path(annotation_results_dir, annotations_dir) 
+```
+
+```{r echo=FALSE, warning=FALSE}
+opts_chunk$set(fig.align='center',
+               external=TRUE,
+               echo=FALSE,
+               warning=FALSE,
+               fig.pos='H')
+a4width <- 8.3
+a4height <- 11.7
+```
+
+# Read Numbat results
+
+First, we will use the results from the Numbat run to generate the Numbat object.
+
+```{r read-numbat, echo=TRUE}
+cat("Beginning to process sample:", sample_name[i], "\n")
+
+# Construct the path to the run Numbat output directory using sample_name[i]
+run_numbat_file <- file.path(run_numbat_results_dir, sample_name[i]) 
+  
+# Check if the directory exists and summarize the output into a Numbat object
+numbat_obj <- Numbat$new(out_dir = run_numbat_file)
+#saveRDS(numbat_obj, file.path(numbat_results_dir, sample_name[i], "nb_object.rds")) # Save object
+cat("Successfully created Numbat object for sample:", sample_name[i], "\n")
+
+# Input files
+#seurat_obj_file <- dir(path = annotations_all_results_dir, pattern =  "seurat_obj.*\\.rds", full.names = TRUE, recursive = TRUE)
+#print(seurat_obj_file)
+
+# Read the Seurat object
+# You do not need to repeat normalization or UMAP after splitting the Seurat object by sample. 
+# The normalization will carry over, and the UMAP embeddings will be available in each individual Seurat object that you split.
+seurat_obj <- seurat_obj_list[[i]]
+#seurat_obj_all <- readRDS(seurat_obj_file)
+cat("Successfully read Seurat object for sample:", sample_name[i], "\n")
+```
+
+# Creat palette
+
+```{r create-palette, echo=TRUE}
+mypal = c('gray', "#377EB8", "#4DAF4A", "#984EA3", "#b83748", "#b87c37", "#b8a537", "#37b8af") 
+```
+
+# Copy number landscape and single-cell phylogeny
+
+As an overview, we can visualize the CNV calls in single-cells and their evolutionary relationships in an integrated plot panel:
+
+```{r plot-1, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+fname <- paste0(numbat_plots_dir, "/", sample_name[i], "/", "plot1.png")
+p <- print(numbat_obj$plot_phylo_heatmap(clone_bar = TRUE, 
+                                         p_min = 0.9,
+                                         pal_clone = mypal))
+ggsave(file = fname, p, width = 8, height = 6, device = "png")
+```
+
+In this visualization, the single-cell phylogeny (left) is juxtaposed with a heatmap of single-cell CNV calls (right). The CNV calls are colored by the type of alterations (AMP, amplification, BAMP, balanced amplification, DEL, deletion, CNLoH, copy-neutral loss of heterozygosity). The colorbar in-between differentiates the distinct genetic populations (genotype). The dashed blue line separates the predicted tumor versus normal cells. This tells us that the dataset mainly consists of three cell populations, a normal population (gray) and two tumor subclones (green and purple).
+
+# Consensus copy number segments
+
+Let's take a look at the consensus segments.
+
+```{r plot-2, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+fname <- paste0(numbat_plots_dir, "/",  sample_name[i], "/", "plot2.png")
+p <- print(numbat_obj$plot_consensus())
+ggsave(file = fname, p, width = 8, height = 6, device = "png")
+```
+
+# Bulk CNV profiles
+
+We can also visualize these CNV events in pseudobulks where the data is more rich, aggregating cells by clone:
+
+```{r plot-3, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+fname <- paste0(numbat_plots_dir, "/", sample_name[i], "/", "plot3.png")
+p <- print(numbat_obj$bulk_clones %>% 
+  plot_bulks(min_LLR = 50, # filtering CNVs by evidence
+             legend = FALSE))
+ggsave(file = fname, p, width = 6, height = 5, device = "png")
+```
+
+# Single-cell CNV calls
+
+Numbat probabilistically evaluates the presence/absence of CNVs in single cells. The cell-level CNV posteriors are stored in the `numbat_obj$joint_post` dataframe.
+
+```{r echo=TRUE}
+numbat_obj.df <- numbat_obj$joint_post %>% 
+  select(cell, CHROM, seg, cnv_state, p_cnv, p_cnv_x, p_cnv_y) %>%
+  as.data.frame %>%
+  rename("UMI_id" = "cell")
+
+# Print cnv types
+cnv_type <- numbat_obj.df %>% distinct(seg, cnv_state) %>% {setNames(.$cnv_state, .$seg)} 
+print(cnv_type)
+
+umapCoord <- as.data.frame(Embeddings(object = seurat_obj@reductions[["umap"]])) # make dataframe with UMAP coordinates 
+#numbat_obj.df <- as.data.frame(numbat_obj.df[[".__enclos_env__"]][["self"]][["allele_post"]])
+#names(numbat_obj.df)[names(numbat_obj.df) == 'cell'] <- "UMI_id"
+#head(numbat_obj.df)
+metadata_table <- seurat_obj@meta.data
+metadata_table$UMI_id <- rownames(metadata_table)
+metadata_table <- merge.data.frame(metadata_table, numbat_obj.df, by = "UMI_id", all = TRUE)
+```
+
+## Joint posterior probability of the CNV (p_cnv)
+
+`merge["p_cnv"]` contains cell-level information on specific CNV segments (seg), their alteration type (cnv_state), the joint posterior probability of the CNV (p_cnv), the expression-based posterior (p_cnv_x), and the allele-based posterior (p_cnv_y). We can visualize the event-specific posteriors in a expression-based embedding:
+
+```{r plot-4, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+merge <- metadata_table
+CellsMeta <- seurat_obj@meta.data
+randomnumbers <- merge["p_cnv"]
+
+CellsMeta["p_cnv"] <- randomnumbers
+CellsMetaTrim <- subset(CellsMeta, select = c("p_cnv", cell_type_label))
+seurat_obj<- AddMetaData(seurat_obj, CellsMetaTrim)
+
+fname <- paste0(numbat_plots_dir, "/", sample_name[i], "/", "plot4.png")
+p_cnv <- print(FeaturePlot(seurat_obj, reduction = "umap", features = "p_cnv") +
+  scale_color_gradient2(low = 'royalblue', mid = 'white', high = 'red3', midpoint = 0.5, name = 'Posterior') +
+  ggtitle("Allele"))
+ggsave(file = fname, p_cnv, width = 6, height = 5, device = "png")
+```  
+
+## Expression-based posterior (p_cnv_x)
+
+```{r plot-5, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+merge <- metadata_table
+CellsMeta <- seurat_obj@meta.data
+randomnumbers <- merge["p_cnv_x"]
+
+CellsMeta["p_cnv_x"] <- randomnumbers
+CellsMetaTrim <- subset(CellsMeta, select = c("p_cnv_x"))
+seurat_obj <- AddMetaData(seurat_obj, CellsMetaTrim)
+
+fname <- paste0(numbat_plots_dir, "/", sample_name[i], "/", "plot5.png")
+p_cnv_x <- print(FeaturePlot(seurat_obj, reduction = "umap", features = "p_cnv_x") +
+  scale_color_gradient2(low = 'royalblue', mid = 'white', high = 'red3', midpoint = 0.5, name = 'Posterior') +
+  ggtitle("Expression"))
+ggsave(file = fname, p_cnv_x, width = 6, height = 5, device = "png")
+```
+
+## Allele-based posterior (p_cnv_y)
+
+```{r plot-6, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+merge <- metadata_table
+CellsMeta <- seurat_obj@meta.data
+randomnumbers <- merge["p_cnv_y"]
+
+CellsMeta["p_cnv_y"] <- randomnumbers
+CellsMetaTrim <- subset(CellsMeta, select = c("p_cnv_y"))
+seurat_obj <- AddMetaData(seurat_obj, CellsMetaTrim)
+
+fname <- paste0(numbat_plots_dir, "/", sample_name[i], "/", "plot6.png")
+p_cnv_y <- print(FeaturePlot(seurat_obj, reduction = "umap", features = "p_cnv_y") +
+  scale_color_gradient2(low = 'royalblue', mid = 'white', high = 'red3', midpoint = 0.5, name = 'Posterior') + 
+  ggtitle("Joint"))
+ggsave(file = fname, p_cnv_y, width = 6, height = 5, device = "png") 
+```
+
+# CNVs and seg
+
+```{r plot-7, fig.width = 20, fig.height = 15, fig.fullwidth = TRUE, echo=TRUE}
+merge <- metadata_table
+CellsMeta <- seurat_obj@meta.data
+randomnumbers <- merge["seg"]
+
+CellsMeta["seg"] <- randomnumbers
+CellsMetaTrim <- subset(CellsMeta, select = c("seg"))
+seurat_obj <- AddMetaData(seurat_obj, CellsMetaTrim)
+
+p1 <- FeaturePlot(seurat_obj, reduction = "umap", features = "p_cnv", split.by = "seg") +
+  scale_color_gradient2(low = 'royalblue', mid = 'white', high = 'red3', midpoint = 0.5, name = 'Posterior')
+
+p2 <- FeaturePlot(seurat_obj, reduction = "umap", features = "p_cnv") +
+  scale_color_gradient2(low = 'royalblue', mid = 'white', high = 'red3', midpoint = 0.5, name = 'Posterior') + 
+  NoLegend() + 
+  ggtitle("All identified CNVs")
+   
+fname <- paste0(numbat_plots_dir, "/", sample_name[i], "/", "plot7.png")
+p <- print(p1 + p2 + plot_layout(ncol = 7, nrow = 7))
+ggsave(file = fname, p, width = 20, height = 15, device = "png")
+```
+
+# Clonal assignments
+Numbat aggregates signals across subclone-specific CNVs to probabilistically assign cells to subclones. The information regarding clonal assignments are contained in the `numbat_obj.df$clone_post` dataframe.
+
+Here clone_opt denotes the maximum likelihood assignment of a cell to a specific clone. p_{1..4} are the detailed breakdown of the posterior probability that the cell belongs to each clone, respectively. Let's visualize the clonal decomposition in a tSNE embedding. Note that clone 1 is always the normal cells.
+
+## Genotypes vs Tumor microenvironment
+
+```{r plot-8, fig.width = 15, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+## numbat_obj$clone_post$clone_opt
+numbat_obj.df2 <- as.data.frame(numbat_obj[[".__enclos_env__"]][["self"]][["clone_post"]])
+names(numbat_obj.df2)[names(numbat_obj.df2) == 'cell'] <- "UMI_id"
+metadata_table <- seurat_obj@meta.data
+metadata_table$UMI_id <- rownames(metadata_table)
+metadata_table <- merge.data.frame(metadata_table, numbat_obj.df2, by = "UMI_id", all = TRUE)
+#head(metadata_table)
+
+seurat_obj@meta.data <-cbind(seurat_obj@meta.data, metadata_table)
+###############################################################################################################
+# Customize feature plots and put legend on emtuy space
+# https://divingintogeneticsandgenomics.rbind.io/post/customize-featureplot-in-seurat-for-multi-condition-comparisons-using-patchwork/
+
+p1 = DimPlot(seurat_obj, reduction = "umap", group.by = "clone_opt", cols = mypal, label = TRUE, label.size = 3, repel = TRUE) + 
+  ggtitle("Clone genotype")
+p2 = DimPlot(seurat_obj, reduction = "umap", group.by = "compartment_opt", label = TRUE, label.size = 3 ,repel = TRUE, cols = c('red3','royalblue')) + 
+  ggtitle("Tumor microenvironment")
+
+fname <- paste0(numbat_plots_dir, "/", sample_name[i], "/", "plot8.png")
+p <- print(p1 + p2 + plot_layout(ncol = 2))
+ggsave(file = fname, p, width = 15, height = 6, device = "png")
+```
+
+##  Genotypes vs Tumor microenvironment vs Cell type vs Disease stage
+
+```{r plot-9, fig.width = 20, fig.height = 15, fig.fullwidth = TRUE, echo=TRUE}
+library(RColorBrewer)
+mypalette <- brewer.pal(12,"Paired") # colorblindFriendly = TRUE
+mypalette <- colorRampPalette(mypalette)(40)
+
+p3 <- DimPlot(seurat_obj, reduction = "umap", label = TRUE, group.by = cell_type_label, repel = TRUE, label.size = 2.5, cols = mypalette) + 
+  ggtitle(cell_type_label)
+p4 <- DimPlot(seurat_obj, reduction = "umap", group.by = 'Timepoint', label = TRUE, repel = TRUE, label.size = 2.5, cols = mypalette) + 
+  ggtitle("Disease stage")
+
+fname <- paste0(numbat_plots_dir, "/", sample_name[i], "/", "plot9.png")
+p <- print(p1 + p2 + p3 + p4 + plot_layout(ncol = 2, nrow=2))
+ggsave(file = fname, p, width = 20, height = 15, device = "png")
+```
+
+# Tumor versus normal probability
+
+```{r plot-10, fig.width = 20, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+fname <- paste0(numbat_plots_dir, "/", sample_name[i], "/", "plot10.png")
+p <- print(p_cnv + p_cnv_x + p_cnv_y + plot_layout(ncol = 3))
+ggsave(file = fname, p, width = 20, height = 6, device = "png")
+```
+
+# Tumor phylogeny
+
+Let's take a closer look at the inferred single cell phylogeny and where the mutations occurred.
+
+```{r plot-11, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+fname <- paste0(numbat_plots_dir, "/", sample_name[i], "/", "plot11.png")
+p <- print(numbat_obj$plot_sc_tree(label_size = 3,
+                                   branch_width = 0.5,
+                                   tip_length = 0.5,
+                                   pal_clone = mypal,
+                                   tip = TRUE))
+ggsave(file = fname, p, width = 6, height = 5, device = "png")
+```
+
+The mutational history can also be represented on the clone level, where cells with the same genotype are aggregated into one node.
+
+```{r plot-12, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+fname <- paste0(numbat_plots_dir, "/", sample_name[i], "/", "plot12.png")
+p <- print(numbat_obj$plot_mut_history(pal = mypal))
+ggsave(file = fname, p, width = 6, height = 5, device = "png")
+```
+
+```{r echo=FALSE}
+detach(params)
+```
+
+\pagebreak
+
+# Session Info
+
+```{r echo=FALSE}
+sessionInfo()
+```
