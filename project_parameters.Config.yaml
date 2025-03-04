@@ -18,7 +18,7 @@ COMPLETION_DATE: "ONGOING"
 
 # the following parameters are set up as default values and/or are specific for the following modules: 
 # `./analyses/fastqc-analysis`
-# path to the fastqc files for the `fastqc-analysis` module
+# path to the fastqc files for the `fastqc-analysis` module with format: `path1/*R2*.fastq.gz`
 fastqc_dir: 
   - /path1
   #- /path2

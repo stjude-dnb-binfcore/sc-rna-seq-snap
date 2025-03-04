@@ -35,7 +35,7 @@ mkdir -p results/01-fastqc-reports
 for dir in $(echo "${fastqc_dir[@]}" | tr ' ' '\n' | sort); 
   do
   echo "Processing directory: ${dir}"
-  fastqc -o results/01-fastqc-reports ${dir}/*/*R2*.fastq.gz
+  fastqc -o results/01-fastqc-reports ${dir}/*R2*.fastq.gz
 done
 
 ################################################################################################################
