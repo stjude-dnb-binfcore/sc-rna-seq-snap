@@ -104,6 +104,12 @@ Process_Seurat <- function(seurat_obj, nfeatures_value, Genome, Regress_Cell_Cyc
         print("We will regress out for cell cycle difference and scale data!")
         seurat_obj$CC.Difference <- seurat_obj$S.Score - seurat_obj$G2M.Score
         seurat_obj <- ScaleData(seurat_obj, vars.to.regress = "CC.Difference", features = rownames(seurat_obj))
+        
+        } else if (Regress_Cell_Cycle == "mtDNA") {
+        print("We will regress out for cell cycle difference and scale data!")
+          #seurat_obj <- ScaleData(seurat_obj, vars.to.regress = "percent.mt", features = rownames(seurat_obj))
+          seurat_obj <- ScaleData(seurat_obj, vars.to.regress = "percent.mito", features = rownames(seurat_obj))
+          
   } 
   
   cat("Run PCA", "\n") # Get PCs for dimensionality reduction

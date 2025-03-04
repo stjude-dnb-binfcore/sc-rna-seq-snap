@@ -32,7 +32,7 @@ genome_name_cellranger: "GRCm39" # define the genome of preference for dual geno
 print_pdf_seurat_multiple_samples: "YES" # Options: "YES" (default ALWAYS), for `02B_run_seurat_qc_multiple_samples.R`
 use_condition_split_seurat_multiple_samples: "NO" # Options: "NO" (default ALWAYS), for  `02B_run_seurat_qc_multiple_samples.R`
 grouping: "orig.ident" # define grouping to use 
-Regress_Cell_Cycle_value: "NO" # Options: "YES", "NO" or "DIFF". Indicates whether or not to regress for cell cycle and, if so, which method to use and scale data; acceptable values.
+Regress_Cell_Cycle_value: "NO" # Options: "YES", "NO", "DIFF", OR "mtDNA". Indicates whether or not to regress for cell cycle and, if so, which method to use and scale data; acceptable values.
 assay_seurat_qc: "RNA" # Options: "RNA" (default ALWAYS)
 use_SoupX_filtering_seurat_qc: "NO" # Options: "YES" or "NO" (default), for `02A_run_seurat_qc.Rmd`
 min_genes: 300 # define minimum number of genes for filtering
@@ -45,8 +45,8 @@ prefix: "lognorm" # create label based on the normalization method used
 use_miQC: "NO" # Options: "YES" or "NO". Use of miQC R package or not; see `README.md` file for more information.
 use_only_step1: "NO" # Options: "YES" or "NO". Use of both or only first step for filtering low quality cells; see `README.md` file for more information.
 condition_value: "Genotype" # define main condition of the project; this can be used for visualization purposes on the UMAPs; value to be extracted from column name in `project_metadata.tsv` file
-num_dim_seurat_qc: [20, 25] # number of PCs to use in UMAP
-num_neighbors_seurat_qc: [10, 20, 30] # number of neighbors to use in UMAP
+num_dim_seurat_qc: 30 # number of PCs to use in UMAP. For multiple variations, use: [20, 25]
+num_neighbors_seurat_qc: 30 # number of neighbors to use in UMAP. For multiple variations, use: [10, 20, 30]
 soup_fraction_value_default: 0.05 # set rho default value to use if estimated rho is > 20%
 assay_filter_object: "RNA"  # Options: "RNA" (default) or "RNA_SoupX"
 num_dim_filter_object: 30 # set one value for `04_run_filter_object.Rmd`
