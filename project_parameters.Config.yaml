@@ -115,4 +115,11 @@ gene_name_convention_update_annotation_module: "NO" # Options: "YES" or "NO" (de
 annotations_dir_rshiny_app: "04_cell_types_annotations_all" # Options: to update based on the folder with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
 annotations_filename_rshiny_app: "seurat_obj_cell_types_annotations_all.rds" # Options: to update based on the object with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
 
+# `./analyses/clone-phylogeny-analysis`
+# list of samples to run
+# you will need to comment out the list from the fastqc_dir, if available
+sample: 
+  - sample1
+  #- sample2
 
+cell_type_label_numbat: "singler.broad" # Options: "singler.broad", "singler.fine", and "predicted.cell.signature.ident" as defined in the `./analyses/cell-types-annotation` module

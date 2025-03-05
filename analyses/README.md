@@ -12,6 +12,7 @@ Each module is self-contained and can be executed independently or as part of a 
 6. `cell-contamination-removal-analysis` module (description="To remove clusters and repeat steps (4) and (5), e.g. for PDX experiments.", required=False)
 7. `cell-types-annotation` module (description="Pipeline for annotating cell types.", required=True)
 8. `rshiny-app` module (description="Pipeline for generating an R shiny app for the project.", required=False)
+9. `clone-phylogeny-analysis` module (description="Pipeline for Clone phylogeny analysis tool. This is only for human data", required=False)
 
 ## Contact
 
