@@ -39,7 +39,9 @@ params:
   input_data: '.'
   integration_method: '.'
   redution_value: '.' 
-  condition_value: '.'
+  condition_value1: '.'
+  condition_value2: '.'
+  condition_value3: '.'
   use_min.diff.med: '.'
   min.diff.med_value: '.'
   assay: '.'
@@ -346,29 +348,74 @@ p.ID <- print(cell_type_fractions_broad(df = seurat_obj@meta.data,
 ggsave(file = name, width = 6, height = 5, device = "png")
 ```
 
-## Broad cell type annotations and fractions per condition
+## Broad cell type annotations and fractions per condition1
 
-```{r plot-cell-types-condition, fig.width = 15, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
-name <- paste0(plots_dir, "/", glue::glue("plot-singler-broad-condition.png"))
-p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = condition_value, group.by = 'singler.broad', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle(glue::glue("Broad cell type annotations: {integration_method} integration")))
+```{r plot-cell-types-condition1, fig.width = 15, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(plots_dir, "/", glue::glue("plot-singler-broad-condition1.png"))
+p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = condition_value1, group.by = 'singler.broad', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle(glue::glue("Broad cell type annotations: {integration_method} integration")))
 ggsave(file = name, width = 15, height = 6, device = "png")
 ```
 
-```{r plot-cell-types-condition-fractions, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
-name <- paste0(plots_dir, "/", glue::glue("plot-singler-broad-condition-fractions.png"))
+```{r plot-cell-types-condition-fractions1, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(plots_dir, "/", glue::glue("plot-singler-broad-condition-fractions1.png"))
 p.condition <- print(cell_type_fractions_broad(df = seurat_obj@meta.data,
-                                         condition = condition_value,
-                                         color_df = palette,
-                                         title_value = "Broad"))
+                                               condition = condition_value1,
+                                               color_df = palette,
+                                               title_value = "Broad"))
+ggsave(file = name, width = 6, height = 5, device = "png")
+```
+
+## Broad cell type annotations and fractions per condition2
+
+```{r plot-cell-types-condition2, fig.width = 15, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(plots_dir, "/", glue::glue("plot-singler-broad-condition2.png"))
+p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = condition_value2, group.by = 'singler.broad', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle(glue::glue("Broad cell type annotations: {integration_method} integration")))
+ggsave(file = name, width = 15, height = 6, device = "png")
+```
+
+```{r plot-cell-types-condition-fractions2, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(plots_dir, "/", glue::glue("plot-singler-broad-condition-fractions2.png"))
+p.condition <- print(cell_type_fractions_broad(df = seurat_obj@meta.data,
+                                               condition = condition_value2,
+                                               color_df = palette,
+                                               title_value = "Broad"))
+ggsave(file = name, width = 6, height = 5, device = "png")
+```
+
+## Broad cell type annotations and fractions per condition3
+
+```{r plot-cell-types-condition3, fig.width = 15, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(plots_dir, "/", glue::glue("plot-singler-broad-condition3.png"))
+p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = condition_value3, group.by = 'singler.broad', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle(glue::glue("Broad cell type annotations: {integration_method} integration")))
+ggsave(file = name, width = 15, height = 6, device = "png")
+```
+
+```{r plot-cell-types-condition-fractions3, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(plots_dir, "/", glue::glue("plot-singler-broad-condition-fractions3.png"))
+p.condition <- print(cell_type_fractions_broad(df = seurat_obj@meta.data,
+                                               condition = condition_value3,
+                                               color_df = palette,
+                                               title_value = "Broad"))
 ggsave(file = name, width = 6, height = 5, device = "png")
 ```
 
 # Save output files
 
 ```{r save-output, echo=TRUE}
-reduction_names <- c(paste0("umap")) # Export the reductions to Seurat
-metadata <- as_data_frame_seurat(seurat_obj, reduction = reduction_names, metadata = TRUE)
-  
+#reduction_names <- c(paste0("umap")) # Export the reductions to Seurat
+#metadata <- as_data_frame_seurat(seurat_obj, reduction = reduction_names, metadata = TRUE)
+# Identify columns with a '.1' suffix
+cols_to_remove <- grep("\\.1$", colnames(seurat_obj@meta.data), value = TRUE)
+    
+# Exclude columns that match the specific patterns (e.g., {assay}_snn_res.0.1, {assay}_snn_res.1, {assay}_snn_res.10)
+cols_to_remove <- cols_to_remove[!grepl("^{assay}_snn_res\\.0\\.1$", cols_to_remove) & 
+                                   !grepl("^{assay}_snn_res\\.1$", cols_to_remove) &
+                                   !grepl("^{assay}_snn_res\\.10$", cols_to_remove)]
+    
+# Remove the columns
+seurat_obj@meta.data <- seurat_obj@meta.data[, !colnames(seurat_obj@meta.data) %in% cols_to_remove]
+    
+metadata <- seurat_obj@meta.data  
 write_tsv(metadata, file = paste0(results_dir, "/", "metadata", ".tsv")) # Save metadata
 saveRDS(seurat_obj, file = paste0(results_dir, "/", "seurat_obj_SingleR_broad.rds"))
 ```
