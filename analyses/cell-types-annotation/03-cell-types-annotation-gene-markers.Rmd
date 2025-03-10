@@ -39,10 +39,13 @@ params:
   input_data: '.'
   integration_method: '.'
   redution_value: '.' 
-  condition_value: '.'
+  condition_value1: '.'
+  condition_value2: '.'
+  condition_value3: '.'
   use_min.diff.med: '.'
   min.diff.med_value: '.'
   assay: '.'
+  ct_palette_file: '.'
   gene_markers_dir: '.'
   gene_markers_file_name: '.'
   genome_name: '.'
@@ -157,7 +160,7 @@ attach(params)
 analysis_dir <- file.path(root_dir, "analyses", "cell-types-annotation") 
 
 # Input files
-cell_types_palette_file <- file.path(root_dir, "figures", "palettes", "cell_types_palette.tsv")
+cell_types_palette_file <- file.path(root_dir, "figures", "palettes", ct_palette_file)
 gene_markers_file <- file.path(gene_markers_dir, gene_markers_file_name)
 
 # Create results_dir
@@ -302,9 +305,23 @@ ggsave(file = name, width = 6, height = 5, device = "png")
 
 ## Gene markers cell type annotations and fractions per ID
 
+```{r}
+# Get the number of unique values in the 'ID' column
+unique_ids <- print(length(unique(seurat_obj@meta.data$ID)))
+
+# Set the maximum number of plots per row (e.g., 3 plots per row)
+max_plots_per_row <- 3
+
+# Calculate the number of columns needed based on unique IDs
+# Ensure that ncol is at least 1 and limit by max_plots_per_row
+ncol_plots <- max(1, min(max_plots_per_row, unique_ids))
+```
+
 ```{r plot-cell-types-ID, fig.width = 25, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
 name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-ID.png"))
-p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = "ID", group.by = 'predicted.cell.signature.ident', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle(glue::glue("Gene markers cell type annotations: {integration_method} integration")))
+p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = "ID", group.by = 'predicted.cell.signature.ident', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + 
+                    ggtitle(glue::glue("Gene markers cell type annotations: {integration_method} integration")) +
+                    facet_wrap(~ ID, ncol = ncol_plots, scales = "free")) # Limit the number of columns per row
 ggsave(file = name, width = 25, height = 6, device = "png")
 ```
 
@@ -317,29 +334,122 @@ p.ID <- print(cell_type_fractions_cell_type_gene_markers(df = seurat_obj@meta.da
 ggsave(file = name, width = 6, height = 5, device = "png")
 ```
 
-## Gene markers cell type annotations and fractions per condition
+## Gene markers cell type annotations and fractions per `r condition_value1`
 
-```{r plot-cell-types-condition, fig.width = 15, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
-name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition.png"))
-p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = condition_value, group.by = 'predicted.cell.signature.ident', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle(glue::glue("Gene markers cell type annotations: {integration_method} integration")))
-ggsave(file = name, width = 15, height = 6, device = "png")
+```{r}
+# Get the number of unique values in the 'ID' column
+unique_ids <- print(length(unique(seurat_obj@meta.data[[condition_value1]])))
+
+# Set the maximum number of plots per row (e.g., 3 plots per row)
+max_plots_per_row <- 3
+
+# Calculate the number of columns needed based on unique IDs
+# Ensure that ncol is at least 1 and limit by max_plots_per_row
+ncol_plots <- max(1, min(max_plots_per_row, unique_ids))
 ```
 
-```{r plot-cell-types-condition-fractions, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
-name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition-fractions.png"))
+```{r plot-cell-types-condition1, fig.width = 18, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition1.png"))
+p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = condition_value1, group.by = 'predicted.cell.signature.ident', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + 
+                    ggtitle(glue::glue("Gene markers cell type annotations: {integration_method} integration")) +
+                    facet_wrap(as.formula(paste("~", condition_value1)), ncol = ncol_plots, scales = "free")) # Limit the number of columns per row)
+ggsave(file = name, width = 18, height = 6, device = "png")
+```
+
+```{r plot-cell-types-condition-fractions1, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition-fractions1.png"))
 p.condition <- print(cell_type_fractions_cell_type_gene_markers(df = seurat_obj@meta.data,
-                                         condition_plot = condition_value,
+                                         condition_plot = condition_value1,
                                          color_df = palette,
                                          title_value = "Gene markers"))
-ggsave(file = name, width = 6, height = 5, device = "png")
+ggsave(file = name, width = 8, height = 6, device = "png")
+```
+
+## Gene markers cell type annotations and fractions per `r condition_value2`
+
+```{r plot-cell-types-condition2, fig.width = 18, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+if (!is.null(condition_value2)) {
+  
+  # Get the number of unique values in the 'ID' column
+  unique_ids <- print(length(unique(seurat_obj@meta.data[[condition_value2]])))
+
+  # Set the maximum number of plots per row (e.g., 3 plots per row)
+  max_plots_per_row <- 3
+
+  # Calculate the number of columns needed based on unique IDs
+  # Ensure that ncol is at least 1 and limit by max_plots_per_row
+  ncol_plots <- max(1, min(max_plots_per_row, unique_ids))
+  
+  name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition2.png"))
+  p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = condition_value2, group.by = 'predicted.cell.signature.ident', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + 
+                    ggtitle(glue::glue("Gene markers cell type annotations: {integration_method} integration")) +
+                    facet_wrap(as.formula(paste("~", condition_value2)), ncol = ncol_plots, scales = "free")) # Limit the number of columns per row)
+  ggsave(file = name, width = 18, height = 6, device = "png")
+}
+```
+
+```{r plot-cell-types-condition-fractions2, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+if (!is.null(condition_value2)) {
+  name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition-fractions2.png"))
+  p.condition <- print(cell_type_fractions_cell_type_gene_markers(df = seurat_obj@meta.data,
+                                                                  condition_plot = condition_value2,
+                                                                  color_df = palette,
+                                                                  title_value = "Gene markers"))
+  ggsave(file = name, width = 8, height = 6, device = "png")
+}
+```
+
+## Gene markers cell type annotations and fractions per `r condition_value3`
+
+```{r plot-cell-types-condition3, fig.width = 18, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+if (!is.null(condition_value3)) {
+
+  # Get the number of unique values in the 'ID' column
+  unique_ids <- print(length(unique(seurat_obj@meta.data[[condition_value3]])))
+
+  # Set the maximum number of plots per row (e.g., 3 plots per row)
+  max_plots_per_row <- 3
+
+  # Calculate the number of columns needed based on unique IDs
+  # Ensure that ncol is at least 1 and limit by max_plots_per_row
+  ncol_plots <- max(1, min(max_plots_per_row, unique_ids))
+  
+  name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition3.png"))
+  p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = condition_value3, group.by = 'predicted.cell.signature.ident', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + 
+                    ggtitle(glue::glue("Gene markers cell type annotations: {integration_method} integration")) +
+                    facet_wrap(as.formula(paste("~", condition_value3)), ncol = ncol_plots, scales = "free")) # Limit the number of columns per row)
+  ggsave(file = name, width = 18, height = 6, device = "png")
+}
+```
+
+```{r plot-cell-types-condition-fractions3, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+if (!is.null(condition_value3)) {
+  name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition-fractions3.png"))
+  p.condition <- print(cell_type_fractions_cell_type_gene_markers(df = seurat_obj@meta.data,
+                                         condition_plot = condition_value3,
+                                         color_df = palette,
+                                         title_value = "Gene markers"))
+  ggsave(file = name, width = 8, height = 6, device = "png")
+}
 ```
 
 # Save output files
 
 ```{r save-output, echo=TRUE}
-reduction_names <- c(paste0("umap")) # Export the reductions to Seurat
-metadata <- as_data_frame_seurat(seurat_obj, reduction = reduction_names, metadata = TRUE)
-  
+#reduction_names <- c(paste0("umap")) # Export the reductions to Seurat
+metadata <- as_data_frame_seurat(seurat_obj, metadata = TRUE)
+# Identify columns with a '.1' suffix
+cols_to_remove <- grep("\\.1$", colnames(metadata), value = TRUE)
+    
+# Exclude columns that match the specific patterns (e.g., {assay}_snn_res.0.1, {assay}_snn_res.1, {assay}_snn_res.10)
+cols_to_remove <- cols_to_remove[!grepl(glue::glue("^{assay}_snn_res\\.0\\.1$"), cols_to_remove) & 
+                                           !grepl(glue::glue("^{assay}_snn_res\\.1$"), cols_to_remove) &
+                                           !grepl(glue::glue("^{assay}_snn_res\\.10$"), cols_to_remove)]
+    
+# Remove the columns
+metadata <- metadata[, !colnames(metadata) %in% cols_to_remove]
+    
+#metadata <- seurat_obj@meta.data  
 write_tsv(metadata, file = paste0(results_dir, "/", "metadata", ".tsv")) # Save metadata
 saveRDS(seurat_obj, file = paste0(results_dir, "/", "seurat_obj_gene_markers.rds"))
 ```

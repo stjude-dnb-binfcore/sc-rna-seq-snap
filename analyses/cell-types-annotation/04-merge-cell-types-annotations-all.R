@@ -117,9 +117,7 @@ if (method == "all"){
       if (nrow(new_metadata) == ncol(seurat_obj)) {
         # Add metadata to Seurat object
         seurat_obj <- AddMetaData(seurat_obj, metadata = new_metadata)
-        
-        # Verify the metadata has been added
-        # head(seurat_obj@meta.data)
+
       } else {
         # If the number of rows doesn't match, print a warning
         warning("Number of rows in new_metadata doesn't match the number of cells in seurat_obj. Label metadata will not be added to the Seurat object.")

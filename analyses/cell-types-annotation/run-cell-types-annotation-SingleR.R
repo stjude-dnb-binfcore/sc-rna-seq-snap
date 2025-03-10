@@ -55,7 +55,7 @@ if (!dir.exists(fine_report_dir)) {
 # MonacoImmuneData: bulk RNA-seq samples of sorted immune cell populations
 # MouseRNAseqData: a collection of mouse bulk RNA-seq data sets downloaded from the gene expression omnibus
 # NovershternHematopoieticData: microarray datasets for sorted hematopoietic cell populations
-bpe <- celldex::MouseRNAseqData()
+bpe <- celldex::HumanPrimaryCellAtlasData()    
 
 ################################################################################################################
 
@@ -81,11 +81,14 @@ rmarkdown::render('01-cell-types-annotation-SingleR-broad.Rmd', clean = TRUE,
                   output_format = 'all',
                   params = list(integration_method = yaml$integration_method_clustering_module,
                                 redution_value = yaml$redution_value_annotation_module,
-                                condition_value = yaml$condition_value,
+                                condition_value1 = yaml$condition_value1,
+                                condition_value2 = yaml$condition_value2,
+                                condition_value3 = yaml$condition_value3,
                                 min.diff.med_value = yaml$min.diff.med_value_annotation_module,
                                 use_min.diff.med = yaml$use_min.diff.med_annotation_module,
                                 data_file = input_data_file,
                                 assay = yaml$assay_annotation_module,
+                                ct_palette_file = yaml$ct_palette_file_broad,
                                 root_dir = yaml$root_dir,
                                 PROJECT_NAME = yaml$PROJECT_NAME,
                                 PI_NAME = yaml$PI_NAME,
@@ -107,11 +110,14 @@ rmarkdown::render('02-cell-types-annotation-SingleR-fine.Rmd', clean = TRUE,
                   output_format = 'all',
                   params = list(integration_method = yaml$integration_method_clustering_module,
                                 redution_value = yaml$redution_value_annotation_module,
-                                condition_value = yaml$condition_value,
+                                condition_value1 = yaml$condition_value1,
+                                condition_value2 = yaml$condition_value2,
+                                condition_value3 = yaml$condition_value3,
                                 min.diff.med_value = yaml$min.diff.med_value_annotation_module,
                                 use_min.diff.med = yaml$use_min.diff.med_annotation_module,
                                 data_file = input_data_file,
                                 assay = yaml$assay_annotation_module,
+                                ct_palette_file = yaml$ct_palette_file_fine,
                                 root_dir = yaml$root_dir,
                                 PROJECT_NAME = yaml$PROJECT_NAME,
                                 PI_NAME = yaml$PI_NAME,

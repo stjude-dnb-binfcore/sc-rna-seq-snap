@@ -3,17 +3,39 @@ Amacrine	#FF9200	#DE6B69
 aNSCs	#DD6C84 	#DD6C84 
 APC	NA	#BD7584
 Astrocytes	#EB6046 	#EB6046 
+Astrocyte	#EB6046 	#EB6046 
 Bipolar	#8451AA	#79C362
+BM & Prog.	NA	#E69F00
+B_cell	NA	#56B4E9
 CD34	#6E1D1D	#6E1D1D
+Chondrocytes		#009E73
 Cones	#FF5A60	#418BA4
 Cornea	NA	#F9B8B8
+DC	NA	#F0E442
 Degeneration	#003249	#003249
 Dying	NA	#797474
+Embryonic_stem_cells	NA	#0072B2
+Endothelial_cells 	#79DAAC 	#822E5F
 Endothelial cells	#79DAAC 	#822E5F
 Ependymal	#7695CC 	#7695CC 
+Epithelial_cells	#4199B5 	#4199B5 
 Epithelial cells	#4199B5 	#4199B5 
-Erythrocytes	NA	#D51304
+Erythroblast 	NA	#D55E00
+Erythrocytes	NA	#D0C14A
 Fibroblasts	#D1BE8B 	#D1BE8B 
+GMP	NA	#CC79A7
+Gametocytes	NA	#000000
+HSC_-G-CSF	NA	#999999
+HSC_CD34+	NA	#F1A340
+Hepatocytes	NA	#D8B365
+Keratinocytes	NA	#5AB4AC
+MEP	NA	#F4A300
+MSC	NA	#8F8F8F
+Macrophage	NA	#FF7F0E
+Monocyte	NA	#2CA02C
+Myelocyte	NA	#9467BD
+NK_cell	NA	#8C564B
+Neuroepithelial_cell	NA	#FFB6C1
 Horizontal	#1A7E0B	#BC372F
 Immature Organoid	#8F1919	#8F1919
 Immune	#3400A6	#3400A6
@@ -27,7 +49,15 @@ Neurons activated	#BB7E7D 	#BB7E7D
 NPCs	#D29269 	#D29269 
 nRPC	NA	#B4A7D6
 Oligodendrocytes	#9E0142 	#9E0142 
+Osteoblasts	NA	#C71585
 OPCs	#9D51DD 	#9D51DD 
+Platelets	NA	#0000FF
+Pre-B_cell_CD34- 	NA	#FFD700
+Pro-B_cell_CD34+	NA	#800000
+Smooth_muscle_cells	NA	#9ACD32
+T_cells	NA	#FFD701
+Tissue_stem_cells	NA	#B22222
+iPS_cells	NA	#FF6347
 Progenitors	#BE5314	#BE5314
 pRPC	NA	#987F87
 qNSCs	#ABA398 	#ABA398 
@@ -41,4 +71,5 @@ T2	NA	#C6EA7A
 T3	NA	#B4CEDE
 T4	NA	#F290BF
 VascEndo	#16A9DA	#822E35
-Blood	NA	#D51304
+Blood	NA	#D51305
+Photoreceptor	NA	#BADDDD
