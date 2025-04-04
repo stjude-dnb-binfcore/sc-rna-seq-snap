@@ -40,6 +40,7 @@ params:
   resolution_list: '.'
   future_globals_value: '.'
   n_value: '.'
+  genome_name: '.'
   root_dir: './'
   PROJECT_NAME: '.'
   PI_NAME: '.'
@@ -201,8 +202,56 @@ Seurat can help find markers that define clusters via differential expression (D
 
 
 ```{r find-markers, echo=TRUE}
+# For testing purposes only
+#seurat_obj_subset <- subset(seurat_obj, idents = c(1, 2))
+#all.markers <- FindAllMarkers(seurat_obj_subset, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
+
 all.markers <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
+
+if (genome_name %in% c("GRCh38", "GRCh38ANDGRCm39")) {  # Check if genome_name is "GRCh38" or "GRCh38ANDGRCm39"
+  all.markers <- all.markers %>%
+    # Grepl the non-human cells
+    mutate(species = "human",  # Initialize 'species' as 'human'
+           species = case_when(grepl("GRCm39", gene) ~ "mouse",  # If 'gene' contains "GRCm39", set 'species' to "mouse"
+                               TRUE ~ species))  # Else, keep the value as 'human'
+  
+  } else if (genome_name == "GRCh38_GFP_tdTomato") {  # Check if genome_name is exactly "GRCh38_GFP_tdTomato"
+    
+    all.markers <- all.markers %>%
+        # Grepl the non-human cells
+        mutate(species = "human",  # Initialize 'species' as 'human'
+           species = case_when(grepl("GFP_tdTomato", gene) ~ "tomato",   # If 'gene' contains "GFP_tdTomato", set 'species' to "tomato"
+                               TRUE ~ species))  # Else, keep the value as 'human'
+    
+    } else if (genome_name %in% c("GRCm39")) {  # Check if genome_name is "GRCm39" 
+      all.markers <- all.markers %>%
+        mutate(species = "mouse")
+  }
+
+
 write.table(all.markers, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+```
+
+## Number of cells per species
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+tables1 <- count(all.markers, species)
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
+caption_value = "Summary of number of cells per species"
+print(knitr::kable(tables1, align = "lcccc", caption = caption_value))
+cat("  \n</div>  \n")
+cat("  \n\\pagebreak  \n")
+```
+
+## Number of cells per species and cluster
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+tables1 <- count(all.markers, species, cluster)
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
+caption_value = "Summary of number of cells per species and cluster"
+print(knitr::kable(tables1, align = "lcccc", caption = caption_value))
+cat("  \n</div>  \n")
+cat("  \n\\pagebreak  \n")
 ```
 
 # Finding differentially expressed features (cluster biomarkers) for given cells and features

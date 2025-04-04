@@ -52,7 +52,7 @@ num_dim_seurat_qc: 30 # number of PCs to use in UMAP. For multiple variations, u
 num_neighbors_seurat_qc: 30 # number of neighbors to use in UMAP. For multiple variations, use: [10, 20, 30]
 soup_fraction_value_default: 0.05 # set rho default value to use if estimated rho is > 20%
 assay_filter_object: "RNA"  # Options: "RNA" (default) or "RNA_SoupX"
-genome_name_upstream: "GRCm39" # Options for the `Genome_Specific_Cell_Cycle_Scoring` function: "GRCh38", "hg19", "mm10", "Dualhg19", "DualGRCh38", "Dualmm10", "GRCm39" and DualGRCm39".
+genome_name_upstream: "GRCm39" # Options for the `Genome_Specific_Cell_Cycle_Scoring` function: "GRCh38", "hg19", "mm10", "Dualhg19", "DualGRCh38", "Dualmm10", "GRCm39" and "DualGRCm39".
 
 num_dim_filter_object: 30 # set one value for `04_run_filter_object.Rmd`
 num_neighbors_filter_object: 30 # set one value for `04_run_filter_object.Rmd`

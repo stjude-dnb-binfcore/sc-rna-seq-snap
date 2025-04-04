@@ -93,6 +93,7 @@ Users should adjust the memory request based on both the size of the cohort and 
 |  ├── cell-contamination-removal-analysis
 |  ├── cell-types-annotation
 |  ├── cellranger-analysis
+|  ├── clone-phylogeny-analysis
 |  ├── cluster-cell-calling
 |  ├── fastqc-analysis
 |  ├── integrative-analysis
