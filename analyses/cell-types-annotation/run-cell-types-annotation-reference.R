@@ -29,7 +29,7 @@ module_plots_dir <- file.path(analysis_dir, "plots")
 if (!dir.exists(module_plots_dir)) {
   dir.create(module_plots_dir)}
 
-gene_markers_report_dir <- file.path(module_plots_dir, "03_cell_types_annotation_gene_markers") 
+gene_markers_report_dir <- file.path(module_plots_dir, "04_cell_types_annotation_reference") 
 if (!dir.exists(gene_markers_report_dir)) {
   dir.create(gene_markers_report_dir)}
 
@@ -51,9 +51,9 @@ input_data_file <- file.path(data_dir_annotation_module, glue::glue("seurat_obj_
 
 ################################################################################################################
 # Gene score cell type annotation
-rmarkdown::render('03-cell-types-annotation-gene-markers.Rmd', clean = TRUE,
+rmarkdown::render('04-cell-types-annotation-reference.Rmd', clean = TRUE,
                   output_dir = file.path(gene_markers_report_dir),
-                  output_file = c(paste('Report-', 'cell-types-annotation-gene-markers', '-', Sys.Date(), sep = '')),
+                  output_file = c(paste('Report-', 'cell-types-annotation-reference', '-', Sys.Date(), sep = '')),
                   output_format = 'all',
                   params = list(integration_method = yaml$integration_method_clustering_module,
                                 redution_value = yaml$redution_value_annotation_module,
@@ -64,15 +64,14 @@ rmarkdown::render('03-cell-types-annotation-gene-markers.Rmd', clean = TRUE,
                                 use_min.diff.med = yaml$use_min.diff.med_annotation_module,
                                 data_file = input_data_file,
                                 assay = yaml$assay_annotation_module,
-                                ct_palette_file = yaml$ct_palette_file_gene_markers,
+                                ct_palette_file = yaml$ct_palette_file_reference,
 
-                                gene_markers_dir = yaml$gene_markers_dir_annotation_module,
-                                gene_markers_file_name = yaml$gene_markers_file_name_annotation_module,
+                                reference_dir = yaml$reference_dir_annotation_module,
+                                reference_file_name = yaml$reference_file_name_annotation_module,
                                 genome_name = yaml$genome_name_upstream,
-                                clustering_gene_markers_dir = yaml$clustering_gene_markers_dir_annotation_module,
-                                clustering_gene_markers_file_name = glue::glue("Res_{resolution}_Markers_all.tsv"),
                                 gene_name_convention_update = yaml$gene_name_convention_update_annotation_module,
                                 resolution = yaml$resolution_list_find_markers,
+                                celltype_reference = yaml$celltype_reference_module,
 
                                 root_dir = yaml$root_dir,
                                 PROJECT_NAME = yaml$PROJECT_NAME,

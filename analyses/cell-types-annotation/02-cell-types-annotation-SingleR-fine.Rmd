@@ -182,7 +182,8 @@ a4height <- 11.7
 ```
 
 # Read seurat object
-First, we will use the `seurat_obj_integrated_{integration_method}.rds` object as generated from the pipeline in the `input_data` module. This object contains all samples of the project integrated by the integration method of choice as defined in the `params` and the clusters. 
+
+First, we will use the object as generated from the pipeline in the `input_data` module. This object contains all samples of the project integrated by the integration method of choice as defined in the `params` and the clusters. 
 
 ```{r read-object, echo=TRUE}
 seurat_obj <- readRDS(data_file)
@@ -228,7 +229,7 @@ We will check and compare the pruned labels and the initial labels by summarizin
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
 tables1 <- summary_table
 cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
-print(knitr::kable(tables1, caption = "Fine cell type annotations before vs after label pruning"))
+print(knitr::kable(tables1, align = "lcccc", caption = "Fine cell type annotations before vs after label pruning"))
 cat("  \n</div>  \n")
 cat("  \n\\pagebreak  \n")
 ```
@@ -274,7 +275,7 @@ We will summarize the identified fine cell type annotations to be removed.
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
 tables1 <- summary_table
 cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
-print(knitr::kable(tables1, caption = "Fine cell type annotations to be removed"))
+print(knitr::kable(tables1, align = "lcccc", caption = "Fine cell type annotations to be removed"))
 cat("  \n</div>  \n")
 cat("  \n\\pagebreak  \n")
 ```
@@ -466,8 +467,20 @@ if (!is.null(condition_value3)) {
 # Save output files
 
 ```{r save-output, echo=TRUE}
+# Identify columns with a '.1' suffix
+cols_to_remove <- grep("\\.1$", colnames(seurat_obj@meta.data), value = TRUE)
+
+# Exclude columns that match the specific patterns (e.g., {assay}_snn_res.0.1, {assay}_snn_res.1, {assay}_snn_res.10)
+cols_to_remove <- cols_to_remove[!grepl(glue::glue("^{assay}_snn_res\\.0\\.1$"), cols_to_remove) & 
+                                   !grepl(glue::glue("^{assay}_snn_res\\.1$"), cols_to_remove) &
+                                   !grepl(glue::glue("^{assay}_snn_res\\.10$"), cols_to_remove)]
+
+# Remove the columns
+seurat_obj@meta.data <- seurat_obj@meta.data[, !colnames(seurat_obj@meta.data) %in% cols_to_remove]
 head(seurat_obj@meta.data)
+
 metadata <- as_data_frame_seurat(seurat_obj, metadata = TRUE)
+
 write_tsv(metadata, file = paste0(results_dir, "/", "metadata", ".tsv")) # Save metadata
 #saveRDS(seurat_obj, file = paste0(results_dir, "/", "seurat_obj_SingleR_fine.rds"))
 ```
