@@ -6,10 +6,9 @@
     <img src="https://www.repostatus.org/badges/latest/active.svg?style=for-the-badge" alt="The project has reached a stable, usable state and is being actively developed." />
   </a>
   <a href="https://github.com/stjude-dnb-binfcore/sc-rna-seq-snap">
-    <img src="https://img.shields.io/badge/version-2.0.1-brightgreen" alt="Version" />
+    <img src="https://img.shields.io/badge/version-1.0.0.beta-brightgreen" alt="Version" />
   </a>
 </p>
-
 
 # Single cell RNA Seq Snap workflow (ScRNASeqSnap)
 
