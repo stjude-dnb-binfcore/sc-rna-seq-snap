@@ -39,7 +39,7 @@ For best practices and detailed guidelines on effectively using the Snap pipelin
 
 ### Preparing project metadata
 
-The pipeline requires a TSV file containing essential metadata for cohort analysis. The file must be named `project_metadata.tsv`. It can include one or more samples, as long as it contains at least the following columns in this exact order: `ID`, `SAMPLE`, and `FASTQ`. Additional metadata columns can be added and arranged as needed by the user (though not required).
+The pipeline requires a TSV file containing essential metadata for cohort analysis. The file must be named `project_metadata.tsv`. It can include one or more samples, as long as it contains at least the following columns in this exact order: `ID`, `SAMPLE`, and `FASTQ`. The `ID` column must contain unique values. Additional metadata columns can be added and arranged as needed by the user (though not required). 
 
 The file can be stored anywhere, but its filepath must be specified in the `project_parameters.Config.yaml` file.
 

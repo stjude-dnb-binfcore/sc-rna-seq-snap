@@ -21,7 +21,7 @@ COMPLETION_DATE: "ONGOING"
 # No need to manually define variables
 
 # `./analyses/cellranger-analysis`
-genome_reference_path: "./" # path to genome reference to be used for the `cellranger-analysis` module
+genome_reference_path: "./" # Absolute path to genome reference to be used for the `cellranger-analysis` module
 cellranger_parameters: "DefaultParameters" # Options: "DefaultParameters", "ForcedCells8000Parameters", or else
 genome_name_cellranger: "GRCm39" # define the genome of preference for dual genomes. In case for single genomes, please use the same as used for `genome_name`.
 create_bam_value: "true" # Options: "true" (default) or "false". For non-human experiments, we recommend setting this to 'false' to reduce memory usage per project.
@@ -111,16 +111,20 @@ assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX"
 
 gene_markers_dir_annotation_module: "./" # path to gene markers dir
 gene_markers_file_name_annotation_module: "<filename>.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`.
-#cluster_name: "seurat_clusters"
-method_annotation_module: "all" # Options: "all" (for using singler and a list of gene markers), "singler" (for using only singler method for both broad and fine annotation)
+method_annotation_module: "gene_markers&reference" # Options: "all" (for using singler, a list of gene markers and reference dataset), "singler" (for using only singler method for both broad and fine annotation), "singler&gene_markers" (for using SingleR and a list of gene markers),  "singler&reference" (for using SingleR and reference dataset), "gene_markers&reference" (for using a list of gene markers and reference dataset)
 gene_name_convention_update_annotation_module: "NO" # Options: "YES" or "NO" (default). Set to "YES" if the gene names in the gene markers file do not align with the naming convention of genes in the reference genome.
 
 ct_palette_file_broad: "cell_types_palette.tsv"  # File name with the cell types. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder. 
 ct_palette_file_fine: "cell_types_palette.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
 ct_palette_file_gene_markers: "cell_types_palette.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
+ct_palette_file_reference: "cell_types_palette.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
+
+reference_dir_annotation_module: "./" # path to reference dir
+reference_file_name_annotation_module: "<filename>.rds" # File name with the reference object. It needs to be in `rds` format.
+celltype_reference_module: "predicted.cell.signature.ident" # Column name from the reference object to be used to transfer labels
 
 # `rshiny-app`
-annotations_dir_rshiny_app: "04_cell_types_annotations_all" # Options: to update based on the folder with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
+annotations_dir_rshiny_app: "cell_types_annotations_all" # Options: to update based on the folder with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
 annotations_filename_rshiny_app: "seurat_obj_cell_types_annotations_all.rds" # Options: to update based on the object with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
 
 # `./analyses/clone-phylogeny-analysis`

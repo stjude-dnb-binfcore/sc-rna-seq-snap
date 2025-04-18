@@ -1,5 +1,5 @@
 ---
-title: "Cell types annotation using a list of gene-markers as a reference for sc-/sn-RNA-Seq Analysis in 10X Genomics data"
+title: "Cell types annotation using a reference dataset for sc-/sn-RNA-Seq Analysis in 10X Genomics data"
 author: "Antonia Chroni for SJCRH DNB_BINF_Core"
 papersize: a4
 fontsize: 11pt
@@ -46,13 +46,12 @@ params:
   min.diff.med_value: '.'
   assay: '.'
   ct_palette_file: '.'
-  gene_markers_dir: '.'
-  gene_markers_file_name: '.'
+  reference_dir: '.'
+  reference_file_name: '.'
   genome_name: '.'
-  clustering_gene_markers_dir: '.'
-  clustering_gene_markers_file_name: '.'
   gene_name_convention_update: '.'
   resolution: '.'
+  celltype_reference: '.'
   root_dir: './'
   PROJECT_NAME: '.'
   PI_NAME: '.'
@@ -140,7 +139,7 @@ Reviewed by: _____________________   Date: ____________ \
   
 # Information about this notebook
 
-We will use a list of gene markers to annotate cell types in the cohort.
+We will use a reference dataset to annotate cell types in the cohort. For more information, see [Seurat](https://satijalab.org/seurat/articles/integration_mapping.html).
 
 # Set up
 ```{r load-library, echo=TRUE}
@@ -160,23 +159,22 @@ analysis_dir <- file.path(root_dir, "analyses", "cell-types-annotation")
 
 # Input files
 cell_types_palette_file <- file.path(root_dir, "figures", "palettes", ct_palette_file)
-gene_markers_file <- file.path(gene_markers_dir, gene_markers_file_name)
+reference_file <- file.path(reference_dir, reference_file_name)
 
 # Create results_dir
 module_results_dir <- file.path(analysis_dir, "results")
 if (!dir.exists(module_results_dir)) {
   dir.create(module_results_dir)}
 
-results_dir <- file.path(module_results_dir, "03_cell_types_annotation_gene_markers")
+results_dir <- file.path(module_results_dir, "04_cell_types_annotation_reference")
 if (!dir.exists(results_dir)) {
   dir.create(results_dir)}
 
 # Create plots directory
 module_plots_dir <- file.path(analysis_dir, "plots") 
-plots_dir <- file.path(module_plots_dir, "03_cell_types_annotation_gene_markers") 
+plots_dir <- file.path(module_plots_dir, "04_cell_types_annotation_reference") 
 
 source(paste0(root_dir, "/figures/scripts/theme_plot.R"))
-source(paste0(analysis_dir, "/util/function-calculate-cell-type-signature.R"))
 source(paste0(analysis_dir, "/util/function-cell-type-fractions.R"))
 ```
 
@@ -195,83 +193,12 @@ a4height <- 11.7
 First, we will use the object as generated from the pipeline in the `input_data` module. This object contains all samples of the project integrated by the integration method of choice as defined in the `params` and the clusters. 
 
 ```{r read-object, echo=TRUE}
-seurat_obj <- readRDS(data_file)
+seurat_obj.query <- readRDS(data_file)
 ```
 
-# Cell types annotation using a list of gene-markers as a reference
+# Cell types annotation using a reference object
 
-We will use a list of gene-markers as a reference to identify and annotate cell types.
-
-```{r read-file-with-gene-markers, echo=TRUE}
-marker_list <- readr::read_tsv(gene_markers_file, guess_max = 100000, show_col_types = FALSE) 
-```
-
-```{r calculate_cell_type_signature, echo=TRUE}
-cat("Calculate cell type signatures\n")
-seurat_obj <- calculate_cell_type_signature(seurat_obj = seurat_obj, 
-                                            results_dir = results_dir,
-                                            plots_dir = plots_dir, 
-                                            gene_markers_df = marker_list, 
-                                            genome_name = genome_name,
-                                            gene_name_convention_update = gene_name_convention_update,
-                                            assay = assay, 
-                                            resolution = resolution)
-
-# Add metadata
-new.data <- seurat_obj@meta.data %>%
-  as.data.frame() %>%
-  add_column(project = "project")
-seurat_obj <- AddMetaData(seurat_obj, metadata = new.data)
-
-# Create table
-summary_table <- table(predicted.cell.signature.ident = seurat_obj@meta.data$predicted.cell.signature.ident) %>% # all labels
-  as.data.frame() %>% 
-  mutate(cells_number_all = Freq) %>% 
-  dplyr::select(-Freq) 
-```
-
-## Number of cells for the gene markers cell type annotations
-
-We will check the number of cells by summarizing the identified cell type annotations.
-
-```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
-tables1 <- summary_table
-cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
-print(knitr::kable(tables1, align = "lcccc", caption = "Gene markers cell type annotations"))
-cat("  \n</div>  \n")
-cat("  \n\\pagebreak  \n")
-```
-
-## Number of cells for the gene markers cell type annotations per ID
-
-We will check the number of cells by summarizing the identified cell type annotations per ID.
-
-```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
-tables1 <- seurat_obj@meta.data %>% 
-  as.data.frame() %>% 
-  dplyr::count(predicted.cell.signature.ident, ID) %>%
-  pivot_wider(names_from = ID, values_from = n, values_fill = list(n = 0))
-cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
-print(knitr::kable(tables1, align = "lcccc", caption = "Gene markers cell type annotations per ID"))
-cat("  \n</div>  \n")
-cat("  \n\\pagebreak  \n")
-```
-
-# Identify number of cells with low-quality or no assignments of cell type annotations
-
-```{r echo=TRUE}
-seurat_obj@meta.data <- seurat_obj@meta.data %>%
-  mutate(predicted.cell.signature.ident = if_else(is.na(predicted.cell.signature.ident), "unassigned", as.character(predicted.cell.signature.ident)),
-         predicted.cell.signature.ident = if_else(predicted.cell.signature.ident == "", "unassigned", predicted.cell.signature.ident))
-
-# unassigned cells 
-cells_unassigned <- length(which(seurat_obj@meta.data$predicted.cell.signature.ident == "unassigned"))
-```
-
-We will identify and rename the cells with low-quality or no assignments to `unassigned` (instead of NAs or empty strings). There were identified `r cells_unassigned` cells due to low-quality or no assignments of cell type annotations. We will include these cells in the following plots.
-
-
-# Plotting cell type annotations
+We will use a reference dataset to identify and annotate cell types.
 
 ```{r define-parameters-for-plots, echo=TRUE}
 # Read color palette
@@ -284,30 +211,110 @@ palette <- palette_df$hex_codes
 names(palette) <- palette_df$cell_type_names 
 ```
 
-## Gene markers cell type annotations: before vs after integration
+```{r read-file-with-reference, echo=TRUE}
+reference_obj <- readRDS(reference_file)
+
+# Rename column containing cell types in the reference
+reference_obj@meta.data$celltype <- reference_obj@meta.data[[celltype_reference]]
+
+# Plot
+name <- paste0(plots_dir, "/", glue::glue("plot-reference-cell-types.png"))
+p1.reference <- DimPlot(reference_obj, group.by = 'celltype', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle("Reference cell type annotations") 
+print(p1.reference)
+ggsave(file = name, width = 8, height = 6, device = "png")
+```
+
+```{r annotate_cell_types, echo=TRUE}
+cat("Find anchors\n")
+cohort.anchors <- FindTransferAnchors(reference = reference_obj, 
+                                      query = seurat_obj.query, dims = 1:30,
+                                      reference.reduction = "pca")
+
+predictions <- TransferData(anchorset = cohort.anchors, refdata =reference_obj$celltype, dims = 1:30)
+
+cat("Add predictions in the query dataset\n")
+seurat_obj.query <- AddMetaData(seurat_obj.query, metadata = predictions) # Add metadata
+
+# Add metadata
+new.data <- seurat_obj.query@meta.data %>%
+  as.data.frame() %>%
+  add_column(project = "project")
+seurat_obj.query <- AddMetaData(seurat_obj.query, metadata = new.data)
+
+# Create table
+summary_table <- table(predicted.id = seurat_obj.query@meta.data$predicted.id) %>% # all labels
+  as.data.frame() %>% 
+  mutate(cells_number_all = Freq) %>% 
+  dplyr::select(-Freq) 
+```
+
+## Number of cells for the Reference cell type annotations
+
+We will check the number of cells by summarizing the identified cell type annotations.
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+tables1 <- summary_table
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
+print(knitr::kable(tables1, align = "lcccc", caption = "Reference cell type annotations"))
+cat("  \n</div>  \n")
+cat("  \n\\pagebreak  \n")
+```
+
+## Number of cells for the Reference cell type annotations per ID
+
+We will check the number of cells by summarizing the identified cell type annotations per ID.
+
+```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
+tables1 <- seurat_obj.query@meta.data %>% 
+  as.data.frame() %>% 
+  dplyr::count(predicted.id, ID) %>%
+  pivot_wider(names_from = ID, values_from = n, values_fill = list(n = 0))
+cat("  \n<div align=\"center\" style=\"font-size:80%\">  \n")
+print(knitr::kable(tables1, align = "lcccc", caption = "Reference cell type annotations per ID"))
+cat("  \n</div>  \n")
+cat("  \n\\pagebreak  \n")
+```
+
+# Identify number of cells with low-quality or no assignments of cell type annotations
+
+```{r echo=TRUE}
+seurat_obj.query@meta.data <- seurat_obj.query@meta.data %>%
+  mutate(predicted.id = if_else(is.na(predicted.id), "unassigned", as.character(predicted.id)),
+         predicted.id = if_else(predicted.id == "", "unassigned", predicted.id))
+
+# unassigned cells 
+cells_unassigned <- length(which(seurat_obj.query@meta.data$predicted.id == "unassigned"))
+```
+
+We will identify and rename the cells with low-quality or no assignments to `unassigned` (instead of NAs or empty strings). There were identified `r cells_unassigned` cells due to low-quality or no assignments of cell type annotations. We will include these cells in the following plots.
+
+
+# Plotting cell type annotations
+
+## Reference cell type annotations: before vs after integration
 
 ```{r plot-comparison-before-vs-after-integration, fig.width = 18, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
-name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-comparison-before-vs-after-integration.png"))
-p1.before <- DimPlot(seurat_obj, group.by = 'predicted.cell.signature.ident', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle("Gene markers cell type annotations: merged") 
-p1.after <- DimPlot(seurat_obj, reduction = redution_value, group.by = 'predicted.cell.signature.ident', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle(glue::glue("Gene markers cell type annotations: {integration_method} integration")) 
+name <- paste0(plots_dir, "/", glue::glue("plot-reference-comparison-before-vs-after-integration.png"))
+p1.before <- DimPlot(seurat_obj.query, group.by = 'predicted.id', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle("Reference cell type annotations: merged") 
+p1.after <- DimPlot(seurat_obj.query, reduction = redution_value, group.by = 'predicted.id', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle(glue::glue("Reference cell type annotations: {integration_method} integration")) 
 print(p1.before + p1.after)
 ggsave(file = name, width = 18, height = 6, device = "png")
 ```
 
 ```{r plot-cell-types-project-fractions, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
-name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-project-fractions.png"))
-p.project <- print(cell_type_fractions_cell_type_gene_markers(df = seurat_obj@meta.data,
+name <- paste0(plots_dir, "/", glue::glue("plot-reference-project-fractions.png"))
+p.project <- print(cell_type_fractions_cell_type_reference(df = seurat_obj.query@meta.data,
                                             condition = "project",
                                             color_df = palette,
-                                            title_value = "Gene markers"))
+                                            title_value = "Reference"))
 ggsave(file = name, width = 6, height = 5, device = "png")
 ```
 
-## Gene markers cell type annotations and fractions per ID
+## Reference cell type annotations and fractions per ID
 
 ```{r}
 # Get the number of unique values in the 'ID' column
-unique_ids <- print(length(unique(seurat_obj@meta.data$ID)))
+unique_ids <- print(length(unique(seurat_obj.query@meta.data$ID)))
 
 # Set the maximum number of plots per row (e.g., 3 plots per row)
 max_plots_per_row <- 3
@@ -317,28 +324,28 @@ max_plots_per_row <- 3
 ncol_plots <- max(1, min(max_plots_per_row, unique_ids))
 ```
 
-```{r plot-cell-types-ID, fig.width = 25, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
-name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-ID.png"))
-p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = "ID", group.by = 'predicted.cell.signature.ident', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + 
-                    ggtitle(glue::glue("Gene markers cell type annotations: {integration_method} integration")) +
+```{r plot-cell-types-ID, fig.width = 25, fig.height = 10, fig.fullwidth = TRUE, echo=TRUE}
+name <- paste0(plots_dir, "/", glue::glue("plot-reference-ID.png"))
+p1.after <- print(DimPlot(seurat_obj.query, reduction = redution_value, split.by = "ID", group.by = 'predicted.id', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + 
+                    ggtitle(glue::glue("Reference cell type annotations: {integration_method} integration")) +
                     facet_wrap(~ ID, ncol = ncol_plots, scales = "free")) # Limit the number of columns per row
-ggsave(file = name, width = 25, height = 6, device = "png")
+ggsave(file = name, width = 25, height = 10, device = "png")
 ```
 
 ```{r plot-cell-types-ID-fractions, fig.width = 6, fig.height = 5, fig.fullwidth = TRUE, echo=TRUE}
-name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-ID-fractions.png"))
-p.ID <- print(cell_type_fractions_cell_type_gene_markers(df = seurat_obj@meta.data,
+name <- paste0(plots_dir, "/", glue::glue("plot-reference-ID-fractions.png"))
+p.ID <- print(cell_type_fractions_cell_type_reference(df = seurat_obj.query@meta.data,
                                   condition = "ID",
                                   color_df = palette,
-                                  title_value = "Gene markers"))
+                                  title_value = "Reference"))
 ggsave(file = name, width = 6, height = 5, device = "png")
 ```
 
-## Gene markers cell type annotations and fractions per `r condition_value1`
+## Reference cell type annotations and fractions per `r condition_value1`
 
 ```{r}
 # Get the number of unique values in the 'ID' column
-unique_ids <- print(length(unique(seurat_obj@meta.data[[condition_value1]])))
+unique_ids <- print(length(unique(seurat_obj.query@meta.data[[condition_value1]])))
 
 # Set the maximum number of plots per row (e.g., 3 plots per row)
 max_plots_per_row <- 3
@@ -349,29 +356,29 @@ ncol_plots <- max(1, min(max_plots_per_row, unique_ids))
 ```
 
 ```{r plot-cell-types-condition1, fig.width = 18, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
-name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition1.png"))
-p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = condition_value1, group.by = 'predicted.cell.signature.ident', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + 
-                    ggtitle(glue::glue("Gene markers cell type annotations: {integration_method} integration")) +
+name <- paste0(plots_dir, "/", glue::glue("plot-reference-condition1.png"))
+p1.after <- print(DimPlot(seurat_obj.query, reduction = redution_value, split.by = condition_value1, group.by = 'predicted.id', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + 
+                    ggtitle(glue::glue("Reference cell type annotations: {integration_method} integration")) +
                     facet_wrap(as.formula(paste("~", condition_value1)), ncol = ncol_plots, scales = "free")) # Limit the number of columns per row)
 ggsave(file = name, width = 18, height = 6, device = "png")
 ```
 
 ```{r plot-cell-types-condition-fractions1, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
-name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition-fractions1.png"))
-p.condition <- print(cell_type_fractions_cell_type_gene_markers(df = seurat_obj@meta.data,
+name <- paste0(plots_dir, "/", glue::glue("plot-reference-condition-fractions1.png"))
+p.condition <- print(cell_type_fractions_cell_type_reference(df = seurat_obj.query@meta.data,
                                          condition_plot = condition_value1,
                                          color_df = palette,
-                                         title_value = "Gene markers"))
+                                         title_value = "Reference"))
 ggsave(file = name, width = 8, height = 6, device = "png")
 ```
 
-## Gene markers cell type annotations and fractions per `r condition_value2`
+## Reference cell type annotations and fractions per `r condition_value2`
 
 ```{r plot-cell-types-condition2, fig.width = 18, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
 if (!is.null(condition_value2)) {
   
   # Get the number of unique values in the 'ID' column
-  unique_ids <- print(length(unique(seurat_obj@meta.data[[condition_value2]])))
+  unique_ids <- print(length(unique(seurat_obj.query@meta.data[[condition_value2]])))
 
   # Set the maximum number of plots per row (e.g., 3 plots per row)
   max_plots_per_row <- 3
@@ -380,9 +387,9 @@ if (!is.null(condition_value2)) {
   # Ensure that ncol is at least 1 and limit by max_plots_per_row
   ncol_plots <- max(1, min(max_plots_per_row, unique_ids))
   
-  name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition2.png"))
-  p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = condition_value2, group.by = 'predicted.cell.signature.ident', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + 
-                    ggtitle(glue::glue("Gene markers cell type annotations: {integration_method} integration")) +
+  name <- paste0(plots_dir, "/", glue::glue("plot-reference-condition2.png"))
+  p1.after <- print(DimPlot(seurat_obj.query, reduction = redution_value, split.by = condition_value2, group.by = 'predicted.id', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + 
+                    ggtitle(glue::glue("Reference cell type annotations: {integration_method} integration")) +
                     facet_wrap(as.formula(paste("~", condition_value2)), ncol = ncol_plots, scales = "free")) # Limit the number of columns per row)
   ggsave(file = name, width = 18, height = 6, device = "png")
 }
@@ -390,22 +397,22 @@ if (!is.null(condition_value2)) {
 
 ```{r plot-cell-types-condition-fractions2, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
 if (!is.null(condition_value2)) {
-  name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition-fractions2.png"))
-  p.condition <- print(cell_type_fractions_cell_type_gene_markers(df = seurat_obj@meta.data,
+  name <- paste0(plots_dir, "/", glue::glue("plot-reference-condition-fractions2.png"))
+  p.condition <- print(cell_type_fractions_cell_type_reference(df = seurat_obj.query@meta.data,
                                                                   condition_plot = condition_value2,
                                                                   color_df = palette,
-                                                                  title_value = "Gene markers"))
+                                                                  title_value = "Reference"))
   ggsave(file = name, width = 8, height = 6, device = "png")
 }
 ```
 
-## Gene markers cell type annotations and fractions per `r condition_value3`
+## Reference cell type annotations and fractions per `r condition_value3`
 
 ```{r plot-cell-types-condition3, fig.width = 18, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
 if (!is.null(condition_value3)) {
 
   # Get the number of unique values in the 'ID' column
-  unique_ids <- print(length(unique(seurat_obj@meta.data[[condition_value3]])))
+  unique_ids <- print(length(unique(seurat_obj.query@meta.data[[condition_value3]])))
 
   # Set the maximum number of plots per row (e.g., 3 plots per row)
   max_plots_per_row <- 3
@@ -414,9 +421,9 @@ if (!is.null(condition_value3)) {
   # Ensure that ncol is at least 1 and limit by max_plots_per_row
   ncol_plots <- max(1, min(max_plots_per_row, unique_ids))
   
-  name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition3.png"))
-  p1.after <- print(DimPlot(seurat_obj, reduction = redution_value, split.by = condition_value3, group.by = 'predicted.cell.signature.ident', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + 
-                    ggtitle(glue::glue("Gene markers cell type annotations: {integration_method} integration")) +
+  name <- paste0(plots_dir, "/", glue::glue("plot-reference-condition3.png"))
+  p1.after <- print(DimPlot(seurat_obj.query, reduction = redution_value, split.by = condition_value3, group.by = 'predicted.id', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + 
+                    ggtitle(glue::glue("Reference cell type annotations: {integration_method} integration")) +
                     facet_wrap(as.formula(paste("~", condition_value3)), ncol = ncol_plots, scales = "free")) # Limit the number of columns per row)
   ggsave(file = name, width = 18, height = 6, device = "png")
 }
@@ -424,11 +431,11 @@ if (!is.null(condition_value3)) {
 
 ```{r plot-cell-types-condition-fractions3, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
 if (!is.null(condition_value3)) {
-  name <- paste0(plots_dir, "/", glue::glue("plot-gene-markers-condition-fractions3.png"))
-  p.condition <- print(cell_type_fractions_cell_type_gene_markers(df = seurat_obj@meta.data,
+  name <- paste0(plots_dir, "/", glue::glue("plot-reference-condition-fractions3.png"))
+  p.condition <- print(cell_type_fractions_cell_type_reference(df = seurat_obj.query@meta.data,
                                          condition_plot = condition_value3,
                                          color_df = palette,
-                                         title_value = "Gene markers"))
+                                         title_value = "Reference"))
   ggsave(file = name, width = 8, height = 6, device = "png")
 }
 ```
@@ -436,21 +443,22 @@ if (!is.null(condition_value3)) {
 # Save output files
 
 ```{r save-output, echo=TRUE}
-# Identify columns with a '.1' suffix
-cols_to_remove <- grep("\\.1$", colnames(seurat_obj@meta.data), value = TRUE)
+metadata <- as_data_frame_seurat(seurat_obj.query, metadata = TRUE)
 
+# Identify columns with a '.1' suffix
+cols_to_remove <- grep("\\.1$", colnames(seurat_obj.query@meta.data), value = TRUE)
+  
 # Exclude columns that match the specific patterns (e.g., {assay}_snn_res.0.1, {assay}_snn_res.1, {assay}_snn_res.10)
 cols_to_remove <- cols_to_remove[!grepl(glue::glue("^{assay}_snn_res\\.0\\.1$"), cols_to_remove) & 
-                                   !grepl(glue::glue("^{assay}_snn_res\\.1$"), cols_to_remove) &
-                                   !grepl(glue::glue("^{assay}_snn_res\\.10$"), cols_to_remove)]
-
+                                     !grepl(glue::glue("^{assay}_snn_res\\.1$"), cols_to_remove) &
+                                     !grepl(glue::glue("^{assay}_snn_res\\.10$"), cols_to_remove)]
+  
 # Remove the columns
-seurat_obj@meta.data <- seurat_obj@meta.data[, !colnames(seurat_obj@meta.data) %in% cols_to_remove]
-head(seurat_obj@meta.data)
+seurat_obj.query@meta.data <- seurat_obj.query@meta.data[, !colnames(seurat_obj.query@meta.data) %in% cols_to_remove]
+#head(seurat_obj.query@meta.data)
 
-metadata <- as_data_frame_seurat(seurat_obj, metadata = TRUE)
 write_tsv(metadata, file = paste0(results_dir, "/", "metadata", ".tsv")) # Save metadata
-saveRDS(seurat_obj, file = paste0(results_dir, "/", "seurat_obj_gene_markers.rds"))
+saveRDS(seurat_obj.query, file = paste0(results_dir, "/", "seurat_obj_reference.rds"))
 ```
 
 ```{r echo=FALSE}
