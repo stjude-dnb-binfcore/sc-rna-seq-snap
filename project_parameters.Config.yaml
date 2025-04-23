@@ -2,7 +2,7 @@
 root_dir: "/sc-rna-seq-snap" # Absolute path to the main dir of the project where GitHub repo lives
 data_dir: "/sc-rna-seq-snap/analyses/cellranger-analysis/results/02_cellranger_count/DefaultParameters" # Absolute path to data dir of the project with CellRanger output results. Options: "DefaultParameters", "ForcedCells8000Parameters", or else. 
 metadata_dir: "/sc-rna-seq-snap/data/project_metadata" # Absolute path to metadata dir of the project. File name always named as: `project_metadata.tsv`.
-genome_name: "mm10" # define genome reference and versioning. Options: (1) human: "GRCh38" and "hg19"; (2) mouse: "GRCm39", "mm10", and "mm9"; and (3) dual index genomes: "GRCh38ANDGRCm39", "GRCh38_mm10", "GRCh38_mm9", and "GRCh38_GFP_tdTomato".
+genome_name: "mm10" # define genome reference and versioning. Options: (1) human: "GRCh38", "hg19", and "GRCh38_GFP_tdTomato"; (2) mouse: "GRCm39", "mm10", and "mm9"; and (3) dual index genomes: "GRCh38ANDGRCm39", "GRCh38_mm10", and "GRCh38_mm9".
 PROJECT_NAME: "PROJECT_NAME"
 PI_NAME: "PI_NAME"
 TASK_ID: "NA"
