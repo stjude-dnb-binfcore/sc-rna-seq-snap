@@ -2,7 +2,7 @@
 root_dir: "/sc-rna-seq-snap" # Absolute path to the main dir of the project where GitHub repo lives
 data_dir: "/sc-rna-seq-snap/analyses/cellranger-analysis/results/02_cellranger_count/DefaultParameters" # Absolute path to data dir of the project with CellRanger output results. Options: "DefaultParameters", "ForcedCells8000Parameters", or else. 
 metadata_dir: "/sc-rna-seq-snap/data/project_metadata" # Absolute path to metadata dir of the project. File name always named as: `project_metadata.tsv`.
-genome_name: "GRCm39" # define genome reference and versioning. Options: (1) human: "GRCh38", "hg19", and "GRCh38_GFP_tdTomato"; (2) mouse: "GRCm39", "mm10", and "mm9"; and (3) dual index genomes: "GRCh38ANDGRCm39", "GRCh38_mm10", and "GRCh38_mm9".
+genome_name: "GRCh38_GFP_tdTomato" # define genome reference and versioning. Options: (1) human: "GRCh38", "hg19", and "GRCh38_GFP_tdTomato"; (2) mouse: "GRCm39", "mm10", and "mm9"; and (3) dual index genomes: "GRCh38ANDGRCm39", "GRCh38_mm10", and "GRCh38_mm9".
 PROJECT_NAME: "PROJECT_NAME"
 PI_NAME: "PI_NAME"
 TASK_ID: "NA"
@@ -23,7 +23,7 @@ COMPLETION_DATE: "ONGOING"
 # `./analyses/cellranger-analysis`
 genome_reference_path: "./" # Absolute path to genome reference to be used for the `cellranger-analysis` module
 cellranger_parameters: "DefaultParameters" # Options: "DefaultParameters", "ForcedCells8000Parameters", or else
-genome_name_cellranger: "GRCm39" # define the genome of preference for dual genomes. In case for single genomes, please use the same as used for `genome_name`.
+genome_name_cellranger: "GRCh38" # define the genome of preference for dual genomes. In case for single genomes, please use the same as used for `genome_name`.
 create_bam_value: "true" # Options: "true" (default) or "false". For non-human experiments, we recommend setting this to 'false' to reduce memory usage per project.
 sample_prefix: "DYE"  # define the prefix with the Sample ID used for the samples of the project. This requires that all of the Sample IDs are the same, e.g., DYE001, DYE002, DYE003 and so on.
 
@@ -51,7 +51,7 @@ num_dim_seurat_qc: 30 # number of PCs to use in UMAP. For multiple variations, u
 num_neighbors_seurat_qc: 30 # number of neighbors to use in UMAP. For multiple variations, use: [10, 20, 30]
 soup_fraction_value_default: 0.05 # set rho default value to use if estimated rho is > 20%
 assay_filter_object: "RNA"  # Options: "RNA" (default) or "RNA_SoupX"
-genome_name_upstream: "GRCm39" # Options for the `Genome_Specific_Cell_Cycle_Scoring` function: (1) human: "GRCh38" and "hg19"; (2) mouse: "GRCm39", "mm10", and "mm9"; and (3) dual index genomes: "DualGRCh38", "Dualhg19", "DualGRCm39", "Dualmm10", and "Dualmm9".
+genome_name_upstream: "GRCh38" # Options for the `Genome_Specific_Cell_Cycle_Scoring` function: (1) human: "GRCh38" and "hg19"; (2) mouse: "GRCm39", "mm10", and "mm9"; and (3) dual index genomes: "DualGRCh38", "Dualhg19", "DualGRCm39", "Dualmm10", and "Dualmm9".
 
 
 num_dim_filter_object: 30 # set one value for `04_run_filter_object.Rmd`
