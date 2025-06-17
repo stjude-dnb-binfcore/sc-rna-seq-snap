@@ -381,12 +381,17 @@ For more information, please see: `r results_filepath`/`r cohort_value`/analyses
 ## integrative-analysis
 
 For more information, please see: `r results_filepath`/`r cohort_value`/analyses/integrative-analysis/plots
+ 
+ - The single-cell sequencing dataset was integrated using the **`r integration_method`** algorithm. 
 
 
 ## cluster-cell-calling
 
 For more information, please see: `r results_filepath`/`r cohort_value`/analyses/cluster-cell-calling/plots
 
+   - We used the **`r resolution_clustering_module`** resolution for calling clusters. That included the following number of resolutions: **`r resolution_values`**.
+   - We used the **`r resolution_list_find_markers`** resolution for finding markers and explored the **`r n_value_find_markers`** of top genes.
+   
 ## cell-contamination-removal-analysis
 
 For more information, please see: `r results_filepath`/`r cohort_value`/analyses/cell-contamination-removal-analysis/plots
@@ -395,6 +400,9 @@ For more information, please see: `r results_filepath`/`r cohort_value`/analyses
 ## cell-types-annotation
 
 For more information, please see: `r results_filepath`/`r cohort_value`/analyses/cell-types-annotation/plots
+
+   - We used the **`r method_annotation_module`** method(s) for identifying cell types.
+   - We used the **`r annotation_file1`** and **`r annotation_file2`** file(s) for identifying cell types.
 
 
 ## clone-phylogeny-analysis

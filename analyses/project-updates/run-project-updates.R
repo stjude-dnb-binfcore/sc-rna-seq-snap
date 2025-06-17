@@ -38,7 +38,9 @@ resolution_values <- yaml$resolution_list_default_clustering_module
 resolution_list_find_markers <- yaml$resolution_list_find_markers
 n_value_find_markers <- yaml$n_value_find_markers
 method_annotation_module <- yaml$method_annotation_module
-
+annotation_file1 <- yaml$gene_markers_file_name_annotation_module
+annotation_file2 <- yaml$reference_file_name_annotation_module
+integration_method <-  yaml$integration_method_clustering_module
 
 # Set variables for `project-updates` module
 results_filepath <- yaml$results_filepath
