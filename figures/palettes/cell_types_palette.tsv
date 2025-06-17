@@ -1,15 +1,15 @@
 cell_type_names	hex_codes_old	hex_codes
-Amacrine	#FF9200	#DE6B69
+Amacrine Cells	#FF9200	#DE6B69
 aNSCs	#DD6C84 	#DD6C84 
-APC	NA	#BD7584
+Antigen-Presenting Cells (APCs)	NA	#BD7584
 Astrocytes	#EB6046 	#EB6046 
 Astrocyte	#EB6046 	#EB6046 
-Bipolar	#8451AA	#79C362
+Bipolar Cells	#8451AA	#79C362
 BM & Prog.	NA	#E69F00
 B_cell	NA	#56B4E9
-CD34	#6E1D1D	#6E1D1D
+CD34+ Progenitor Cells	#6E1D1D	#6E1D1D
 Chondrocytes		#009E73
-Cones	#FF5A60	#418BA4
+Cone Photoreceptors	#FF5A60	#418BA4
 Cornea	NA	#F9B8B8
 DC	NA	#F0E442
 Degeneration	#003249	#003249
@@ -17,62 +17,64 @@ Dying	NA	#797474
 Embryonic_stem_cells	NA	#0072B2
 Endothelial_cells 	#79DAAC 	#822E5F
 Endothelial cells	#79DAAC 	#822E5F
-Endothelial	#79DAAC 	#822E5F
-Ependymal	#7695CC 	#7695CC 
+Endothelial Cells	#79DAAC 	#822E5F
+Endothelial	#7695CC 	#7695CC 
+Ependymal Cells	#4199B5 	#4199B5 
 Epithelial_cells	#4199B5 	#4199B5 
-Epithelial cells	#4199B5 	#4199B5 
-Erythroblast 	NA	#D55E00
-Erythrocytes	NA	#D0C14A
-Fibroblasts	#D1BE8B 	#D1BE8B 
-GMP	NA	#CC79A7
-Gametocytes	NA	#000000
-HSC_-G-CSF	NA	#999999
-HSC_CD34+	NA	#F1A340
-Hepatocytes	NA	#D8B365
-Keratinocytes	NA	#5AB4AC
-MEP	NA	#F4A300
-MSC	NA	#8F8F8F
-Macrophage	NA	#FF7F0E
-Monocyte	NA	#2CA02C
-Myelocyte	NA	#9467BD
-NK_cell	NA	#8C564B
-Neuroepithelial_cell	NA	#FFB6C1
-Horizontal	#1A7E0B	#BC372F
-Immature Organoid	#8F1919	#8F1919
-Immune	#3400A6	#3400A6
-Lens	NA	#B2E0E7
-Microglia           	#C753D4 	#877F38
-Muller Glia	#86D46B	#EE934F
-Muller.Glia	#86D46B	#EE934F
-na_color	#7F7F7F	#BCBCBC
-Neurogenic	#261F1F	#D1AAB5
-Neurons	#BDC9AD 	#BDC9AD 
-Neurons activated	#BB7E7D 	#BB7E7D 
-NPCs	#D29269 	#D29269 
-nRPC	NA	#B4A7D6
-Oligodendrocytes	#9E0142 	#9E0142 
-Osteoblasts	NA	#C71585
-OPCs	#9D51DD 	#9D51DD 
-Platelets	NA	#0000FF
-Pre-B_cell_CD34- 	NA	#FFD700
-Pro-B_cell_CD34+	NA	#800000
-Smooth_muscle_cells	NA	#9ACD32
-T_cells	NA	#FFD701
-Tissue_stem_cells	NA	#B22222
-iPS_cells	NA	#FF6347
-Progenitors	#BE5314	#BE5314
-pRPC	NA	#987F87
-qNSCs	#ABA398 	#ABA398 
-Retinal Ganglion	#D1A1A1	#D1A1A1
-Retinal.Ganglion	#D1A1A1	#D1A1A1
-Retinal Progenitor	#472727	#A98E97
-RGC	#A6006F	#672F8B
-Rods	#9ACFE5	#DED498
-RPE	#ABD019	#C48F74
-T1	NA	#FBE18B
-T2	NA	#C6EA7A
-T3	NA	#B4CEDE
-T4	NA	#F290BF
-VascEndo	#16A9DA	#822E35
-Blood	NA	#D51305
-Photoreceptor	NA	#BADDDD
+Epithelial cells	NA	#D55E00
+Epithelial Cells	NA	#D0C14A
+Erythroblast 	#D1BE8B 	#D1BE8B 
+Erythrocytes	NA	#CC79A7
+Fibroblasts	NA	#000000
+GMP	NA	#999999
+Gametocytes	NA	#F1A340
+HSC_-G-CSF	NA	#D8B365
+HSC_CD34+	NA	#5AB4AC
+Hepatocytes	NA	#F4A300
+Keratinocytes	NA	#8F8F8F
+MEP	NA	#FF7F0E
+MSC	NA	#2CA02C
+Macrophage	NA	#9467BD
+Monocyte	NA	#8C564B
+Myelocyte	NA	#FFB6C1
+NK_cell	#1A7E0B	#BC372F
+Neuroepithelial_cell	#8F1919	#8F1919
+Horizontal Cells	#3400A6	#3400A6
+Immature Organoid	NA	#B2E0E7
+Immune Cells	#C753D4 	#877F38
+Lens Cells	#86D46B	#EE934F
+Microglia           	#86D46B	#EE934F
+Muller Glia	#7F7F7F	#BCBCBC
+Muller.Glia	#261F1F	#D1AAB5
+na_color	#BDC9AD 	#BDC9AD 
+Neurogenic Cells	#BB7E7D 	#BB7E7D 
+Neurons	#D29269 	#D29269 
+Neurons activated	NA	#B4A7D6
+NPCs	#9E0142 	#9E0142 
+nRPC	NA	#C71585
+Oligodendrocytes	#9D51DD 	#9D51DD 
+Osteoblasts	NA	#0000FF
+OPCs	NA	#FFD700
+Platelets	NA	#800000
+Pre-B_cell_CD34- 	NA	#9ACD32
+Pro-B_cell_CD34+	NA	#FFD701
+Smooth_muscle_cells	NA	#B22222
+T_cells	NA	#FF6347
+Tissue_stem_cells	#BE5314	#BE5314
+iPS_cells	NA	#987F87
+Progenitor Cells	#ABA398 	#ABA398 
+pRPC	#D1A1A1	#D1A1A1
+qNSCs	#D1A1A1	#D1A1A1
+Retinal Ganglion Cells	#472727	#A98E97
+	#A6006F	#672F8B
+Retinal Progenitor	#9ACFE5	#DED498
+RGC	#ABD019	#C48F74
+Rod Photoreceptors	NA	#FBE18B
+Retinal Pigment Epithelium (RPE) Cells	NA	#C6EA7A
+T1	NA	#B4CEDE
+T2	NA	#F290BF
+T3	#16A9DA	#822E35
+T4	NA	#D51305
+Vascular Endothelial Cells	NA	#BADDDD
+Blood		
+Photoreceptor		
