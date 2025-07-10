@@ -233,7 +233,7 @@ We merge count matrices from previous QC steps after filtering out low quality c
 There are the excessive amount of zeros due to limiting amount of mRNA in a single cell (drop-out) and the quality control (QC) metrics could be confounded with meaningful biology. Before further analyses, scRNA-seq data typically require a number of bio-informatic QC checks, where poor-quality data from single cells can be justifiably excluded from subsequent analysis. Currently, there is no consensus on filtering strategies, but most widely used criteria include relative library size, number of estimated cells, number of detected genes and fraction of reads mapping to mitochondria encoded genes.
 
 ### Expression QC
-The read count matrix is required at this step, where each row corresponds to a gene and each column corresponds to a cell. To exclude low-quality or damaged cells or to identify outliers,<span style="color:blue;">r rule </span>. Three general metrics to check are  
+The read count matrix is required at this step, where each row corresponds to a gene and each column corresponds to a cell. To exclude low-quality or damaged cells or to identify outliers, some filtering rules should be applied. Three general metrics to check are  
 
 1) the number of features detected per cell (**nFeature**) \
 The number of expressed genes/features per cell is a good indicator of sufficient coverage, or complexity. 

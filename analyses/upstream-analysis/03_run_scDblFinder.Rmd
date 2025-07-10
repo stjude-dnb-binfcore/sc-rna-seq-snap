@@ -349,24 +349,23 @@ print(table(merged_seurat_obj@meta.data$orig.ident))
 saveRDS(merged_seurat_obj, file = paste0(ScDblFinder_results_dir, "/", "merged_seurat_obj_with_doublets.rds")) # save object
 ```
 
-# Filter and save filtered seurat object
-
 ```{r filter-object, echo=TRUE}
 # Number of singlet vs doublet in seurat object
-print(table(merged_seurat_obj@meta.data$scDblFinder.class))
+#print(table(merged_seurat_obj@meta.data$scDblFinder.class))
 
-split_obj <- SplitObject(merged_seurat_obj, split.by = "scDblFinder.class") # Split object based on scDblFinder prediction
-filter_obj <- subset(split_obj$singlet) # Keep cells with singlet
-Idents(filter_obj) <- "orig.ident" # Set cell identity classes
+#split_obj <- SplitObject(merged_seurat_obj, split.by = "scDblFinder.class") # Split object based on scDblFinder prediction
+#filter_obj <- subset(split_obj$singlet) # Keep cells with singlet
+#Idents(filter_obj) <- "orig.ident" # Set cell identity classes
 
 # Cells_number_after_filter per `sample_name`
-print(table(filter_obj@meta.data$orig.ident))
+#print(table(filter_obj@meta.data$orig.ident))
 
-saveRDS(filter_obj, file = paste0(ScDblFinder_results_dir, "/", "merged_seurat_obj_without_doublets.rds")) # save object
+#saveRDS(filter_obj, file = paste0(ScDblFinder_results_dir, "/", "merged_seurat_obj_without_doublets.rds")) # save object
 ```
 
 # Next steps
-We removed doublets from the libraries. The `merged_seurat_obj_without_doublets.rds` can be used for downstream analysis.
+
+We have identified doublets from the libraries. 
 
 ```{r echo=FALSE}
 detach(params)
