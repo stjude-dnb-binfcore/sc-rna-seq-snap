@@ -121,7 +121,18 @@ assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX"
 gene_markers_dir_annotation_module: "./" # path to gene markers dir
 gene_markers_file_name_annotation_module: "<filename>.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`.
 method_annotation_module: "singler" # Options: "all" (for using singler, a list of gene markers and reference dataset), "singler" (for using only singler method for both broad and fine annotation), "singler&gene_markers" (for using SingleR and a list of gene markers),  "singler&reference" (for using SingleR and reference dataset), "gene_markers&reference" (for using a list of gene markers and reference dataset)
-gene_name_convention_update_annotation_module: "NO" # Options: "YES" or "NO" (default). Set to "YES" if the gene names in the gene markers file do not align with the naming convention of genes in the reference genome, e.g., Convert strings to mouse-style capitalization (First letter uppercase, rest lowercase) in the `mm10`.
+# The following parameter applies to the `03-cell-types-annotation-gene-markers.Rmd` script. 
+# It modifies gene names in the gene markers file when needed so they match the naming convention expected by the selected reference genome.
+# Different genomes follow distinct capitalization rules:
+#   • Human (GRCh38, hg19): gene symbols are typically ALL CAPS (e.g., TP53, GAPDH).
+#   • Mouse (GRCm39, mm10): gene symbols usually follow "mouse style"
+#       → first letter uppercase, remaining letters lowercase (e.g., Gad1, Pvalb).
+#   • Dual genomes: require consistency with both sets of conventions.
+#
+# Set this parameter to "YES" if the gene names in your gene markers file do not match the capitalization style of the reference genome. 
+# For example, when using `mm10`, enabling this setting will convert strings to mouse-style
+# capitalization (First letter uppercase, rest lowercase).
+gene_name_convention_update_annotation_module: "NO" # Options: "YES" or "NO" (default). 
 
 ct_palette_file_broad: "cell_types_palette.tsv"  # File name with the cell types. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder. 
 ct_palette_file_fine: "cell_types_palette.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
