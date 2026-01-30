@@ -168,7 +168,7 @@ if (!dir.exists(go_plots_dir)) {
   dir.create(go_plots_dir)}
 
 # Source functions
-source(paste0(analysis_dir, "/util/run-clusterwise-go-enrichment-markers.R"))
+source(paste0(analysis_dir, "/util/function-go-clusterprofiler-markers.R"))
 ```
 
 ```{r echo=FALSE, warning=FALSE}
