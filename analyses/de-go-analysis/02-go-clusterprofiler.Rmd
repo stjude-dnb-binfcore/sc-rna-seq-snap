@@ -197,7 +197,7 @@ datatable(all.markers,
           filter = "top")
 ```
 
-We will filter and κεεπ `r n_value` markers for visualization purposes.
+We will filter and keep `r n_value` markers for visualization purposes.
 
 ```{r find-markers-cell-type-top-n_value, echo=TRUE}
 top_n_value <- all.markers %>% 
