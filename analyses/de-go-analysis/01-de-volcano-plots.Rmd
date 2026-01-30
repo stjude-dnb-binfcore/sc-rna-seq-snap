@@ -1,5 +1,5 @@
 ---
-title: "Differential expression (DE) Volcano plots Per Cell Type for sc-RNA-Seq Analysis in 10X Genomics data"
+title: "Differential expression (DE) and Volcano plots Per Cell Type for sc-RNA-Seq Analysis in 10X Genomics data"
 author: "Antonia Chroni for SJCRH DNB_BINF_Core"
 papersize: a4
 fontsize: 11pt
@@ -129,8 +129,8 @@ Reviewed by: _____________________   Date: ____________ \
 
 This notebook:
 
-- (a) calculates differential expression (DE) results for each cell type, and
-- (b) generates volcano plots to summarize DE results for each cell type.
+- compute differential expression (DE) results for each cell type in the cohort,  and
+- generate volcano plots to visualize and summarize DE patterns.
 
 A volcano plot visualizes two key metrics for every gene:
 
@@ -252,7 +252,7 @@ DefaultAssay(seurat_obj) <- assay
 
 # Finding differentially expressed features (cluster biomarkers) per cell type
 
-Seurat can help find markers that define clusters via differential expression (DE). By default, it identifies positive and negative markers of a single cluster (specified in ident.1), compared to all other cells. [FindAllMarkers()](https://satijalab.org/seurat/reference/findallmarkers) automates this process for all clusters, but you can also test groups of clusters vs. each other, or against all cells. We save the table with all markers for each cluster at: <font size="3"><span style="color:blue">./results/01-gene-ontology-go-enrichment-analysis/Res_``r {resolution_list}``_Markers_all.tsv.</span></font>\
+Seurat can help find markers that define clusters via differential expression (DE). By default, it identifies positive and negative markers of a single cluster (specified in ident.1), compared to all other cells. [FindAllMarkers()](https://satijalab.org/seurat/reference/findallmarkers) automates this process for all clusters, but you can also test groups of clusters vs. each other, or against all cells. We save the table with all markers for each cluster at: <font size="3"><span style="color:blue">./results/01-de-volcano-plots/Res_``r {resolution_list}``_Markers_all.tsv.</span></font>\
 
 We will explore DE per `r cell_type_label_go`. 
 
@@ -275,17 +275,16 @@ datatable(all.markers,
 
 # Volcano Plot Per Cell Type
 
-We will use `r n_value` 
+In this section, we visualize differential expression patterns by generating volcano plots for each cell type.  
+
+The analysis focuses on the top `r n_value` genes ranked by significance to highlight the most biologically relevant up‑ and down‑regulated features.
 
 ```{r volcano-plot, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
-topN    <- n_value
-
 # ---- Optional: per-cluster volcano plots ----
 group_col <- "cluster"        # change to your grouping column if different
-stopifnot(group_col %in% names(markers_df))
+stopifnot(group_col %in% names(all.markers))
 
-
-by_grp <- split(markers_df, markers_df[[group_col]])
+by_grp <- split(all.markers, all.markers[[group_col]])
 
 for (cl in names(by_grp)) {
   df <- by_grp[[cl]]
@@ -308,20 +307,22 @@ for (cl in names(by_grp)) {
 
   # ---- Pick top up/down by adj p and effect size ----
   up <- df %>%
-    dplyr::filter(avg_log2FC > 0.25) %>% dplyr::arrange(p_val_adj) %>%
-    slice_head(n = topN)
- 
-  dn <- df %>%
-    dplyr::filter(avg_log2FC < 0.25) %>% dplyr::arrange(avg_log2FC) %>% dplyr::arrange(p_val_adj) %>%
-    slice_head(n = topN)
+    dplyr::filter(avg_log2FC >= 0.25) %>% #dplyr::filter(avg_log2FC > 0.25) %>% dplyr::arrange(p_val_adj)
+    dplyr::arrange(p_val_adj, desc(avg_log2FC)) %>%
+    slice_head(n = n_value)
   
+  dn <- df %>%
+    dplyr::filter(avg_log2FC <= -0.25) %>% # dplyr::filter(avg_log2FC < 0.25) 
+    dplyr::arrange(p_val_adj, avg_log2FC) %>%
+    slice_head(n = n_value)
+
   # Use gene labels for selection as well
   select_labels_grp <- unique(c(up$label, dn$label))
   
   # Optionally drop NAs
   select_labels_grp <- select_labels_grp[!is.na(select_labels_grp) & nzchar(select_labels_grp)]
-
-  # ---- Volcano ----
+  
+  cat("Volcano Plot:", cl, "\n")
   p_grp <- print(EnhancedVolcano::EnhancedVolcano(
     df,
     lab            = df$label,            # <- gene names, not numbers
@@ -329,10 +330,8 @@ for (cl in names(by_grp)) {
     y              = "p_val_adj",
     selectLab      = select_labels_grp,   # <- same label space as 'lab'
     drawConnectors = TRUE,
-    # If labels still parse as math, disable parsing:
-    parseLabels    = FALSE,
-    # Make significant points red only; others black
-    col            = c("black","black","black","red3"),
+    parseLabels    = FALSE,     # If labels still parse as math, disable parsing:
+    col            = c("black","black","black","red3"),     # Make significant points red only; others black
     pCutoff        = 5e-2,
     FCcutoff       = 0.25,
     title          = paste("Volcano Plot:", cl),
