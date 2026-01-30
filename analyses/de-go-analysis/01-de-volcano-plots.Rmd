@@ -1,5 +1,5 @@
 ---
-title: "Gene Ontology (GO) enrichment analysis using clusterProfiler per cell type for sc-RNA-Seq Analysis in 10X Genomics data"
+title: "Differential expression (DE) Volcano plots Per Cell Type for sc-RNA-Seq Analysis in 10X Genomics data"
 author: "Antonia Chroni for SJCRH DNB_BINF_Core"
 papersize: a4
 fontsize: 11pt
@@ -35,12 +35,10 @@ header-includes:
   - \usepackage{graphicx}
   - \usepackage{float}
 params:
-  assay: '.'
-  cell_type_label_go: '.'
-  OrgDb_value: '.'
-  future_globals_value: '.'
   resolution_list: '.'
   n_value: '.'
+  assay: '.'
+  cell_type_label_go: '.'
   root_dir: './'
   PROJECT_NAME: '.'
   PI_NAME: '.'
@@ -129,65 +127,108 @@ Reviewed by: _____________________   Date: ____________ \
   
 # Information about this notebook
 
-After completing clustering and cell type annotation in the scRNA‑seq workflow, a common next step is to functionally interpret the resulting gene sets. Gene Ontology (GO) enrichment enables biological insight by identifying over‑represented biological processes, molecular functions, or cellular components among differentially expressed genes (DEGs).
+This notebook:
 
-In our sc/snRNA‑seq pipeline, GO analysis is incorporated as part of downstream functional interpretation following DE analysis and identification of gene sets via methods such as [FindAllMarkers()](https://satijalab.org/seurat/reference/findallmarkers) or [ClosestFeature()](https://stuartlab.org/signac/reference/closestfeature). 
+- (a) calculates differential expression (DE) results for each cell type, and
+- (b) generates volcano plots to summarize DE results for each cell type.
 
-We will use clusterProfiler R package for GO enrichment because it supports multiple organisms, accepts various gene ID formats (SYMBOL, Ensembl), and integrates seamlessly with Seurat and Bioconductor annotation databases.
+A volcano plot visualizes two key metrics for every gene:
+
+- log₂ fold change (log2FC) — the magnitude and direction of expression change
+- statistical significance — usually represented as –log₁₀(adjusted p-value)
+
+By combining these two axes, volcano plots highlight genes that show both large expression changes and strong statistical support, making it easy to identify biologically meaningful up‑ and down‑regulated genes within each cell type.
+
+## 🔍 Interpretation Guidelines
+
+**Up-regulated genes (red)**
+
+Genes plotted in red meet all of the following criteria:
+
+- log2FC > 0 (higher expression in Treatment vs Control)
+- adjusted p-value ≤ α (statistically significant)
+- Represent transcriptional programs increased or activated in the treatment condition for that specific cell type.
+
+These genes may indicate:
+
+- pathway activation
+- treatment-induced responses
+- cell-state transitions
+- altered signaling or regulatory activity
+
+**Down-regulated genes (blue)**
+
+Genes plotted in blue meet all of the following criteria:
+
+- log2FC < 0 (lower expression in Treatment vs Control)
+- adjusted p-value ≤ α
+
+These genes may represent:
+
+- suppressed pathways
+- inhibited regulatory programs
+- decreased cell-type–specific functions
+- loss of activity due to treatment or condition
+
+**Non-significant genes (grey)**
+
+Genes shown in grey are:
+
+- not significant at the chosen adjusted p-value threshold (p_adj > α), and/or
+- show only minor fold-change that does not meet the log2FC threshold.
+
+These genes essentially represent background variation or small changes that are unlikely to be biologically meaningful under current criteria.
+
+
+## 📌 Summary
+
+A volcano plot provides a fast and intuitive overview of differential‑expression (DE) patterns within each cell type.
+
+### Color Guide
+
+| **Color** | **Meaning**        | **Criteria**                               |
+|-----------|---------------------|---------------------------------------------|
+| **Red**   | Up‑regulated        | log2FC > 0 & adjusted p-value ≤ α           |
+| **Blue**  | Down‑regulated      | log2FC < 0 & adjusted p-value ≤ α           |
+| **Grey**  | Not significant     | adjusted p-value > α or \|log2FC\| below threshold |
+
+This visualization helps identify genes that show both strong statistical significance and biologically meaningful fold‑change in a cell‑type–specific manner.
+
 
 # Set up
 
 ```{r load-library, echo=TRUE}
 attach(params)
 suppressPackageStartupMessages({
-  library(future)
   library(tidyverse)
-  library(Seurat)
   library(knitr)
   library(DT)
   library(glue)
-
-  library(htmlwidgets)
-  library(clusterProfiler)
-  library(enrichplot)
-  library(org.Hs.eg.db)
-  library(org.Mm.eg.db)
-  
-  library(data.table)
-  library(R.utils)
-  library(Rsamtools)
-
-  # Evaluate Seurat R expressions asynchronously when possible using future package
-  options(future.globals.maxSize = future_globals_value, future.rng.onMisuse = "ignore") 
-  plan(multisession, workers = parallelly::availableCores())
+  library(EnhancedVolcano)
+  library(Seurat)
 }) 
 ```
 
 # Directories and paths to file Inputs/Outputs
 
 ```{r set-dir-and-file-names, echo=TRUE}
-analysis_dir <- file.path(root_dir, "analyses", "gene-ontology-go-enrichment-analysis") 
+analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis") 
 module_results_dir <- file.path(analysis_dir, "results")
 module_plots_dir <- file.path(analysis_dir, "plots")
 data_dir <- file.path(root_dir, "analyses", "cell-types-annotation", "results", "cell_types_annotations_all")
-#markers_dir_module <- file.path(root_dir, "analyses", "cluster-cell-calling", "results", "02_find_markers")
 
 # Input files
 data_file <- file.path(data_dir, "seurat_obj_cell_types_annotations_all.rds")
-#markers_file <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_top_{n_value}.tsv"))
 
 # Create results_dir
-results_dir <- file.path(module_results_dir, "01-gene-ontology-go-enrichment-analysis")
+results_dir <- file.path(module_results_dir, "01-de-volcano-plots")
 if (!dir.exists(results_dir)) {
   dir.create(results_dir)}
 
 # Create plots directory
-go_plots_dir <- file.path(module_plots_dir, "01-gene-ontology-go-enrichment-analysis") 
-if (!dir.exists(go_plots_dir)) {
-  dir.create(go_plots_dir)}
-
-# Source functions
-source(paste0(analysis_dir, "/util/run-clusterwise-go-enrichment-markers.R"))
+plots_dir <- file.path(module_plots_dir, "01-de-volcano-plots") 
+if (!dir.exists(plots_dir)) {
+  dir.create(plots_dir)}
 ```
 
 ```{r echo=FALSE, warning=FALSE}
@@ -209,17 +250,11 @@ seurat_obj <- readRDS(data_file)
 DefaultAssay(seurat_obj) <- assay
 ```
 
-```{r read-markers-cluster, echo=TRUE}
-#markers_df <- read.csv(markers_file, sep = "\t", header = TRUE)
-#head(markers_df)
-```
-
 # Finding differentially expressed features (cluster biomarkers) per cell type
 
 Seurat can help find markers that define clusters via differential expression (DE). By default, it identifies positive and negative markers of a single cluster (specified in ident.1), compared to all other cells. [FindAllMarkers()](https://satijalab.org/seurat/reference/findallmarkers) automates this process for all clusters, but you can also test groups of clusters vs. each other, or against all cells. We save the table with all markers for each cluster at: <font size="3"><span style="color:blue">./results/01-gene-ontology-go-enrichment-analysis/Res_``r {resolution_list}``_Markers_all.tsv.</span></font>\
 
 We will explore DE per `r cell_type_label_go`. 
-
 
 ```{r find-markers-cell-type, echo=TRUE}
 Idents(seurat_obj) <- seurat_obj@meta.data[[cell_type_label_go]] # Set Idents(seurat_obj) to match the group.by parameter you will use
@@ -238,22 +273,80 @@ datatable(all.markers,
           filter = "top")
 ```
 
-```{r find-markers-cell-type-top-n_value, echo=TRUE}
-top_n_value <- all.markers %>% 
-  group_by(cluster) %>% 
-  top_n(n = n_value, wt = avg_log2FC)
+# Volcano Plot Per Cell Type
 
-write.table(top_n_value, file = paste(results_dir, "/", "Res_", resolution_list, glue::glue("_Markers_top_{n_value}.tsv"), sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
-```
+We will use `r n_value` 
 
-# Gene Ontology (GO) enrichment analysis using clusterProfiler
+```{r volcano-plot, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+topN    <- n_value
 
-In this step, we conduct Gene Ontology (GO) enrichment analysis to identify biological processes associated with cluster-specific accessible regions (e.g., differential expression). Using the [clusterProfiler](https://bioconductor.org/packages/devel/bioc/html/clusterProfiler.html) package, we assess whether any GO terms are significantly enriched among these gene sets. This approach helps interpret the functional implications of differential expression across clusters, i.e., predicted cell type.
+# ---- Optional: per-cluster volcano plots ----
+group_col <- "cluster"        # change to your grouping column if different
+stopifnot(group_col %in% names(markers_df))
 
-```{r go-clusterProfiler, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE}
-ego_results <- run_clusterwise_GO_enrichment_markers(closest_genes_all = top_n_value, 
-                                                     OrgDb_value = OrgDb_value, 
-                                                     plots_dir = go_plots_dir)
+
+by_grp <- split(markers_df, markers_df[[group_col]])
+
+for (cl in names(by_grp)) {
+  df <- by_grp[[cl]]
+
+  # ---- Make sure we have gene symbols as labels (not numeric rownames) ----
+  # Prefer a 'gene' column. If it exists, use it; otherwise try to derive from rownames
+  if ("gene" %in% names(df)) {
+    df$label <- as.character(df$gene)
+  } else if (!is.null(rownames(df)) && any(nzchar(rownames(df)))) {
+    # If rownames exist but might be numbers, still coerce to character
+    df$label <- as.character(rownames(df))
+  } else {
+    warning("Skipping ", cl, ": no labels available.")
+    next
+  }
+
+  # ---- Clamp p-values to avoid Inf ----
+  eps <- 1e-300
+  df$p_val_adj <- pmax(df$p_val_adj, eps)
+
+  # ---- Pick top up/down by adj p and effect size ----
+  up <- df %>%
+    dplyr::filter(avg_log2FC > 0.25) %>% dplyr::arrange(p_val_adj) %>%
+    slice_head(n = topN)
+ 
+  dn <- df %>%
+    dplyr::filter(avg_log2FC < 0.25) %>% dplyr::arrange(avg_log2FC) %>% dplyr::arrange(p_val_adj) %>%
+    slice_head(n = topN)
+  
+  # Use gene labels for selection as well
+  select_labels_grp <- unique(c(up$label, dn$label))
+  
+  # Optionally drop NAs
+  select_labels_grp <- select_labels_grp[!is.na(select_labels_grp) & nzchar(select_labels_grp)]
+
+  # ---- Volcano ----
+  p_grp <- print(EnhancedVolcano::EnhancedVolcano(
+    df,
+    lab            = df$label,            # <- gene names, not numbers
+    x              = "avg_log2FC",
+    y              = "p_val_adj",
+    selectLab      = select_labels_grp,   # <- same label space as 'lab'
+    drawConnectors = TRUE,
+    # If labels still parse as math, disable parsing:
+    parseLabels    = FALSE,
+    # Make significant points red only; others black
+    col            = c("black","black","black","red3"),
+    pCutoff        = 5e-2,
+    FCcutoff       = 0.25,
+    title          = paste("Volcano Plot:", cl),
+    subtitle       = NULL,
+    ylab           = bquote(~-Log[10]~ 'P adj'),
+    # Optional label/point tweaks
+    labSize        = 3.3,
+    pointSize      = 1.2,
+    max.overlaps   = 25
+  ))
+
+  out_png_cl <- file.path(plots_dir, glue::glue("Volcano-plot-{cl}.png"))
+  ggplot2::ggsave(filename = out_png_cl, plot = p_grp, width = 8, height = 6, dpi = 300)
+}
 ```
 
 ```{r echo=FALSE}
