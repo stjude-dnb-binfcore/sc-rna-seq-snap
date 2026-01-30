@@ -285,6 +285,7 @@ group_col <- "cluster"        # change to your grouping column if different
 stopifnot(group_col %in% names(all.markers))
 
 by_grp <- split(all.markers, all.markers[[group_col]])
+by_grp <- by_grp[order(names(by_grp))] #Sort alphabetically by group name
 
 for (cl in names(by_grp)) {
   df <- by_grp[[cl]]
