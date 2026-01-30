@@ -1,8 +1,0 @@
-#BSUB -P project
-#BSUB -J run-gene-ontology-go-enrichment-analysis
-#BSUB -oo job.out -eo job.err
-#BSUB -n 4
-#BSUB -R "rusage[mem=32GB] span[hosts=1]"
-#BSUB -cwd "."
-
-singularity exec ../../singlecell-r4.4-seurat4.4-signac1.16_latest.sif bash run-gene-ontology-go-enrichment-analysis.sh
