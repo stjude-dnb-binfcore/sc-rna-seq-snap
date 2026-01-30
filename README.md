@@ -149,6 +149,7 @@ Important Considerations:
 |  ├── clone-phylogeny-analysis
 |  ├── cluster-cell-calling
 |  ├── fastqc-analysis
+|  ├── gene-ontology-go-enrichment-analysis
 |  ├── integrative-analysis
 |  ├── project-updates
 |  ├── README.md
