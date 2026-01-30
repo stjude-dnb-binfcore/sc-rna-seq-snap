@@ -24,7 +24,7 @@ run_clusterwise_GO_enrichment_markers <- function(closest_genes_all,
 
   ego_results <- list()
   
-  for (clust in unique(closest_genes_all$cluster)) {
+  for (clust in sort(unique(closest_genes_all$cluster))) {
     message("Running GO enrichment for cluster: ", clust)
     
     genes <- closest_genes_all %>%
