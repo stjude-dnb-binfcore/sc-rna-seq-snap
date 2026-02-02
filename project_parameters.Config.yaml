@@ -148,7 +148,7 @@ ct_palette_file_numbat: "cell_types_palette.tsv"  # File name with the cell type
 palette_variable_numbat: "timepoint_palette.tsv"  # File name with the variable. It needs to be in `tsv` format and in the `.figures/palettes/` folder. 
 variable_numbat: "timepoint" # Variable of interest for investigating clonal evolution. Value to be extracted from column name in `project_metadata.tsv` file.
 
-# `gene-ontology-go-enrichment-analysis`
+# `de-go-analysis`
 cell_type_label_go_module: "predicted.cell.signature.ident" # Options: "singler.broad", "singler.fine", and "predicted.cell.signature.ident" as defined in the `./analyses/cell-types-annotation` module
 OrgDb_value: "org.Mm.eg.db"   # Options for gene annotation: (1) Human: "org.Hs.eg.db"; (2) Mouse: "org.Mm.eg.db"
 
