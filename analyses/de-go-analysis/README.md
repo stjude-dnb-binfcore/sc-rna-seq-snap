@@ -1,4 +1,4 @@
-# Pipeline for DE, Volcano Plots, and Gene Ontology (GO) enrichment analysis Per Cell Type for sc-RNA-Seq Analysis in 10X Genomics data
+# Pipeline for Differential Expression, Volcano Plots, and Gene Ontology (GO) enrichment analysis Per Cell Type for sc-RNA-Seq Analysis in 10X Genomics data
 
 
 ## Usage
@@ -6,7 +6,7 @@
 `run-de-go-analysis.sh` is designed to be run as if it was called from this module directory even when called from outside of this directory.
 
 Parameters according to the project and analysis strategy will need to be specified in the following scripts:
-- `project_parameters.Config.yaml` located at the `root_dir`
+- `project_parameters.Config.yaml` located at the `root_dir`.
 
 
 ### Run module on an interactive session on HPC within the container
@@ -41,22 +41,26 @@ Together, these steps provide a complete workflow for identifying, visualizing, 
 The structure of this folder is as follows:
 
 ```
-├── 01-de-volcano-plots.Rmd
-├── 02-go-clusterprofiler
+├── 01-de-analysis.Rmd
+├── 02-volcano-plots.Rmd
+├── 03-go-clusterprofiler
 ├── lsf_script.txt
 ├── plots
-|   ├── 01-de-volcano-plots
-|   ├── 02-go-clusterprofiler
-|   ├── Report-de-go-analysis-<Sys.Date()>.html
-|   └── Report-de-go-analysis-<Sys.Date()>.pdf
+|   ├── 02-volcano-plots
+|   ├── 03-go-clusterprofiler
+|   ├── Report-de-analysis-<Sys.Date()>.html
+|   ├── Report-de-analysis-<Sys.Date()>.pdf
+|   ├── Report-volcano-plots-<Sys.Date()>.html
+|   ├── Report-volcano-plots-<Sys.Date()>.pdf
 |   ├── Report-go-clusterprofiler-<Sys.Date()>.html
 |   └── Report-go-clusterprofiler-<Sys.Date()>.pdf
 ├── README.md
 ├── results
-|   └── 01-de-volcano-plots
+|   └── 01-de-analysis
 ├── run-de-go-analysis.R
 ├── run-de-go-analysis.sh
 └── util
-|___└── run-clusterwise-go-enrichment-markers.R
+|   ├── function-create-volcano-plot.R
+|___└── function-go-clusterprofiler-markers.R
 ```
 
