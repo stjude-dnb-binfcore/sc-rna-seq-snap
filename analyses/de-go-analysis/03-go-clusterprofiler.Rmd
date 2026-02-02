@@ -1,0 +1,291 @@
+---
+title: "Gene Ontology (GO) enrichment analysis using clusterProfiler per cell type for sc-RNA-Seq Analysis in 10X Genomics data"
+author: "Antonia Chroni for SJCRH DNB_BINF_Core"
+papersize: a4
+fontsize: 11pt
+links-as-notes: true
+output:
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    df_print: paged
+    code_folding: hide
+    toc_depth: 2
+    highlight: tango
+    number_sections: TRUE
+  pdf_document:
+    toc: TRUE
+    highlight: tango
+    number_sections: TRUE
+    latex_engine: lualatex
+    keep_tex: FALSE
+    fig_caption: yes
+    fig_crop: no
+    fig_height: 2
+    fig_width: 3
+    toc_depth: 2
+always_allow_html: TRUE
+urlcolor: blue
+linkcolor: black
+citecolor: blue
+geometry: margin=1in
+header-includes: 
+  - \usepackage{titling}
+  - \usepackage{fancyhdr}
+  - \usepackage{graphicx}
+  - \usepackage{float}
+params:
+  OrgDb_value: '.'
+  resolution_list: '.'
+  n_value: '.'
+  condition_value1: '.'
+  condition_value2: '.'
+  condition_value3: '.'
+  root_dir: './'
+  PROJECT_NAME: '.'
+  PI_NAME: '.'
+  TASK_ID: '.'
+  PROJECT_LEAD_NAME: '.'
+  DEPARTMENT: '.'
+  LEAD_ANALYSTS: '.'
+  GROUP_LEAD: '.'
+  CONTACT_EMAIL: '.'
+  PIPELINE: '.'
+  START_DATE: '.'
+  COMPLETION_DATE: '.'
+---
+
+```{r logo-file, echo=FALSE}
+attach(params)
+# Insert logo on the top of the html report 
+logo_file <- file.path(root_dir, "figures", "img", "DNB-BINF-Core-logo.png")
+htmltools::img(src = knitr::image_uri(logo_file), alt = "logo", style = "position:absolute; top:0; left:0; padding:0px; height:120px;")
+detach(params)
+```
+
+\addtolength{\headheight}{2.0cm} 
+\fancypagestyle{plain}{} 
+\thispagestyle{fancy}
+\fancyhead[L]{\includegraphics[height=120px]{`r logo_file`}}
+\renewcommand{\headrulewidth}{0pt}
+
+<style type="text/css">
+:root {--DNB_BINF_Core_color: #00427B;}
+
+h1.title {margin-top: 130px;
+          margin-bottom: 25px;
+          font-size: 36px;}
+
+.nobullet li {list-style-type: none;}
+
+.reporthead {font-size: 20px;}
+
+body { /* Normal */
+  font-size: 16px;
+  font-style: Arial, Helvetica, sans-serif;}
+
+h1 {color: var(--DNB_BINF_Core_color);
+    font-size: 28px;
+    margin-top: 50px;}
+
+h2 {color: var(--DNB_BINF_Core_color);
+    font-size: 20px;}
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+  background-color: var(--DNB_BINF_Core_color);}
+</style>
+
+<a href="https://wiki.stjude.org/display/CAB">
+
+</a>
+
+\pagebreak
+
+<div class="reporthead"><br/>
+**PI: `r params$PI_NAME`**  
+**Project: `r params$PROJECT_NAME`**  
+Task: `r params$TASK_ID`  
+Project Lead(s): `r params$PROJECT_LEAD_NAME`  
+Department: `r params$DEPARTMENT`  
+
+<br />  
+
+DNB Bioinformatics Core Analysis Team: 
+<br />  
+
+>**Lead Analyst(s): `r params$LEAD_ANALYSTS`**  
+>Group Lead: `r params$GROUP_LEAD`  
+<br />
+>**Contact E-mail:** `r params$CONTACT_EMAIL`  
+>**DNB Bioinformatics Core Pipeline:** `r params$PIPELINE`  
+
+Date started: `r params$START_DATE`  
+Date completed:  `r params$COMPLETION_DATE`  
+Report generated: `r format(Sys.time(), '%H:%M:%S %Z %m/%d/%Y')` \
+
+Reviewed by: _____________________   Date: ____________ \
+</div>
+\pagebreak
+  
+# Information about this notebook
+
+After completing clustering and cell type annotation in the scRNA‑seq workflow, a common next step is to functionally interpret the resulting gene sets. Gene Ontology (GO) enrichment enables biological insight by identifying over‑represented biological processes, molecular functions, or cellular components among differentially expressed genes (DEGs).
+
+In our sc/snRNA‑seq pipeline, GO analysis is incorporated as part of downstream functional interpretation following DE analysis and identification of gene sets via methods such as [FindAllMarkers()](https://satijalab.org/seurat/reference/findallmarkers) or [ClosestFeature()](https://stuartlab.org/signac/reference/closestfeature). 
+
+We will use clusterProfiler R package for GO enrichment because it supports multiple organisms, accepts various gene ID formats (SYMBOL, Ensembl), and integrates seamlessly with Seurat and Bioconductor annotation databases.
+
+# Set up
+
+```{r load-library, echo=TRUE}
+attach(params)
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(knitr)
+  library(DT)
+  library(glue)
+
+  library(htmlwidgets)
+  library(clusterProfiler)
+  library(enrichplot)
+  library(org.Hs.eg.db)
+  library(org.Mm.eg.db)
+}) 
+```
+
+# Directories and paths to file Inputs/Outputs
+
+```{r set-dir-and-file-names, echo=TRUE}
+analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis") 
+module_results_dir <- file.path(analysis_dir, "results")
+module_plots_dir <- file.path(analysis_dir, "plots")
+results_dir <- file.path(analysis_dir, "results", "01-de-analysis")
+
+# Input files
+markers_file_overall <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all.tsv"))
+markers_file_condition_value1 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value1.tsv"))
+markers_file_condition_value2 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value2.tsv"))
+markers_file_condition_value3 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value3.tsv"))
+
+
+# Create plots directory
+go_plots_dir <- file.path(module_plots_dir, "03-go-clusterprofiler") 
+if (!dir.exists(go_plots_dir)) {
+  dir.create(go_plots_dir)}
+
+# Create plots directory
+go_plots_dir_overall <- file.path(go_plots_dir, "01-go-clusterprofiler-overall") 
+if (!dir.exists(go_plots_dir_overall)) {
+  dir.create(go_plots_dir_overall)}
+
+# Create plots directory
+go_plots_dir_condition_value1 <- file.path(go_plots_dir, "02-go-clusterprofiler-overall-condition1") 
+if (!dir.exists(go_plots_dir_condition_value1)) {
+  dir.create(go_plots_dir_condition_value1)}
+
+# Source functions
+source(paste0(analysis_dir, "/util/function-go-clusterprofiler-markers.R"))
+```
+
+```{r echo=FALSE, warning=FALSE}
+opts_chunk$set(fig.align='center',
+               external=TRUE,
+               echo=FALSE,
+               warning=FALSE,
+               fig.pos='H')
+a4width <- 8.3
+a4height <- 11.7
+```
+
+# Gene Ontology (GO) enrichment analysis using clusterProfiler
+
+In this step, we conduct Gene Ontology (GO) enrichment analysis to identify biological processes associated with cluster-specific accessible regions (e.g., differential expression). Using the [clusterProfiler](https://bioconductor.org/packages/devel/bioc/html/clusterProfiler.html) package, we assess whether any GO terms are significantly enriched among these gene sets. This approach helps interpret the functional implications of differential expression across clusters, i.e., predicted cell type.
+
+We will filter and keep `r n_value` markers for visualization purposes.
+
+## Overall
+
+```{r go-clusterProfiler-overall, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE}
+all.markers_overall <- read.csv(markers_file_overall, sep = "\t", header = TRUE)
+
+top_n_value_overall <- all.markers_overall %>% 
+  group_by(cluster) %>% 
+  top_n(n = n_value, wt = avg_log2FC)
+write.table(top_n_value_overall, file = paste(results_dir, "/", "Res_", resolution_list, glue::glue("_Markers_top_{n_value}_overall.tsv"), sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+
+ego_results <- run_clusterwise_GO_enrichment_markers(closest_genes_all = top_n_value_overall, 
+                                                     OrgDb_value = OrgDb_value, 
+                                                     plots_dir = go_plots_dir_overall)
+```
+
+## Per `r condition_value1`
+
+```{r go-clusterProfiler-condition-value1, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE}
+all.markers_condition_value1 <- read.csv(markers_file_condition_value1, sep = "\t", header = TRUE)
+
+top_n_value_condition_value1 <- all.markers_condition_value1 %>% 
+  group_by(cluster) %>% 
+  top_n(n = n_value, wt = avg_log2FC)
+write.table(top_n_value_condition_value1, file = paste(results_dir, "/", "Res_", resolution_list, glue::glue("_Markers_top_{n_value}_condition_value1.tsv"), sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+
+ego_results <- run_clusterwise_GO_enrichment_markers(closest_genes_all = top_n_value_condition_value1, 
+                                                     OrgDb_value = OrgDb_value, 
+                                                     plots_dir = go_plots_dir_condition_value1)
+```
+
+## Per `r condition_value2`
+
+```{r go-clusterProfiler-condition-value2, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE}
+if (!is.null(condition_value2)) {
+  
+  go_plots_dir_condition_value2 <- file.path(go_plots_dir, "03-go-clusterprofiler-overall-condition2") 
+  if (!dir.exists(go_plots_dir_condition_value2)) {
+    dir.create(go_plots_dir_condition_value2)}
+  
+  all.markers_condition_value2 <- read.csv(markers_file_condition_value2, sep = "\t", header = TRUE)
+  
+  top_n_value_condition_value2 <- all.markers_condition_value2 %>% 
+    group_by(cluster) %>% 
+    top_n(n = n_value, wt = avg_log2FC)
+  write.table(top_n_value_condition_value2, file = paste(results_dir, "/", "Res_", resolution_list, glue::glue("_Markers_top_{n_value}_condition_value2.tsv"), sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  
+  ego_results <- run_clusterwise_GO_enrichment_markers(closest_genes_all = top_n_value_condition_value2, 
+                                                       OrgDb_value = OrgDb_value, 
+                                                       plots_dir = go_plots_dir_condition_value2)
+}
+```
+
+## Per `r condition_value3`
+
+```{r go-clusterProfiler-condition-value3, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE}
+if (!is.null(condition_value3)) {
+  
+  go_plots_dir_condition_value3 <- file.path(go_plots_dir, "04-go-clusterprofiler-overall-condition3") 
+  if (!dir.exists(go_plots_dir_condition_value3)) {
+    dir.create(go_plots_dir_condition_value3)}
+  
+  all.markers_condition_value3 <- read.csv(markers_file_condition_value3, sep = "\t", header = TRUE)
+  
+  top_n_value_condition_value3 <- all.markers_condition_value3 %>% 
+    group_by(cluster) %>% 
+    top_n(n = n_value, wt = avg_log2FC)
+  write.table(top_n_value_condition_value3, file = paste(results_dir, "/", "Res_", resolution_list, glue::glue("_Markers_top_{n_value}_condition_value3.tsv"), sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  
+  ego_results <- run_clusterwise_GO_enrichment_markers(closest_genes_all = top_n_value_condition_value3, 
+                                                       OrgDb_value = OrgDb_value, 
+                                                       plots_dir = go_plots_dir_condition_value3)
+}
+```
+
+```{r echo=FALSE}
+detach(params)
+```
+
+\pagebreak
+
+# Session Info
+
+```{r echo=FALSE}
+sessionInfo()
+```
+
