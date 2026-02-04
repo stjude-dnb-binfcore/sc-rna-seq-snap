@@ -1,0 +1,311 @@
+---
+title: "Differential expression (DE) and Volcano plots Per Cell Type for sc-RNA-Seq Analysis in 10X Genomics data"
+author: "Antonia Chroni for SJCRH DNB_BINF_Core"
+papersize: a4
+fontsize: 11pt
+links-as-notes: true
+output:
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    df_print: paged
+    code_folding: hide
+    toc_depth: 2
+    highlight: tango
+    number_sections: TRUE
+  pdf_document:
+    toc: TRUE
+    highlight: tango
+    number_sections: TRUE
+    latex_engine: lualatex
+    keep_tex: FALSE
+    fig_caption: yes
+    fig_crop: no
+    fig_height: 2
+    fig_width: 3
+    toc_depth: 2
+always_allow_html: TRUE
+urlcolor: blue
+linkcolor: black
+citecolor: blue
+geometry: margin=1in
+header-includes: 
+  - \usepackage{titling}
+  - \usepackage{fancyhdr}
+  - \usepackage{graphicx}
+  - \usepackage{float}
+params:
+  resolution_list: '.'
+  n_value: '.'
+  condition_value1: '.'
+  condition_value2: '.'
+  condition_value3: '.'
+  root_dir: './'
+  PROJECT_NAME: '.'
+  PI_NAME: '.'
+  TASK_ID: '.'
+  PROJECT_LEAD_NAME: '.'
+  DEPARTMENT: '.'
+  LEAD_ANALYSTS: '.'
+  GROUP_LEAD: '.'
+  CONTACT_EMAIL: '.'
+  PIPELINE: '.'
+  START_DATE: '.'
+  COMPLETION_DATE: '.'
+---
+
+```{r logo-file, echo=FALSE}
+attach(params)
+# Insert logo on the top of the html report 
+logo_file <- file.path(root_dir, "figures", "img", "DNB-BINF-Core-logo.png")
+htmltools::img(src = knitr::image_uri(logo_file), alt = "logo", style = "position:absolute; top:0; left:0; padding:0px; height:120px;")
+detach(params)
+```
+
+\addtolength{\headheight}{2.0cm} 
+\fancypagestyle{plain}{} 
+\thispagestyle{fancy}
+\fancyhead[L]{\includegraphics[height=120px]{`r logo_file`}}
+\renewcommand{\headrulewidth}{0pt}
+
+<style type="text/css">
+:root {--DNB_BINF_Core_color: #00427B;}
+
+h1.title {margin-top: 130px;
+          margin-bottom: 25px;
+          font-size: 36px;}
+
+.nobullet li {list-style-type: none;}
+
+.reporthead {font-size: 20px;}
+
+body { /* Normal */
+  font-size: 16px;
+  font-style: Arial, Helvetica, sans-serif;}
+
+h1 {color: var(--DNB_BINF_Core_color);
+    font-size: 28px;
+    margin-top: 50px;}
+
+h2 {color: var(--DNB_BINF_Core_color);
+    font-size: 20px;}
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+  background-color: var(--DNB_BINF_Core_color);}
+</style>
+
+<a href="https://wiki.stjude.org/display/CAB">
+
+</a>
+
+\pagebreak
+
+<div class="reporthead"><br/>
+**PI: `r params$PI_NAME`**  
+**Project: `r params$PROJECT_NAME`**  
+Task: `r params$TASK_ID`  
+Project Lead(s): `r params$PROJECT_LEAD_NAME`  
+Department: `r params$DEPARTMENT`  
+
+<br />  
+
+DNB Bioinformatics Core Analysis Team: 
+<br />  
+
+>**Lead Analyst(s): `r params$LEAD_ANALYSTS`**  
+>Group Lead: `r params$GROUP_LEAD`  
+<br />
+>**Contact E-mail:** `r params$CONTACT_EMAIL`  
+>**DNB Bioinformatics Core Pipeline:** `r params$PIPELINE`  
+
+Date started: `r params$START_DATE`  
+Date completed:  `r params$COMPLETION_DATE`  
+Report generated: `r format(Sys.time(), '%H:%M:%S %Z %m/%d/%Y')` \
+
+Reviewed by: _____________________   Date: ____________ \
+</div>
+\pagebreak
+  
+# Information about this notebook
+
+This notebook:
+
+- compute differential expression (DE) results for each cell type in the cohort,  and
+- generate volcano plots to visualize and summarize DE patterns.
+
+A volcano plot visualizes two key metrics for every gene:
+
+- log₂ fold change (log2FC) — the magnitude and direction of expression change
+- statistical significance — usually represented as –log₁₀(adjusted p-value)
+
+By combining these two axes, volcano plots highlight genes that show both large expression changes and strong statistical support, making it easy to identify biologically meaningful up‑ and down‑regulated genes within each cell type.
+
+## 🔍 Interpretation Guidelines
+
+**Up-regulated genes (red)**
+
+Genes plotted in red meet all of the following criteria:
+
+- log2FC > 0 (higher expression in Treatment vs Control)
+- adjusted p-value ≤ α (statistically significant)
+- Represent transcriptional programs increased or activated in the treatment condition for that specific cell type.
+
+These genes may indicate:
+
+- pathway activation
+- treatment-induced responses
+- cell-state transitions
+- altered signaling or regulatory activity
+
+**Down-regulated genes (blue)**
+
+Genes plotted in blue meet all of the following criteria:
+
+- log2FC < 0 (lower expression in Treatment vs Control)
+- adjusted p-value ≤ α
+
+These genes may represent:
+
+- suppressed pathways
+- inhibited regulatory programs
+- decreased cell-type–specific functions
+- loss of activity due to treatment or condition
+
+**Non-significant genes (grey)**
+
+Genes shown in grey are:
+
+- not significant at the chosen adjusted p-value threshold (p_adj > α), and/or
+- show only minor fold-change that does not meet the log2FC threshold.
+
+These genes essentially represent background variation or small changes that are unlikely to be biologically meaningful under current criteria.
+
+
+## 📌 Summary
+
+A volcano plot provides a fast and intuitive overview of differential‑expression (DE) patterns within each cell type.
+
+### Color Guide
+
+| **Color** | **Meaning**        | **Criteria**                               |
+|-----------|---------------------|---------------------------------------------|
+| **Red**   | Up‑regulated        | log2FC > 0 & adjusted p-value ≤ α           |
+| **Blue**  | Down‑regulated      | log2FC < 0 & adjusted p-value ≤ α           |
+| **Grey**  | Not significant     | adjusted p-value > α or \|log2FC\| below threshold |
+
+This visualization helps identify genes that show both strong statistical significance and biologically meaningful fold‑change in a cell‑type–specific manner.
+
+# Set up
+
+```{r load-library, echo=TRUE}
+attach(params)
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(knitr)
+  library(DT)
+  library(glue)
+  library(EnhancedVolcano)
+}) 
+```
+
+# Directories and paths to file Inputs/Outputs
+
+```{r set-dir-and-file-names, echo=TRUE}
+analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis") 
+module_results_dir <- file.path(analysis_dir, "results")
+module_plots_dir <- file.path(analysis_dir, "plots")
+markers_dir_module <- file.path(analysis_dir, "results", "01-de-analysis")
+
+# Input files
+markers_file_overall <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all.tsv"))
+markers_file_condition_value1 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value1.tsv"))
+markers_file_condition_value2 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value2.tsv"))
+markers_file_condition_value3 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value3.tsv"))
+
+# Create plots directory
+plots_dir <- file.path(module_plots_dir, "02-volcano-plots") 
+if (!dir.exists(plots_dir)) {
+  dir.create(plots_dir)}
+
+plots_dir_overall <- file.path(plots_dir, "01-volcano-plots-overall") 
+if (!dir.exists(plots_dir_overall)) {
+  dir.create(plots_dir_overall)}
+
+plots_dir_condition1 <- file.path(plots_dir, "02-volcano-plots-condition1") 
+if (!dir.exists(plots_dir_condition1)) {
+  dir.create(plots_dir_condition1)}
+
+# Source functions
+source(paste0(analysis_dir, "/util/function-create-volcano-plot.R"))
+```
+
+```{r echo=FALSE, warning=FALSE}
+opts_chunk$set(fig.align='center',
+               external=TRUE,
+               echo=FALSE,
+               warning=FALSE,
+               fig.pos='H')
+a4width <- 8.3
+a4height <- 11.7
+```
+
+# Volcano Plots Per Cell Type
+
+The analysis focuses on the top `r n_value` genes ranked by significance to highlight the most biologically relevant up‑ and down‑regulated features.
+
+## Overall
+
+```{r volcano-plot, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+all.markers_overall <- read.csv(markers_file_overall, sep = "\t", header = TRUE)
+volcano_plot_results <- crete_volcano_plot(all.markers = all.markers_overall, n_value = n_value, plots_dir = plots_dir_overall)
+```
+
+## Per `r condition_value1`
+
+```{r volcano-plot-condition1, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+all.markers_condition_value1 <- read.csv(markers_file_condition_value1, sep = "\t", header = TRUE)
+volcano_plot_results <- crete_volcano_plot(all.markers = all.markers_condition_value1, n_value = n_value, plots_dir = plots_dir_condition1)
+```
+
+## Per `r condition_value2`
+
+```{r volcano-plot-condition2, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+if (!is.null(condition_value2)) {
+  
+  all.markers_condition_value2 <- read.csv(markers_file_condition_value2, sep = "\t", header = TRUE)
+
+  plots_dir_condition2 <- file.path(plots_dir, "03-volcano-plots-condition2") 
+  if (!dir.exists(plots_dir_condition2)) {
+    dir.create(plots_dir_condition2)}
+  
+  volcano_plot_results <- crete_volcano_plot(all.markers = all.markers_condition_value2, n_value = n_value, plots_dir = plots_dir_condition2)
+}
+```
+
+## Per `r condition_value3`
+
+```{r volcano-plot-condition3, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+if (!is.null(condition_value3)) {
+    
+  all.markers_condition_value3 <- read.csv(markers_file_condition_value3, sep = "\t", header = TRUE)
+
+  plots_dir_condition3 <- file.path(plots_dir, "04-volcano-plots-condition3") 
+  if (!dir.exists(plots_dir_condition3)) {
+    dir.create(plots_dir_condition3)}
+  
+  volcano_plot_results <- crete_volcano_plot(all.markers = all.markers_condition_value3, n_value = n_value, plots_dir = plots_dir_condition3)
+}
+```
+
+```{r echo=FALSE}
+detach(params)
+```
+
+\pagebreak
+
+# Session Info
+
+```{r echo=FALSE}
+sessionInfo()
+```
+
