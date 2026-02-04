@@ -28,7 +28,6 @@ calculate_cell_type_signature <- function(seurat_obj, results_dir, plots_dir, ge
     # Extract non-empty gene markers for the current column
     gene.markers <- as.character(gene_markers_df[, i][gene_markers_df[, i] != ""])
     
-    if (gene_name_convention_update == "YES"){
       if (genome_name == "GRCh38" | genome_name == "hg19"){
         gene.markers <- toupper(gene.markers)
         
@@ -49,10 +48,7 @@ calculate_cell_type_signature <- function(seurat_obj, results_dir, plots_dir, ge
       
                   } else if (genome_name == "DualGRCm39") {
                    gene.markers <- paste("GRCm39---", str_to_title(gene.markers), sep = "") } 
-    
-      } else if (gene_name_convention_update == "NO"){
-        "There is no need to update gene names. Skipping." }
-        
+
         # Filter gene markers that are present in rownames of 'seurat_obj'
         gene.markers <- gene.markers[gene.markers %in% rownames(seurat_obj)] 
         
