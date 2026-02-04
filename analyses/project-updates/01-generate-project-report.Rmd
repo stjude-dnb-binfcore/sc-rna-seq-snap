@@ -409,6 +409,10 @@ For more information, please see: `r results_filepath`/`r cohort_value`/analyses
 
 For more information, please see: `r results_filepath`/`r cohort_value`/analyses/clone-phylogeny-analysis/plots
 
+## de-go-analysis
+
+For more information, please see: `r results_filepath`/`r cohort_value`/analyses/de-go-analysis/plots
+
 
 ## rshiny-app
 
