@@ -1,5 +1,5 @@
 ---
-title: "Differential expression (DE) and Volcano plots Per Cell Type for sc-RNA-Seq Analysis in 10X Genomics data"
+title: "Volcano plots Per Cell Type for sc-RNA-Seq Analysis in 10X Genomics data"
 author: "Antonia Chroni for SJCRH DNB_BINF_Core"
 papersize: a4
 fontsize: 11pt
@@ -128,10 +128,7 @@ Reviewed by: _____________________   Date: ____________ \
   
 # Information about this notebook
 
-This notebook:
-
-- compute differential expression (DE) results for each cell type in the cohort,  and
-- generate volcano plots to visualize and summarize DE patterns.
+This notebook generates volcano plots to visualize and summarize DE patterns.
 
 A volcano plot visualizes two key metrics for every gene:
 
