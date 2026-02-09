@@ -1,7 +1,34 @@
-###############################################################################################
-# This helper function is downloaded from here: https://github.com/igordot/scooter/blob/master/R/import.R
-# We will update the `calculate_mito_pct_updated` function to detect mitochondrial genes across human (e.g., MT-CO1, MTCO1) and mouse (e.g., mt-Nd1)
-# Updates: 02-09-2026
+# --------------------------------------------------------------------------------------------
+# Mitochondrial Gene Detection Across Genome Formats
+#
+# The original 'calculate_mito_pct' helper function from the scooter package
+# (source: https://github.com/igordot/scooter/blob/master/R/import.R)
+# only detects mitochondrial genes in single-genome settings and assumes
+# standard gene symbols such as:
+#   • Human: MT-CO1, MT-ND1
+#   • Mouse: mt-Nd1, mt-Co1
+#
+# However, our pipeline supports multiple genome configurations, including:
+#   • Human (GRCh38, hg19)
+#   • Mouse (GRCm39, mm10, mm9)
+#   • Dual genomes (e.g., GRCh38 + mm10), which can contain *both* MT- and mt- prefixes
+#   • Custom references with additional prefixes (e.g., GRCm39-mt-Nd5, Prefix-mt-Co2)
+#
+# To ensure full compatibility across all supported genome reference formats,
+# we introduce an updated function, `calculate_mito_pct_updated()`, which:
+#   1. Uses a generalized mitochondrial gene pattern that matches:
+#         - Human-style:   MT-*
+#         - Mouse-style:   mt-*
+#         - Prefixed:      <anything>-mt-*
+#   2. Correctly identifies mitochondrial features in single or dual genomes.
+#   3. Computes percent mtDNA reads per cell and stores the result in metadata.
+#
+# This update ensures that mitochondrial QC metrics are calculated reliably
+# regardless of annotation source, species, genome build, or custom reference structure.
+# Maintainer:    Antonia Chroni (DNB Bioinformatics, St. Jude Children's Research Hospital)
+# Last updated:  2026-02-09
+# --------------------------------------------------------------------------------------------
+
 ###############################################################################################
 #' Read in Gene Expression and Antibody Capture data from a 10x Genomics Cell
 #' Ranger sparse matrix or from a text file.
