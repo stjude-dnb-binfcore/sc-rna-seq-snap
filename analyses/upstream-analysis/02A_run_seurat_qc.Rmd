@@ -209,6 +209,7 @@ source(paste0(analysis_dir, "/util/function-run-QC.R"))
 source(paste0(analysis_dir, "/util/function-calculate-qc-metrics.R"))
 source(paste0(analysis_dir, "/util/function-process-Seurat.R"))
 source(paste0(analysis_dir, "/util/function-create-UMAP.R"))
+source(paste0(analysis_dir, "/util/import_updated.R"))
 ```
 
 ```{r echo=FALSE, warning=FALSE}

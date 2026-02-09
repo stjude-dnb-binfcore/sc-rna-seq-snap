@@ -1,3 +1,8 @@
+###############################################################################################
+# This helper function is downloaded from here: https://github.com/igordot/scooter/blob/master/R/import.R
+# We will update the `calculate_mito_pct_updated` function to detect mitochondrial genes across human (e.g., MT-CO1, MTCO1) and mouse (e.g., mt-Nd1)
+# Updates: 02-09-2026
+###############################################################################################
 #' Read in Gene Expression and Antibody Capture data from a 10x Genomics Cell
 #' Ranger sparse matrix or from a text file.
 #'
@@ -17,7 +22,7 @@ load_sample_counts_matrix <- function(sample_name, path, log_file = NULL) {
   # Heavily sourced from Seurat
   counts <- list()
 
-  message_str <- glue("loading counts matrix for sample: {sample_name}")
+  message_str <- glue::glue("loading counts matrix for sample: {sample_name}")
   write_message(message_str, log_file)
 
   if (file.exists(path) && !dir.exists(path)) {
@@ -50,7 +55,7 @@ load_sample_counts_matrix <- function(sample_name, path, log_file = NULL) {
     }
   } else {
     if (!dir.exists(path)) {
-      stop(glue("{path} is not a file and is not a directory"))
+      stop(glue::glue("{path} is not a file and is not a directory"))
     }
 
     # directories should contain matrix.mtx (or matrix.mtx.gz) files
@@ -66,10 +71,10 @@ load_sample_counts_matrix <- function(sample_name, path, log_file = NULL) {
     data_dir <- dirname(data_dir)
 
     if (!dir.exists(data_dir)) {
-      stop(glue("dir {data_dir} does not contain matrix.mtx"))
+      stop(glue::glue("dir {data_dir} does not contain matrix.mtx"))
     }
 
-    message_str <- glue("loading counts matrix dir: {data_dir}")
+    message_str <- glue::glue("loading counts matrix dir: {data_dir}")
     write_message(message_str, log_file)
 
     counts_matrix <- import_mtx(data_dir)
@@ -87,6 +92,8 @@ load_sample_counts_matrix <- function(sample_name, path, log_file = NULL) {
   return(counts_out)
 }
 
+
+###############################################################################################
 #' Read in 10x Genomics Cell Ranger Matrix Market format data.
 #'
 #' @param data_path Path to directory that holds the files output from 10x.
@@ -110,7 +117,7 @@ import_mtx <- function(data_path, gene_column = 2, log_file = NULL) {
 
   # check if the directory exists
   if (!dir.exists(paths = data_path)) {
-    stop(glue("dir {data_path} does not exist"))
+    stop(glue::glue("dir {data_path} does not exist"))
   }
 
   feature_names <- read.delim(
@@ -166,7 +173,9 @@ import_mtx <- function(data_path, gene_column = 2, log_file = NULL) {
 
   return(data)
 }
+###############################################################################################
 
+###############################################################################################
 #' Create a new Seurat object from a matrix.
 #'
 #' @param counts_matrix A matrix of raw counts.
@@ -189,13 +198,13 @@ create_seurat_obj <- function(counts_matrix, assay = "RNA",
 
   # check that the size of the input matrix is reasonable
   if (ncol(counts_matrix) < 10) {
-    stop(glue("matrix contains too few cells: {ncol(counts_matrix)}"))
+    stop(glue::glue("matrix contains too few cells: {ncol(counts_matrix)}"))
   }
 
   # remove genes with very few counts
   counts_matrix <- counts_matrix[Matrix::rowSums(counts_matrix) > 0, ]
 
-  message_str <- glue("\n\n ========== create seurat object ========== \n\n
+  message_str <- glue::glue("\n\n ========== create seurat object ========== \n\n
                      input cells: {ncol(counts_matrix)}
                      input genes: {nrow(counts_matrix)}")
   write_message(message_str, log_file)
@@ -213,18 +222,14 @@ create_seurat_obj <- function(counts_matrix, assay = "RNA",
 
   # Calculate mito pct
   if (assay == "RNA") {
-    s_obj <- calculate_mito_pct(s_obj)
+    s_obj <- calculate_mito_pct_updated(s_obj)
   }
 
   return(s_obj)
 }
+###############################################################################################
 
-
-#
-# The following function was updated on February 2, 2026
-# https://github.com/igordot/scooter/blob/master/R/import.R
-# To detect mitochondrial genes across human (e.g., MT-CO1, MTCO1) and mouse (e.g., mt-Nd1)
-#
+###############################################################################################
 #' Calculate mitochondrial percentage from Seurat object.
 #'
 #' @param seurat_obj A Seurat object.
@@ -234,18 +239,22 @@ create_seurat_obj <- function(counts_matrix, assay = "RNA",
 #' @importFrom Matrix colSums
 #' @importFrom Seurat AddMetaData
 #' @export
-calculate_mito_pct <- function(seurat_obj) {
+calculate_mito_pct_updated <- function(seurat_obj) {
   # nGene and nUMI are automatically calculated for every object by Seurat
   # calculate the percentage of mitochondrial genes here and store it in percent.mito using the AddMetaData
   s_obj <- seurat_obj
 
   # get all mitochondrial genes (may fail depending on species or annotation)
-  #mt_genes <- grep("^MT-", rownames(s_obj@assays$RNA@counts),
-  #  ignore.case = TRUE, value = TRUE
-  #)
-
-  mt_genes <- grep("^(MT-?[A-Z0-9]+$|mt-[A-Za-z0-9]+$)",
-                   rownames(s_obj@assays$RNA@counts), value = TRUE)
+  if (genome_name == "GRCh38" | genome_name == "hg19" | genome_name == "GRCm39" | genome_name == "mm10" | genome_name == "mm9"){
+    mt_genes <- grep("^MT-", rownames(s_obj@assays$RNA@counts),
+    ignore.case = TRUE, value = TRUE)
+    } else if (genome_name == "DualGRCh38" | genome_name == "Dualhg19" | genome_name == "DualGRCm39" | genome_name == "Dualmm10" | genome_name == "Dualmm9"){
+       mt_genes <- grep("(^mt-[A-Za-z0-9]+$)|(-mt-[A-Za-z0-9]+$)|(^MT-[A-Za-z0-9]+$)|(-MT-[A-Za-z0-9]+$)",
+                        rownames(s_obj[["RNA"]]@counts),
+                        ignore.case = FALSE,
+                        value = TRUE)
+       
+    }
   
   # calculate the percent mitochondrial reads
   percent_mt <- Matrix::colSums(s_obj@assays$RNA@counts[mt_genes, ]) / Matrix::colSums(s_obj@assays$RNA@counts)
@@ -256,7 +265,9 @@ calculate_mito_pct <- function(seurat_obj) {
 
   return(s_obj)
 }
+###############################################################################################
 
+###############################################################################################
 #' Add assay to Seurat object.
 #'
 #' @param seurat_obj Seurat object.
@@ -271,23 +282,23 @@ calculate_mito_pct <- function(seurat_obj) {
 #' @export
 add_seurat_assay <- function(seurat_obj, assay, counts_matrix, log_file = NULL) {
   if (!is(seurat_obj, "Seurat")) {
-    stop(glue("{seurat_obj} is not a Seurat object. Cannot add Assay"))
+    stop(glue::glue("{seurat_obj} is not a Seurat object. Cannot add Assay"))
   }
 
   if (assay %in% names(seurat_obj)) {
-    stop(glue("{assay} already exists in the Seurat object"))
+    stop(glue::glue("{assay} already exists in the Seurat object"))
   }
 
   # use cells that are found in both antibody capture and RNA
   cells_to_use <- intersect(colnames(seurat_obj), colnames(counts_matrix))
 
   if (length(seurat_obj) != length(cells_to_use)) {
-    message_str <- glue("{ncol(seurat_obj) - length(cells_to_use)} cells in seurat object are not in counts matrix")
+    message_str <- glue::glue("{ncol(seurat_obj) - length(cells_to_use)} cells in seurat object are not in counts matrix")
     write_message(message_str, log_file)
   }
 
   if (ncol(counts_matrix) != length(cells_to_use)) {
-    message_str <- glue("{ncol(seurat_obj) - ncol(counts_matrix)} cells in counts matrix not in scrna matrix")
+    message_str <- glue::glue("{ncol(seurat_obj) - ncol(counts_matrix)} cells in counts matrix not in scrna matrix")
     write_message(message_str, log_file)
   }
 
@@ -300,3 +311,4 @@ add_seurat_assay <- function(seurat_obj, assay, counts_matrix, log_file = NULL) 
 
   return(seurat_obj)
 }
+###############################################################################################
