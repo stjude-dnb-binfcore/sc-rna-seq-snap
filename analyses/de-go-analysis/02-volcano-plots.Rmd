@@ -141,11 +141,10 @@ By combining these two axes, volcano plots highlight genes that show both large 
 
 **Up-regulated genes (red-right side)**
 
-Genes plotted in red meet all of the following criteria:
+Genes plotted in red on the right side represent transcriptional programs increased or activated in the condition for that specific cell type.
 
 - log2FC > 0 (higher expression in Treatment vs Control)
 - adjusted p-value ≤ α (statistically significant)
-- Represent transcriptional programs increased or activated in the treatment condition for that specific cell type.
 
 These genes may indicate:
 
@@ -156,7 +155,7 @@ These genes may indicate:
 
 **Down-regulated genes (red-left side)**
 
-Genes plotted in blue meet all of the following criteria:
+Genes plotted in red on the left side represent transcriptional programs decreased or inactivated in the condition for that specific cell type.
 
 - log2FC < 0 (lower expression in Treatment vs Control)
 - adjusted p-value ≤ α
