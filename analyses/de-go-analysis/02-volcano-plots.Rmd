@@ -139,7 +139,7 @@ By combining these two axes, volcano plots highlight genes that show both large 
 
 ## 🔍 Interpretation Guidelines
 
-**Up-regulated genes (red)**
+**Up-regulated genes (red-right side)**
 
 Genes plotted in red meet all of the following criteria:
 
@@ -154,7 +154,7 @@ These genes may indicate:
 - cell-state transitions
 - altered signaling or regulatory activity
 
-**Down-regulated genes (blue)**
+**Down-regulated genes (red-left side)**
 
 Genes plotted in blue meet all of the following criteria:
 
@@ -184,11 +184,13 @@ A volcano plot provides a fast and intuitive overview of differential‑expressi
 
 ### Color Guide
 
-| **Color** | **Meaning**        | **Criteria**                               |
-|-----------|---------------------|---------------------------------------------|
-| **Red**   | Up‑regulated        | log2FC > 0 & adjusted p-value ≤ α           |
-| **Blue**  | Down‑regulated      | log2FC < 0 & adjusted p-value ≤ α           |
-| **Grey**  | Not significant     | adjusted p-value > α or \|log2FC\| below threshold |
+| **Color** | **Meaning**              | **Criteria**                                       |   **Volcano side**                                              |
+|-----------|--------------------------|----------------------------------------------------|-----------------------------------------------------------------|
+| **Red**   | Up‑regulated             | log2FC > 0 & adjusted p-value ≤ α                  |   Right side (positive log₂FC)                                  |
+| **Red**   | Down‑regulated           | log2FC < 0 & adjusted p-value ≤ α                  |   Left side (negative log₂FC)                                   |
+| **Blue**  | Significant p-value only | adjusted p‑value ≤ α but log₂FC < threshold        |   log₂FC; Both sides (near 0 log₂FC)                            |
+| **Green** | High fold‑change only    | log₂FC ≥ threshold but adjusted p‑value > α        |   Left = large negative FC; Right = large positive FC           |
+| **Grey**  | Not significant          | adjusted p-value > α and log₂FC < threshold        |   Center region around log₂FC ≈ 0                               |
 
 This visualization helps identify genes that show both strong statistical significance and biologically meaningful fold‑change in a cell‑type–specific manner.
 
