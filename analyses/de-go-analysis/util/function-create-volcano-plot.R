@@ -38,17 +38,19 @@ create_volcano_plot <- function(all.markers,
     
     # ---- Clamp p-values to avoid Inf ----
     eps <- 1e-300
-    df$p_val_adj <- pmax(df$p_val_adj, eps)
+    df$p_val <- pmax(df$p_val, eps)
     
     # ---- Pick top up/down by adj p and effect size ----
     up <- df %>%
-      dplyr::filter(avg_log2FC >= 0.25) %>% #dplyr::filter(avg_log2FC > 0.25) %>% dplyr::arrange(p_val_adj)
-      dplyr::arrange(p_val_adj, desc(avg_log2FC)) %>%
+      dplyr::filter(avg_log2FC >= 0.25) %>% #dplyr::filter(avg_log2FC > 0.25) 
+      #dplyr::filter(p_val < 1e-05) %>%
+      dplyr::arrange(p_val, desc(avg_log2FC)) %>%
       slice_head(n = n_value)
     
     dn <- df %>%
       dplyr::filter(avg_log2FC <= -0.25) %>% # dplyr::filter(avg_log2FC < 0.25) 
-      dplyr::arrange(p_val_adj, avg_log2FC) %>%
+      #dplyr::filter(p_val < 1e-05) %>%
+      dplyr::arrange(p_val, avg_log2FC) %>%
       slice_head(n = n_value)
     
     # Use gene labels for selection as well
@@ -70,7 +72,7 @@ create_volcano_plot <- function(all.markers,
                                                     #FCcutoff       = 0.25,
                                                     title          = paste("Volcano Plot:", cl),
                                                     subtitle       = NULL,
-                                                    ylab           = bquote(~-Log[10]~ 'P adj'),
+                                                    ylab           = bquote(~-Log[10]~ 'P'),
                                                     # Optional label/point tweaks
                                                     labSize        = 3.3,
                                                     pointSize      = 1.2,
