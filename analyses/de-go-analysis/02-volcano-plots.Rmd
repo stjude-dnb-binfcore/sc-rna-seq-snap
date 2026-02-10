@@ -1,5 +1,5 @@
 ---
-title: "Volcano plots Per Cell Type for sc-RNA-Seq Analysis in 10X Genomics data"
+title: "Volcano Plots Per Cell Type for sc-RNA-Seq Analysis in 10X Genomics data"
 author: "Antonia Chroni for SJCRH DNB_BINF_Core"
 papersize: a4
 fontsize: 11pt
@@ -254,14 +254,14 @@ The analysis focuses on the top `r n_value` genes ranked by significance to high
 
 ```{r volcano-plot, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
 all.markers_overall <- read.csv(markers_file_overall, sep = "\t", header = TRUE)
-volcano_plot_results <- crete_volcano_plot(all.markers = all.markers_overall, n_value = n_value, plots_dir = plots_dir_overall)
+volcano_plot_results <- create_volcano_plot(all.markers = all.markers_overall, n_value = n_value, plots_dir = plots_dir_overall)
 ```
 
 ## Per `r condition_value1`
 
 ```{r volcano-plot-condition1, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
 all.markers_condition_value1 <- read.csv(markers_file_condition_value1, sep = "\t", header = TRUE)
-volcano_plot_results <- crete_volcano_plot(all.markers = all.markers_condition_value1, n_value = n_value, plots_dir = plots_dir_condition1)
+volcano_plot_results <- create_volcano_plot(all.markers = all.markers_condition_value1, n_value = n_value, plots_dir = plots_dir_condition1)
 ```
 
 ## Per `r condition_value2`
