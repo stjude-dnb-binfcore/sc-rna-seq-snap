@@ -129,7 +129,7 @@ Reviewed by: _____________________   Date: ____________ \
   
 # Information about this notebook
 
-Seurat can help find markers that define clusters via differential expression (DE) per cell type. By default, it identifies positive and negative markers of a single cluster (specified in ident.1), compared to all other cells. [FindAllMarkers()](https://satijalab.org/seurat/reference/findallmarkers) automates this process for all clusters, but you can also test groups of clusters vs. each other, or against all cells. 
+Seurat can help find markers that define groups of cells via differential expression (DE), e.g. per cell type. By default, it identifies positive and negative markers of a single group of cells, compared to all other cells. [FindAllMarkers()](https://satijalab.org/seurat/reference/findallmarkers) automates this process for all groups, but you can also test specific groups of cells vs. each other, or against all cells. 
 
 # Set up
 
@@ -200,6 +200,27 @@ datatable(all.markers,
                          server = TRUE), 
           filter = "top")
 ```
+
+# Differential Expression (DE) Per Cell Type and Condition
+
+Here, we define cell identities as the interaction between:
+   (1) the cell type label (cell_type_label_go), and
+   (2) the experimental condition (condition_value1).
+
+This creates composite identities of the form `<cell_type>.<condition>`, e.g., Amacrine.knock-out, Amacrine.wt, Bipolar.knock-out, Bipolar.wt, etc.
+
+FindAllMarkers() is then used to identify differentially expressed genes for each `<cell_type>.<condition>` group compared to *all other cells* in the dataset, not just the corresponding condition within the same cell type.
+
+For example:
+   - Amacrine.knock-out is compared against all remaining cells, including:
+       • Amacrine.wt
+       • Bipolar.knock-out
+       • Bipolar.wt
+       • all other cell types and conditions
+
+This analysis therefore highlights genes that are specific to a given cell-type/condition combination relative to the global cellular background, rather than performing a direct condition-to-condition comparison within the same cell type.
+
+**NOTE**: Direct within–cell-type comparisons (e.g., Amacrine.knock-out vs Amacrine.wt only) are not performed here and may be added as a future enhancement (e.g., subset(seurat_obj, cell_type == "Amacrine") followed by FindMarkers(ident.1 = "knock-out", ident.2 = "wt")).  
 
 ## Per `r condition_value1`
 
