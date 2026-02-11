@@ -133,21 +133,22 @@ This notebook generates volcano plots to visualize and summarize DE patterns.
 A volcano plot visualizes two key metrics for every gene:
 
 - log₂ fold change (log2FC) — the magnitude and direction of expression change
-- statistical significance — usually represented as –log₁₀(adjusted p-value)
+- statistical significance — usually represented as –log₁₀(p-value)
 
-By combining these two axes, volcano plots highlight genes that show both large expression changes and strong statistical support, making it easy to identify biologically meaningful up‑ and down‑regulated genes within each cell type.
+By combining these two axes, volcano plots highlight genes that show both large expression changes and strong statistical support, making it easier to identify potentially biologically meaningful up‑ and down‑regulated genes within each cell type.
 
 ## 🔍 Interpretation Guidelines
 
 **Up-regulated genes (red-right side)**
 
-Genes plotted in red on the right side represent transcriptional programs increased or activated in the condition for that specific cell type.
+Genes plotted in red on the right side can represent transcriptional programs increased or activated in the given cell type or the condition for the given cell type.
 
-- log2FC > 0 (higher expression in Treatment vs Control)
-- adjusted p-value ≤ α (statistically significant)
+- log2FC > 0 (higher expression in the given cell type or the condition within the given cell type, e.g. Treatment vs Control)
+- p-value ≤ α (statistically significant)
 
-These genes may indicate:
+Depending on the DE comparison, these genes may indicate:
 
+- cell-type-specific markers
 - pathway activation
 - treatment-induced responses
 - cell-state transitions
@@ -155,13 +156,14 @@ These genes may indicate:
 
 **Down-regulated genes (red-left side)**
 
-Genes plotted in red on the left side represent transcriptional programs decreased or inactivated in the condition for that specific cell type.
+Genes plotted in red on the left side can represent transcriptional programs decreased or inactivated in the given cell type or the condition for the given cell type.
 
-- log2FC < 0 (lower expression in Treatment vs Control)
-- adjusted p-value ≤ α
+- log2FC < 0 (lower expression in the given cell type or the condition within the given cell type, e.g. Treatment vs Control)
+- p-value ≤ α
 
-These genes may represent:
+Depending on the DE comparison, these genes may indicate:
 
+- cell-type-specific markers
 - suppressed pathways
 - inhibited regulatory programs
 - decreased cell-type–specific functions
@@ -171,7 +173,7 @@ These genes may represent:
 
 Genes shown in grey are:
 
-- not significant at the chosen adjusted p-value threshold (p_adj > α), and/or
+- not significant at the chosen p-value threshold (p-value > α), and/or
 - show only minor fold-change that does not meet the log2FC threshold.
 
 These genes essentially represent background variation or small changes that are unlikely to be biologically meaningful under current criteria.
@@ -179,19 +181,21 @@ These genes essentially represent background variation or small changes that are
 
 ## 📌 Summary
 
-A volcano plot provides a fast and intuitive overview of differential‑expression (DE) patterns within each cell type.
+A volcano plot provides a fast and intuitive overview of differential‑expression (DE) patterns within each cell type and condition.
+Note that by default the `EnhancedVolcano()` function uses a cutoff of `1e-05` for α.
 
 ### Color Guide
 
 | **Color** | **Meaning**              | **Criteria**                                       |   **Volcano side**                                              |
 |-----------|--------------------------|----------------------------------------------------|-----------------------------------------------------------------|
-| **Red**   | Up‑regulated             | log2FC > 0 & adjusted p-value ≤ α                  |   Right side (positive log₂FC)                                  |
-| **Red**   | Down‑regulated           | log2FC < 0 & adjusted p-value ≤ α                  |   Left side (negative log₂FC)                                   |
-| **Blue**  | Significant p-value only | adjusted p‑value ≤ α but log₂FC < threshold        |   log₂FC; Both sides (near 0 log₂FC)                            |
-| **Green** | High fold‑change only    | log₂FC ≥ threshold but adjusted p‑value > α        |   Left = large negative FC; Right = large positive FC           |
-| **Grey**  | Not significant          | adjusted p-value > α and log₂FC < threshold        |   Center region around log₂FC ≈ 0                               |
+| **Red**   | Up‑regulated             | log2FC > 0 & p-value ≤ α                  |   Right side (positive log₂FC)                                  |
+| **Red**   | Down‑regulated           | log2FC < 0 & p-value ≤ α                  |   Left side (negative log₂FC)                                   |
+| **Blue**  | Significant p-value only | p‑value ≤ α but log₂FC < threshold        |   log₂FC; Both sides (near 0 log₂FC)                            |
+| **Green** | High fold‑change only    | log₂FC ≥ threshold but p‑value > α        |   Left = large negative FC; Right = large positive FC           |
+| **Grey**  | Not significant          | p-value > α and log₂FC < threshold        |   Center region around log₂FC ≈ 0                               |
 
-This visualization helps identify genes that show both strong statistical significance and biologically meaningful fold‑change in a cell‑type–specific manner.
+This visualization helps identify genes that show both statistical significance at the given α and potentially biologically meaningful fold‑change in a cell‑type-specific manner.
+
 
 # Set up
 
@@ -249,7 +253,7 @@ a4height <- 11.7
 
 # Volcano Plots Per Cell Type
 
-The analysis focuses on the top `r n_value` genes ranked by significance to highlight the most biologically relevant up‑ and down‑regulated features.
+The analysis labels the top `r n_value` genes ranked by significance to highlight the most potentially biologically relevant up‑ and down‑regulated features.
 
 ## Overall
 
