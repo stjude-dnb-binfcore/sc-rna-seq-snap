@@ -31,7 +31,7 @@ This folder contains scripts designed to:
 
 (a) compute differential expression (DE) results for each cell type in the cohort,
 (b) generate volcano plots to visualize and summarize DE patterns, and
-(c) perform Gene Ontology (GO) enrichment analysis using clusterProfiler to interpret the biological functions associated with the DE gene sets.
+(c) perform Gene Ontology (GO) enrichment analysis using clusterProfiler to interpret the potential biological functions associated with the DE gene sets.
 
 Together, these steps provide a complete workflow for identifying, visualizing, and functionally characterizing transcriptional changes at the cell‑type level.
 
