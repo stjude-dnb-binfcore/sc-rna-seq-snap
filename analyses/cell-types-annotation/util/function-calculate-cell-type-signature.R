@@ -4,7 +4,6 @@
 #' @param plots_dir
 #' @param gene_markers_df
 #' @param genome_name
-#' @param gene_name_convention_update
 #' @param assay
 #' @param resolution
 #' 
@@ -13,7 +12,7 @@
 #'
 #' @examples
 #' 
-calculate_cell_type_signature <- function(seurat_obj, results_dir, plots_dir, gene_markers_df, genome_name, gene_name_convention_update,
+calculate_cell_type_signature <- function(seurat_obj, results_dir, plots_dir, gene_markers_df, genome_name,
                                           assay, resolution) {
 
   pdf(file = paste(plots_dir, "/", "all_cell_type_signatures.pdf", sep = ""), width = length(gene_markers_df)*6, height = 6)
