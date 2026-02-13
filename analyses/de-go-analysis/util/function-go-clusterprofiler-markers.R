@@ -8,6 +8,8 @@
 #' @param qval_cutoff q-value cutoff (default = 0.05)
 #' @param ontology GO ontology: "BP", "MF", or "CC"
 #' @param key_type Gene ID type ("ENSEMBL", "SYMBOL", etc.)
+#' @param universe_value 
+#' @param show_number_pathways
 #'
 #' @return A named list of enrichGO results (class: enrichResult)
 #' @export
@@ -20,12 +22,14 @@ run_clusterwise_GO_enrichment_markers <- function(closest_genes_all,
                                           pval_cutoff = 0.05,
                                           qval_cutoff = 0.05,
                                           ontology = "BP",
-                                          key_type = "ENSEMBL") {
+                                          key_type = "ENSEMBL",
+                                          universe_value = universe_value,
+                                          show_number_pathways = show_number_pathways) {
 
   ego_results <- list()
   
   for (clust in sort(unique(closest_genes_all$cluster))) {
-    message("Running GO enrichment for cluster: ", clust)
+    message("Running GO enrichment for: ", clust)
     
     genes <- closest_genes_all %>%
       filter(cluster == clust) %>%
@@ -33,7 +37,7 @@ run_clusterwise_GO_enrichment_markers <- function(closest_genes_all,
       unique()
     
     if (length(genes) == 0) {
-      warning("No gene IDs for cluster ", clust)
+      warning("No gene IDs for ", clust)
       next
     }
     
@@ -41,6 +45,7 @@ run_clusterwise_GO_enrichment_markers <- function(closest_genes_all,
     ego <- tryCatch({
       enrichGO(
         gene          = genes,
+        universe      = universe_value, # names(geneList)
         #keyType       = key_type,
         keyType = "SYMBOL",
         OrgDb         = OrgDb_value,
@@ -51,12 +56,12 @@ run_clusterwise_GO_enrichment_markers <- function(closest_genes_all,
         readable      = TRUE
       )
     }, error = function(e) {
-      warning("enrichGO failed for cluster ", clust, ": ", e$message)
+      warning("enrichGO failed for ", clust, ": ", e$message)
       return(NULL)
     })
     
     if (is.null(ego) || nrow(ego) == 0) {
-      message("No significant GO terms for cluster: ", clust)
+      message("No significant GO terms for: ", clust)
       next
     }
     
@@ -66,44 +71,44 @@ run_clusterwise_GO_enrichment_markers <- function(closest_genes_all,
     
     if (!is.null(ego) && nrow(as.data.frame(ego)) > 0) {
       # Barplot
-      cat("Attempting barplot for cluster:", clust, "\n")
+      cat("Attempting barplot for:", clust, "\n")
       try({
         suppressWarnings({
-          bar <- print(barplot(ego, showCategory = 20) +
-            ggtitle(glue::glue("GO Enrichment - Cluster {clust} (Barplot)")))
-          ggsave(file.path(plots_dir, glue::glue("barplot-cluster{clust}_ego.png")),
+          bar <- print(barplot(ego, showCategory = show_number_pathways) +
+            ggtitle(glue::glue("GO Enrichment - {clust} (Barplot)")))
+          ggsave(file.path(plots_dir, glue::glue("barplot-{clust}-ego.png")),
                  plot = bar, width = 15, height = 8)
         })
       }, silent = TRUE)
       
       # Dotplot
-      cat("Attempting dotplot for cluster:", clust, "\n")
+      cat("Attempting dotplot for:", clust, "\n")
       try({
         suppressWarnings({
-          dot <- print(dotplot(ego, showCategory = 20) +
-            ggtitle(glue::glue("GO Enrichment - Cluster {clust} (Dotplot)")))
-          ggsave(file.path(plots_dir, glue::glue("dotplot-cluster{clust}_ego.png")),
+          dot <- print(dotplot(ego, showCategory = show_number_pathways) +
+            ggtitle(glue::glue("GO Enrichment - {clust} (Dotplot)")))
+          ggsave(file.path(plots_dir, glue::glue("dotplot-{clust}-ego.png")),
                  plot = dot, width = 15, height = 8)
         })
       }, silent = TRUE)
       
       # Emapplot
-      cat("Attempting emapplot for cluster:", clust, "\n")
+      cat("Attempting emapplot for:", clust, "\n")
       try({
         suppressWarnings({
-          emap <- print(emapplot(ego, showCategory = 20, layout = "kk") +
-            ggtitle(glue::glue("GO Enrichment - Cluster {clust} (Emapplot)")))
-          ggsave(file.path(plots_dir, glue::glue("emapplot-cluster{clust}_ego.png")),
+          emap <- print(emapplot(ego, showCategory = show_number_pathways, layout = "kk") +
+            ggtitle(glue::glue("GO Enrichment - {clust} (Emapplot)")))
+          ggsave(file.path(plots_dir, glue::glue("emapplot-{clust}-ego.png")),
                  plot = emap, width = 15, height = 8)
       })
     }, silent = TRUE)
       
       } else {
-        message("No significant GO terms for cluster: ", clust)
+        message("No significant GO terms for: ", clust)
         }
     
   }
-  message("Saved GO enrichment plots for cluster ", clust)
+  message("Saved GO enrichment plots for ", clust)
   return(ego_results)
 }
 ############################################################################################################

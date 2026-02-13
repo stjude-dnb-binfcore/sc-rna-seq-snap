@@ -37,10 +37,11 @@ header-includes:
 params:
   OrgDb_value: '.'
   resolution_list: '.'
-  n_value: '.'
   condition_value1: '.'
   condition_value2: '.'
   condition_value3: '.'
+  universe_value: '.'
+  show_number_pathways: '.'
   root_dir: './'
   PROJECT_NAME: '.'
   PI_NAME: '.'
@@ -129,11 +130,14 @@ Reviewed by: _____________________   Date: ____________ \
   
 # Information about this notebook
 
-After completing clustering, cell type annotation, and per cell type differential expression (DE) analysis in the scRNA‑seq workflow, a common next step is to functionally interpret the resulting gene sets. Gene Ontology (GO) enrichment enables biological insight by identifying over‑represented biological processes, molecular functions, or cellular components among differentially expressed genes (DEGs).
+After completing clustering, cell type annotation, and per cell type differential expression (DE) analysis in the scRNA‑seq workflow, a common next step is to functionally interpret the resulting gene sets. Gene Ontology (GO) enrichment enables biological insight by identifying over‑represented biological processes (BP), molecular functions (MF), or cellular components (CC) among differentially expressed genes (DEGs).
 
 In our sc/snRNA‑seq pipeline, GO analysis is incorporated as part of downstream functional interpretation following DE analysis and identification of gene sets via methods such as [FindAllMarkers()](https://satijalab.org/seurat/reference/findallmarkers) or [ClosestFeature()](https://stuartlab.org/signac/reference/closestfeature). 
 
 We will use clusterProfiler R package for GO enrichment because it supports multiple organisms, accepts various gene ID formats (SYMBOL, Ensembl), and integrates seamlessly with Seurat and Bioconductor annotation databases.
+
+For more information, please see [Over-Representation Analysis with ClusterProfiler](https://learn.gencore.bio.nyu.edu/rna-seq-analysis/over-representation-analysis/) and [GO enrichment analysis](https://yulab-smu.top/biomedical-knowledge-mining-book/021-go.html) vignettes.
+
 
 # Set up
 
@@ -162,10 +166,10 @@ module_plots_dir <- file.path(analysis_dir, "plots")
 results_dir <- file.path(analysis_dir, "results", "01-de-analysis")
 
 # Input files
-markers_file_overall <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all.tsv"))
-markers_file_condition_value1 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value1.tsv"))
-markers_file_condition_value2 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value2.tsv"))
-markers_file_condition_value3 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value3.tsv"))
+markers_file_overall <- file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all.tsv"))
+markers_file_condition_value1 <- file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value1.tsv"))
+markers_file_condition_value2 <- file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value2.tsv"))
+markers_file_condition_value3 <- file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value3.tsv"))
 
 
 # Create plots directory
@@ -201,36 +205,33 @@ a4height <- 11.7
 
 In this step, we conduct Gene Ontology (GO) enrichment analysis to identify biological processes associated with cell-type-specific expression changes (e.g., differential expression). Using the [clusterProfiler](https://bioconductor.org/packages/devel/bioc/html/clusterProfiler.html) package, we assess whether any GO terms are significantly enriched among these gene sets. This approach helps interpret the possible functional implications of differential expression across clusters, i.e., predicted cell type.
 
-We will filter and keep `r n_value` markers for visualization purposes.
 
 ## Overall
 
 ```{r go-clusterProfiler-overall, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE}
 all.markers_overall <- read.csv(markers_file_overall, sep = "\t", header = TRUE)
-
 top_n_value_overall <- all.markers_overall %>% 
-  group_by(cluster) %>% 
-  top_n(n = n_value, wt = avg_log2FC)
-write.table(top_n_value_overall, file = paste(results_dir, "/", "Res_", resolution_list, glue::glue("_Markers_top_{n_value}_overall.tsv"), sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  group_by(cluster) 
 
 ego_results <- run_clusterwise_GO_enrichment_markers(closest_genes_all = top_n_value_overall, 
                                                      OrgDb_value = OrgDb_value, 
-                                                     plots_dir = go_plots_dir_overall)
+                                                     plots_dir = go_plots_dir_overall,
+                                                     universe_value = universe_value,
+                                                     show_number_pathways = show_number_pathways)
 ```
 
 ## Per `r condition_value1`
 
 ```{r go-clusterProfiler-condition-value1, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE}
 all.markers_condition_value1 <- read.csv(markers_file_condition_value1, sep = "\t", header = TRUE)
-
 top_n_value_condition_value1 <- all.markers_condition_value1 %>% 
-  group_by(cluster) %>% 
-  top_n(n = n_value, wt = avg_log2FC)
-write.table(top_n_value_condition_value1, file = paste(results_dir, "/", "Res_", resolution_list, glue::glue("_Markers_top_{n_value}_condition_value1.tsv"), sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  group_by(cluster) #%>% 
 
 ego_results <- run_clusterwise_GO_enrichment_markers(closest_genes_all = top_n_value_condition_value1, 
                                                      OrgDb_value = OrgDb_value, 
-                                                     plots_dir = go_plots_dir_condition_value1)
+                                                     plots_dir = go_plots_dir_condition_value1,
+                                                     universe_value = universe_value,
+                                                     show_number_pathways = show_number_pathways)
 ```
 
 ## Per `r condition_value2`
@@ -243,15 +244,14 @@ if (!is.null(condition_value2)) {
     dir.create(go_plots_dir_condition_value2)}
   
   all.markers_condition_value2 <- read.csv(markers_file_condition_value2, sep = "\t", header = TRUE)
-  
   top_n_value_condition_value2 <- all.markers_condition_value2 %>% 
-    group_by(cluster) %>% 
-    top_n(n = n_value, wt = avg_log2FC)
-  write.table(top_n_value_condition_value2, file = paste(results_dir, "/", "Res_", resolution_list, glue::glue("_Markers_top_{n_value}_condition_value2.tsv"), sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
-  
+    group_by(cluster) #%>% 
+
   ego_results <- run_clusterwise_GO_enrichment_markers(closest_genes_all = top_n_value_condition_value2, 
-                                                       OrgDb_value = OrgDb_value, 
-                                                       plots_dir = go_plots_dir_condition_value2)
+                                                     OrgDb_value = OrgDb_value, 
+                                                     plots_dir = go_plots_dir_condition_value2,
+                                                     universe_value = universe_value,
+                                                     show_number_pathways = show_number_pathways)
 }
 ```
 
@@ -265,15 +265,14 @@ if (!is.null(condition_value3)) {
     dir.create(go_plots_dir_condition_value3)}
   
   all.markers_condition_value3 <- read.csv(markers_file_condition_value3, sep = "\t", header = TRUE)
-  
   top_n_value_condition_value3 <- all.markers_condition_value3 %>% 
-    group_by(cluster) %>% 
-    top_n(n = n_value, wt = avg_log2FC)
-  write.table(top_n_value_condition_value3, file = paste(results_dir, "/", "Res_", resolution_list, glue::glue("_Markers_top_{n_value}_condition_value3.tsv"), sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
-  
+    group_by(cluster)
+    
   ego_results <- run_clusterwise_GO_enrichment_markers(closest_genes_all = top_n_value_condition_value3, 
-                                                       OrgDb_value = OrgDb_value, 
-                                                       plots_dir = go_plots_dir_condition_value3)
+                                                     OrgDb_value = OrgDb_value, 
+                                                     plots_dir = go_plots_dir_condition_value3,
+                                                     universe_value = universe_value,
+                                                     show_number_pathways = show_number_pathways)
 }
 ```
 
