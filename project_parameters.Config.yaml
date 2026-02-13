@@ -150,6 +150,16 @@ variable_numbat: "timepoint" # Variable of interest for investigating clonal evo
 # `de-go-analysis`
 cell_type_label_go_module: "predicted.cell.signature.ident" # Options: "singler.broad", "singler.fine", and "predicted.cell.signature.ident" as defined in the `./analyses/cell-types-annotation` module
 OrgDb_value: "org.Mm.eg.db"   # Options for gene annotation: (1) Human: "org.Hs.eg.db"; (2) Mouse: "org.Mm.eg.db"
+# With universe: enrichment is relative to the genes that were actually measurable/eligible (e.g., all genes expressed above a threshold, all genes tested in DE)
+# Without universe: enrichment is relative to all genes in the organism database, which can inflate significance or bias results (common in scRNAseq where many genes are never detected).
+# If you omit universe:
+# (1) Background is broader: pvalues can look more significant
+# (2) Can introduce bias from genes never detectable in your assay
+# If you include universe:
+# (1) Background matches experiment: results are usually more conservative and more interpretable
+# Having said that, during testing this turned out zero significant pathways
+universe_value_module: NULL # Options: NULL (default) or names(geneList)
+show_number_pathways_value_module: 20 # Number of top pathways to show in the dot plot visualization
 
 
 # `./analyses/project-updates`
