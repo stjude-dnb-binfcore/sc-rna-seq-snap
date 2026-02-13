@@ -36,7 +36,11 @@ To begin using the Snap pipeline, follow the instructions below to set up the en
 
 ### Tutorial and Documentation
 
-For best practices and detailed guidelines on effectively using the Snap pipeline, please review the [Tutorial and documentation for the snap pipeline](https://github.com/stjude-dnb-binfcore/trainings/blob/main/courses/sc-rna-seq-snap-repo/tutorial/snap-tutorial-docs).
+For a step-by-step guide on how to access the code, run the analysis, and request memory from the HPCF cluster, refer to the current README file or the [Snap wiki page](https://github.com/stjude-dnb-binfcore/sc-rna-seq-snap/wiki). Training sessions can also be provided upon request for St Jude users.
+
+> [Tutorial and documentation for the snap pipeline](https://github.com/stjude-dnb-binfcore/trainings/blob/main/courses/sc-rna-seq-snap-repo/tutorial/snap-tutorial-docs). (legacy): This material reflects a previous version of the Snap pipeline and is no longer actively maintained or supported. It is retained for reference purposes only.
+
+
 
 ### Preparing project metadata
 
