@@ -152,6 +152,7 @@ Important Considerations:
 |  ├── cellranger-analysis
 |  ├── clone-phylogeny-analysis
 |  ├── cluster-cell-calling
+|  ├── de-go-analysis
 |  ├── fastqc-analysis
 |  ├── integrative-analysis
 |  ├── project-updates
