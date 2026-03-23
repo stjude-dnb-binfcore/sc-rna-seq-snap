@@ -49,7 +49,6 @@ params:
   reference_dir: '.'
   reference_file_name: '.'
   genome_name: '.'
-  gene_name_convention_update: '.'
   resolution: '.'
   celltype_reference: '.'
   root_dir: './'
