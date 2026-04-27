@@ -6,7 +6,6 @@
 
 Parameters according to the project and analysis strategy will need to be specified in the following scripts:
 - `project_parameters.Config.yaml` located at the `root_dir`
-- `future_globals_value` is hard-coded in each `run-cell-types-annotation-<method>.R` script for each method. If necessary, user can increase/decrease resources.
 - For the `singleR` method, Celldex references are hard-coded in the `run-cell-types-annotation-SingleR.R` script. User should modify the reference to be used according to their experiment.
 - `run-cell-types-annotation.sh`: User should comment in/out the script to use based on the selection of the desired methods for cell type annotation.
 - `run-merge-cell-types-annotations-all.R`: The user should run this script to merge cell type annotations from SingleR (both broad and fine resolutions). Additionally, if multiple annotation methods are used (current options include SingleR method, a gene marker list, and a reference dataset), this script will merge the annotations accordingly.

@@ -71,6 +71,14 @@ use_scDblFinder_filtering_filter_object: "NO" # Options: "YES" or "NO" (default)
 use_SoupX_filtering_summary_report: "NO" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
 use_scDblFinder_filtering_summary_report: "NO" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
 
+# Maximum size (in GiB) for future.globals.maxSize.
+# The value is specified in GiB here and converted to bytes in R using:
+#   future.globals.maxSize = as.numeric(value) * 1024^3
+#
+# Example:
+#   200 GiB  -> 200 * 1024^3 = 214748364800 bytes
+future_globals_value_upstream: 200 # Default. Adjust based on dataset size and available memory.
+
 # `./analyses/integrative-analysis`
 use_seurat_integration: "NO" # Options: "YES" or "NO"
 use_harmony_integration: "YES" # Options: "YES" or "NO"
@@ -84,6 +92,7 @@ n_neighbors_value: 20
 variable_value: "ID"
 reference_list_value: NULL
 PCA_Feature_List_value: NULL
+future_globals_value_integrative: 200 # Default. Adjust based on dataset size and available memory. See `future_globals_value_upstream` in the `upstream-analysis` module for more details.
 
 # `./analyses/cluster-cell-calling`
 data_dir_module_name: "integrative-analysis" # Options:: "integrative-analysis" (default), "upstream-analysis" (for cohorts with a single sample)
@@ -105,10 +114,12 @@ algorithm_value_clustering_module: 4 # Leiden algorthim (default)
 resolution_find_markers: "default_multiple" # "custom_multiple", "default_multiple" or define value of resolution, e.g., 0.5
 resolution_list_find_markers: 0.1 # this will be the single resolution that fits the data the best
 n_value_find_markers: 10 # number of top genes to explore
+future_globals_value_clustering: 400 # Default. Adjust based on dataset size and available memory. See `future_globals_value_upstream` in the `upstream-analysis` module for more details.
 
 # `./analyses/cell-contamination-removal-analysis`
 keep_clusters_contamination_module: [1, 2, 3, 4, 5, 7, 8, 9, 10, 12, 13, 15, 16]
 assay_contamination_module: "RNA" # Options: "RNA" (default) or "RNA_SoupX"
+future_globals_value_contamination: 400 # Default. Adjust based on dataset size and available memory. See `future_globals_value_upstream` in the `upstream-analysis` module for more details.
 
 # `./analyses/cell-types-annotation`
 module_with_input_data: "cluster-cell-calling" # Options: "cluster-cell-calling" or "cell-contamination-removal-analysis"
@@ -138,6 +149,8 @@ reference_dir_annotation_module: "./" # path to reference dir
 reference_file_name_annotation_module: "<filename>.rds" # File name with the reference object. It needs to be in `rds` format.
 celltype_reference_module: "predicted.cell.signature.ident" # Column name from the reference object to be used to transfer labels
 
+future_globals_value_annotation: 200 # Default. Adjust based on dataset size and available memory. See `future_globals_value_upstream` in the `upstream-analysis` module for more details.
+
 # `rshiny-app`
 annotations_dir_rshiny_app: "cell_types_annotations_all" # Options: to update based on the folder with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
 annotations_filename_rshiny_app: "seurat_obj_cell_types_annotations_all.rds" # Options: to update based on the object with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
@@ -166,6 +179,7 @@ OrgDb_value: "org.Mm.eg.db"   # Options for gene annotation: (1) Human: "org.Hs.
 # (1) Background matches experiment: results are usually more conservative and more interpretable
 universe_value_module: "YES" # Options: "YES" (If YES, enrichment is run against all genes in the universe) or "NO" (default)
 show_number_pathways_value_module: 20 # Number of top pathways to show in the dot plot visualization
+future_globals_value_dego: 200 # Default. Adjust based on dataset size and available memory. See `future_globals_value_upstream` in the `upstream-analysis` module for more details.
 
 
 # `./analyses/project-updates`
