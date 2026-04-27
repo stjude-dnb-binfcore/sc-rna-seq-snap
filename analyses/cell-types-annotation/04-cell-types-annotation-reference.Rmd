@@ -45,6 +45,7 @@ params:
   use_min.diff.med: '.'
   min.diff.med_value: '.'
   assay: '.'
+  reference_assay: '.'
   ct_palette_file: '.'
   reference_dir: '.'
   reference_file_name: '.'
@@ -193,6 +194,7 @@ First, we will use the object as generated from the pipeline in the `input_data`
 
 ```{r read-object, echo=TRUE}
 seurat_obj.query <- readRDS(data_file)
+DefaultAssay(seurat_obj.query) <- assay
 ```
 
 # Cell types annotation using a reference object
@@ -212,6 +214,7 @@ names(palette) <- palette_df$cell_type_names
 
 ```{r read-file-with-reference, echo=TRUE}
 reference_obj <- readRDS(reference_file)
+DefaultAssay(reference_obj) <- reference_assay
 
 # Rename column containing cell types in the reference
 reference_obj@meta.data$celltype <- reference_obj@meta.data[[celltype_reference]]
@@ -223,6 +226,28 @@ name <- paste0(plots_dir, "/", glue::glue("plot-reference-cell-types.png"))
 p1.reference <- DimPlot(reference_obj, group.by = 'celltype', label = TRUE, repel = TRUE, label.size = 2.5, cols = palette) + ggtitle("Reference cell type annotations") 
 print(p1.reference)
 ggsave(file = name, width = 8, height = 6, device = "png")
+```
+
+```{r align-assays, echo=TRUE}
+# If assay names differ, rename the reference assay to match the query
+if (reference_assay != assay) {
+
+  message(
+    sprintf(
+      "Renaming reference assay '%s' -> '%s' to match query.",
+      reference_assay, assay
+    )
+  )
+
+  reference_obj <- RenameAssays(
+    object = reference_obj,
+    old.names = reference_assay,
+    new.names = assay
+  )
+
+  # Ensure defaults are synced after renaming
+  DefaultAssay(reference_obj) <- assay
+}
 ```
 
 ```{r annotate_cell_types, echo=TRUE}

@@ -116,7 +116,8 @@ input_data_folder_name: "01_cluster_cell_calling" # Options: "01_cluster_cell_ca
 reduction_value_annotation_module: "umap" # Options: For seurat and harmony use: "umap"; For Liger: "glue::glue("{integration_method}")" or "umapndim30nn30" (for cohorts with a single sample or any other name based on the values used for `num_dim_seurat_qc` and `num_neighbors_seurat_qc`
 min.diff.med_value_annotation_module: 0.1 # Higher thresholds for pruning labels correspond to greater assignment certainty
 use_min.diff.med_annotation_module: "NO" # Options: "YES" or "NO" (default)
-assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX"
+assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX". This is the assay to use for the main dataset in case the user wants to use it for annotation. It has to match the assay used for the reference dataset if using a reference dataset for annotation.
+reference_assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX". This is the assay to use for the reference dataset in case the user wants to use it for annotation. it has to match the assay used for the main dataset.
 
 gene_markers_dir_annotation_module: "./" # path to gene markers dir
 gene_markers_file_name_annotation_module: "<filename>.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`.
