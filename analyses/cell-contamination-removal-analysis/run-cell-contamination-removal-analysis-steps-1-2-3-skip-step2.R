@@ -115,11 +115,3 @@ rmarkdown::render('03-cluster-cell-calling.Rmd', clean = TRUE,
                                 COMPLETION_DATE = yaml$COMPLETION_DATE))
 ################################################################################################################
 
-integration_method = yaml$integration_method_clustering_module
-num_dim = yaml$num_dim_clustering_module
-reduction_value = yaml$reduction_value_clustering_module
-resolution_list = yaml$resolution_list_clustering_module
-resolution_list_default = yaml$resolution_list_default_clustering_module
-algorithm_value = yaml$algorithm_value_clustering_module
-assay = yaml$assay_contamination_module
-root_dir = yaml$root_dir

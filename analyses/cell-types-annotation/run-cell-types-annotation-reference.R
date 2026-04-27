@@ -69,7 +69,6 @@ rmarkdown::render('04-cell-types-annotation-reference.Rmd', clean = TRUE,
                                 reference_dir = yaml$reference_dir_annotation_module,
                                 reference_file_name = yaml$reference_file_name_annotation_module,
                                 genome_name = yaml$genome_name_upstream,
-                                gene_name_convention_update = yaml$gene_name_convention_update_annotation_module,
                                 resolution = yaml$resolution_list_find_markers,
                                 celltype_reference = yaml$celltype_reference_module,
 

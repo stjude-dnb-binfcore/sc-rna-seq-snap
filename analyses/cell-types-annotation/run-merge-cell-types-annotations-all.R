@@ -270,7 +270,8 @@ if (method == "all"){
       
       # Rename the column in the metadata of the Seurat object
       seurat_obj@meta.data <- seurat_obj@meta.data %>%
-        rename_with(~ paste("gene_markers_", ., sep = ""), matches("(?i)(\\.?score(\\.?1)?)$")) 
+        #rename_with(~ paste("gene_markers_", ., sep = ""), matches("(?i)(\\.?score(\\.?1)?)$")) 
+        rename_with(~ paste("gene_markers_", ., sep = ""), matches("\\.score1$")) 
       
     } else if (method == "reference"){
       
@@ -283,7 +284,8 @@ if (method == "all"){
       
       # Rename the column in the metadata of the Seurat object
       seurat_obj@meta.data <- seurat_obj@meta.data %>%
-        rename_with(~ paste("reference_", ., sep = ""), matches("(?i)(\\.?score(\\.?1)?)$")) 
+        #rename_with(~ paste("reference_", ., sep = ""), matches("(?i)(\\.?score(\\.?1)?)$")) 
+        rename_with(~ paste("reference_", ., sep = ""), matches("prediction\\.score.*")) 
     
 }
   
