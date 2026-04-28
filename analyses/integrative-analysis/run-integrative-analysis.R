@@ -28,7 +28,7 @@ report_dir <- file.path(analysis_dir, "plots")
 # Run Rmd scripts to process data per method
 ################################################################################################################
 integration_method=yaml$integration_method
-future_globals_value <- as.numeric(yaml$uture_globals_value_integrative) * 1024^3
+future_globals_value <- as.numeric(yaml$future_globals_value_integrative) * 1024^3
 
 rmarkdown::render('01-integrative-analysis.Rmd', clean = TRUE,
                   output_dir = file.path(report_dir),
