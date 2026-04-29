@@ -119,6 +119,14 @@ use_min.diff.med_annotation_module: "NO" # Options: "YES" or "NO" (default)
 assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX". This is the assay to use for the main dataset in case the user wants to use it for annotation. It has to match the assay used for the reference dataset if using a reference dataset for annotation.
 reference_assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX". This is the assay to use for the reference dataset in case the user wants to use it for annotation. it has to match the assay used for the main dataset.
 
+# SingleR reference from celldex: set to the exported *function name* (plain text), not an R object.
+# At runtime, `run-cell-types-annotation-SingleR.R` calls `celldex::<name>()`. YAML cannot store S4
+# SummarizedExperiment objects; using the function name avoids serialization issues.
+# The broad/fine SingleR notebooks expect colData columns `label.main` and `label.fine` (as in HumanPrimaryCellAtlas).
+# Allowed values (must match allowlist in that R script): HumanPrimaryCellAtlasData, BlueprintEncodeData,
+# DatabaseImmuneCellExpressionData, ImmGenData, MonacoImmuneData, MouseRNAseqData, NovershternHematopoieticData
+singler_celldex_reference: "HumanPrimaryCellAtlasData"
+
 gene_markers_dir_annotation_module: "./" # path to gene markers dir
 gene_markers_file_name_annotation_module: "<filename>.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`.
 # Options: "all" (for using singler, a list of gene markers and reference dataset), 
