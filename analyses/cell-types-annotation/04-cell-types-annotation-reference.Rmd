@@ -228,25 +228,16 @@ print(p1.reference)
 ggsave(file = name, width = 8, height = 6, device = "png")
 ```
 
-```{r align-assays, echo=TRUE}
+```{r align-name-assays, echo=TRUE}
 # If assay names differ, rename the reference assay to match the query
 if (reference_assay != assay) {
 
-  message(
-    sprintf(
-      "Renaming reference assay '%s' -> '%s' to match query.",
-      reference_assay, assay
-    )
-  )
-
-  reference_obj <- RenameAssays(
-    object = reference_obj,
-    old.names = reference_assay,
-    new.names = assay
-  )
-
-  # Ensure defaults are synced after renaming
-  DefaultAssay(reference_obj) <- assay
+  message("Renaming reference assay '%s' -> '%s' to match query.", reference_assay, assay)
+  reference_obj <- RenameAssays(reference_obj, reference_assay, assay)
+  DefaultAssay(reference_obj) <- assay   # Ensure defaults are synced after renaming
+  
+  } else {
+    print_message <- "We will skip renaming the reference assay to match the query. Assay names between objects are the same."
 }
 ```
 
