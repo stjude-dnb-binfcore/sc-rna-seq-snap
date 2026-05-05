@@ -50,7 +50,6 @@ params:
   nfeatures_value: '.'
   reference_list_value: '.'
   PCA_Feature_List_value: '.'
-  future_globals_value: '.'
   assay: '.'
   root_dir: './'
   PROJECT_NAME: '.'

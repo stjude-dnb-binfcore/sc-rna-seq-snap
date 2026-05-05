@@ -34,7 +34,7 @@ if (!dir.exists(module_results_dir)) {
   dir.create(module_results_dir)}
 ################################################################################################################
 
-future_globals_value = 214748364800 #200 * 1024^3; # 150 * 1024^3; other options: 1000 * 1024^2 = 1048576000; 8000 * 1024^2 =8388608000
+future_globals_value <- as.numeric(yaml$future_globals_value_dego) * 1024^3
 
 # Step 1
 rmarkdown::render('01-de-analysis.Rmd', clean = TRUE,

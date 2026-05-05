@@ -28,6 +28,7 @@ report_dir <- file.path(analysis_dir, "plots")
 # Run Rmd scripts to process data per method
 ################################################################################################################
 integration_method=yaml$integration_method
+future_globals_value <- as.numeric(yaml$future_globals_value_integrative) * 1024^3
 
 rmarkdown::render('01-integrative-analysis.Rmd', clean = TRUE,
                   output_dir = file.path(report_dir),
@@ -35,7 +36,6 @@ rmarkdown::render('01-integrative-analysis.Rmd', clean = TRUE,
                   output_format = 'all',
                   params = list(
                     # the following parameters are defined in the `yaml` file
-                    future_globals_value = 214748364800, #200 * 1024^3; other options: 1000 * 1024^2 = 1048576000; 8000 * 1024^2 =8388608000
                     use_seurat_integration = yaml$use_seurat_integration,
                     use_harmony_integration = yaml$use_harmony_integration,
                     use_liger_integration = yaml$use_liger_integration,

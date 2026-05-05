@@ -6,7 +6,6 @@
 
 Parameters according to the project and analysis strategy will need to be specified in the following scripts:
 - `project_parameters.Config.yaml` located at the `root_dir`.
-- `future_globals_value` is hardwired coded in the `run-integrative-analysis.R`. If necessary, user can increase/decrease resources.
 
 The `integrative-analysis` module is intended for use with multi-sample cohorts. It should be excluded when analyzing single-sample cohorts, as it relies on data integration across multiple samples.
 
