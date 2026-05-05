@@ -2,7 +2,7 @@
 
 ### Usage
 
-The `create_color_palette_project.R` script is intended to be run via the command line from the top directory of the repository (i.e. `root_dir` for your specific project path) as follows:
+The `create_color_palette_project.R` script is designed to be run as if it was called from the `./figures/scripts` directory as follows:
 
 ```
 Rscript create_color_palette_project.R
