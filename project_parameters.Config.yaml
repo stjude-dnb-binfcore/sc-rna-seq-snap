@@ -127,8 +127,8 @@ input_data_folder_name: "01_cluster_cell_calling" # Options: "01_cluster_cell_ca
 reduction_value_annotation_module: "umap" # Options: For seurat and harmony use: "umap"; For Liger: "glue::glue("{integration_method}")" or "umapndim30nn30" (for cohorts with a single sample or any other name based on the values used for `num_dim_seurat_qc` and `num_neighbors_seurat_qc`
 min.diff.med_value_annotation_module: 0.1 # Higher thresholds for pruning labels correspond to greater assignment certainty
 use_min.diff.med_annotation_module: "NO" # Options: "YES" or "NO" (default)
-assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX". This is the assay to use for the main dataset in case the user wants to use it for annotation. It has to match the assay used for the reference dataset if using a reference dataset for annotation.
-reference_assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX". This is the assay to use for the reference dataset in case the user wants to use it for annotation. it has to match the assay used for the main dataset.
+assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX". This is the assay to use for the query dataset which will be annotated (i.e. the assay for the seurat object from the `module_with_input_data` defined above).
+reference_assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_SoupX". This is the assay to use for the reference dataset (i.e. the assay for the annotated seurat object defined by the `reference_file_name_annotation_module` below).
 
 # SingleR reference from celldex: set to the exported *function name* (plain text), not an R object.
 # At runtime, `run-cell-types-annotation-SingleR.R` calls `celldex::<name>()`. YAML cannot store S4

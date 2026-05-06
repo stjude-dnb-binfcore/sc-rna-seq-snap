@@ -232,7 +232,7 @@ ggsave(file = name, width = 8, height = 6, device = "png")
 # If assay names differ, rename the reference assay to match the query
 if (reference_assay != assay) {
 
-  message("Renaming reference assay '%s' -> '%s' to match query.", reference_assay, assay)
+  message("Renaming reference assay (", reference_assay, ") to match query assay (", assay, ").")
   reference_obj <- RenameAssays(reference_obj, reference_assay, assay)
   DefaultAssay(reference_obj) <- assay   # Ensure defaults are synced after renaming
   
