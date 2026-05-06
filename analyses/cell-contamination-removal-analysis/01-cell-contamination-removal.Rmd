@@ -44,7 +44,6 @@ params:
   min_count: '.'
   mtDNA_pct_default: '.'
   nfeatures_value: '.'
-  genome_name: '.'
   Regress_Cell_Cycle_value: '.'
   assay: '.'
   num_pcs: '.'
@@ -395,6 +394,56 @@ seurat_obj$seurat_clusters <- NULL
 seurat_obj@meta.data <- seurat_obj@meta.data %>% 
   select(-contains(c("UMAPndim", "PC", "snn_res."))) %>% 
   distinct()
+
+##########################################################################################
+# Optional (recommended): Remove genome-specific prefixes for dual-genome references
+
+if (source_genome == "contamination") {
+  
+  # Define dual index genome names
+  dual_genomes_upstream <- c("DualGRCh38", "Dualhg19", "DualGRCm39", "Dualmm10", "Dualmm9")
+  
+  # Select genome_name based on upstream genome type
+  if (yaml$genome_name_upstream %in% dual_genomes_upstream) {
+    
+    cat("Removing dual genome prefix\n")
+    # Remove Dual genome prefix
+    head(rownames(seurat_obj), 10)
+
+    # 1. Extract counts from the Seurat object
+    counts <- GetAssayData(object = seurat_obj, assay  = assay, slot   = "counts")
+    genome <- yaml$genome_name_upstream
+  
+    if (genome == "DualGRCh38") {
+      rownames(counts) <- sub("^GRCh38-", "", rownames(counts))
+      
+      } else if (genome == "Dualhg19") {
+        rownames(counts) <- sub("^hg19-", "", rownames(counts))
+        
+        } else if (genome == "DualGRCm39") {
+          rownames(counts) <- sub("^GRCm39-", "", rownames(counts))
+          
+          } else if (genome == "Dualmm10") {
+            rownames(counts) <- sub("^mm10-", "", rownames(counts))
+            
+            } else if (genome == "Dualmm9") {
+              rownames(counts) <- sub("^mm9-", "", rownames(counts))
+              }
+    
+    # 3. Recreate the Seurat object
+    seurat_obj <- CreateSeuratObject(counts = counts, meta.data = seurat_obj@meta.data)
+    # Visual sanity check
+    head(rownames(seurat_obj), 10)
+    
+    } else {
+      cat("No need to remove dual genome prefix\n")
+      
+    }
+}
+##########################################################################################
+
+
+##############################################################################################
 
 cat("Create and process seurat", "\n")
 seurat_obj <- Process_Seurat(seurat_obj = seurat_obj, nfeatures_value = nfeatures_value, Genome = genome_name,

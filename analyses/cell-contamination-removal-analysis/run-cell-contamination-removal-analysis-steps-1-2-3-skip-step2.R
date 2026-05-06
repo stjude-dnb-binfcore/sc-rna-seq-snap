@@ -36,6 +36,26 @@ future_globals_value <- as.numeric(yaml$future_globals_value_contamination) * 10
 resolution = yaml$resolution_clustering_module
 #integration_method = yaml$integration_method
 
+
+##########################################################################################
+# Define dual index genome names
+dual_genomes_upstream <- c("DualGRCh38", "Dualhg19", "DualGRCm39", "Dualmm10", "Dualmm9")
+
+# Select genome_name based on upstream genome type
+if (yaml$genome_name_upstream %in% dual_genomes_upstream) {
+  genome_name <- yaml$genome_name_contamination
+  source_genome <- "contamination"
+  cat("Using genome name: ", genome_name, "as defined in the contamination module\n")
+  
+} else {
+  genome_name <- yaml$genome_name_upstream
+  source_genome <- "upstream"
+  cat("Using genome name: ", genome_name, "as defined in the upstream module\n")
+}
+
+##########################################################################################
+
+
 # STEP 1 - Remove contamination
 rmarkdown::render('01-cell-contamination-removal.Rmd', clean = TRUE,
                   output_dir = file.path(report_dir),
@@ -54,7 +74,7 @@ rmarkdown::render('01-cell-contamination-removal.Rmd', clean = TRUE,
                                 
                                 # process_seurat
                                 nfeatures_value = yaml$nfeatures_value,
-                                genome_name = yaml$genome_name_upstream,
+                                #genome_name = yaml$genome_name_upstream,
                                 Regress_Cell_Cycle_value = yaml$Regress_Cell_Cycle_value,
                                 assay = yaml$assay_contamination_module,
                                 num_pcs = yaml$num_pcs,
