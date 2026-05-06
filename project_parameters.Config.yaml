@@ -158,8 +158,6 @@ reference_dir_annotation_module: "./" # path to reference dir
 reference_file_name_annotation_module: "<filename>.rds" # File name with the reference object. It needs to be in `rds` format.
 celltype_reference_module: "predicted.cell.signature.ident" # Column name from the reference object to be used to transfer labels
 
-future_globals_value_annotation: 200 # Default. Adjust based on dataset size and available memory. See `future_globals_value_upstream` in the `upstream-analysis` module for more details.
-
 # `rshiny-app`
 annotations_dir_rshiny_app: "cell_types_annotations_all" # Options: to update based on the folder with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
 annotations_filename_rshiny_app: "seurat_obj_cell_types_annotations_all.rds" # Options: to update based on the object with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
