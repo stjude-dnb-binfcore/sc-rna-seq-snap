@@ -269,7 +269,9 @@ if (use_SoupX_filtering == "YES"){
   #seurat_obj <- subset(seurat_obj, cells=colnames(seurat_obj)[which(!(colnames(seurat_obj) %in% colnames(SoupX_seurat_obj) ))], invert=TRUE)
   #SoupX_seurat_obj <- SoupX_seurat_obj[,colnames(seurat_obj)]
   #seurat_obj[["RNA_SoupX"]] <- CreateAssayObject(counts = seurat_obj[["RNA"]])
-  seurat_obj <- RenameAssays(seurat_obj, RNA = "RNA_SoupX")
+  counts <- GetAssayData(object = seurat_obj, assay  = "RNA", slot   = "counts")
+  seurat_obj[["RNA_SoupX"]] <- CreateAssayObject(counts = counts)
+  #seurat_obj <- RenameAssays(seurat_obj, RNA = "RNA_SoupX")
   DefaultAssay(seurat_obj) <- "RNA_SoupX"
 
   cat("Cells_number_after_filter_ambient_RNA per orig.ident", "\n")

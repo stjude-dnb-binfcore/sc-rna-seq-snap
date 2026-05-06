@@ -143,7 +143,6 @@ suppressPackageStartupMessages({
   library(SingleR)
   library(scooter)
   library(knitr)
-
   }) 
 ```
 

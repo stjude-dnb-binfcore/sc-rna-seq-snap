@@ -10,7 +10,7 @@ suppressPackageStartupMessages({
   library(tidyverse)
   library(Seurat)
   library(scooter)
-  })
+})
 
 #################################################################################
 # load config file

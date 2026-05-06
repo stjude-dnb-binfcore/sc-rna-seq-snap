@@ -35,7 +35,6 @@ if (!dir.exists(reference_report_dir)) {
 
 ################################################################################################################
 
-future_globals_value <- as.numeric(yaml$future_globals_value_annotation) * 1024^3
 resolution = yaml$resolution_list_find_markers
 resolution_for_input_data = yaml$resolution_find_markers
 integration_method = yaml$integration_method_clustering_module
@@ -64,6 +63,7 @@ rmarkdown::render('04-cell-types-annotation-reference.Rmd', clean = TRUE,
                                 use_min.diff.med = yaml$use_min.diff.med_annotation_module,
                                 data_file = input_data_file,
                                 assay = yaml$assay_annotation_module,
+                                reference_assay = yaml$reference_assay_annotation_module,
                                 ct_palette_file = yaml$ct_palette_file_reference,
 
                                 reference_dir = yaml$reference_dir_annotation_module,

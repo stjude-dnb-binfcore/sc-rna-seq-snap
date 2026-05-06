@@ -35,7 +35,6 @@ if (!dir.exists(gene_markers_report_dir)) {
 
 ################################################################################################################
 
-future_globals_value <- as.numeric(yaml$future_globals_value_annotation) * 1024^3
 resolution = yaml$resolution_list_find_markers
 resolution_for_input_data = yaml$resolution_find_markers
 integration_method = yaml$integration_method_clustering_module
