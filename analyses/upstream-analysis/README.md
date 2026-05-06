@@ -6,8 +6,6 @@
 
 Parameters according to the project and analysis strategy will need to be specified in the following scripts:
 - `project_parameters.Config.yaml` located at the `root_dir`.
-- `future.globals.maxSize` is hardwired coded in the `run-upstream-analysis.R` by using the parameter: `future_globals_value`. This parameter is intentionally exposed to manage Seurat’s parallelization behavior, which is required for large cohorts and memory-intensive objects—particularly in `02A_run_seurat_qc.Rmd`, `03_run_scDblFinder.Rmd`, and `04_run_filter_object.Rmd`. If needed, users can tune this setting by increasing or decreasing the requested computational resources (memory/cores) to match dataset size and workload characteristics.
-
 
 ### Run module on an interactive session on HPC within the container
 
