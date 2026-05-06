@@ -395,6 +395,7 @@ seurat_obj@meta.data <- seurat_obj@meta.data %>%
   select(-contains(c("UMAPndim", "PC", "snn_res."))) %>% 
   distinct()
 
+head(rownames(seurat_obj), 10)
 ##########################################################################################
 # Optional (recommended): Remove genome-specific prefixes for dual-genome references
 
@@ -407,9 +408,6 @@ if (source_genome == "contamination") {
   if (yaml$genome_name_upstream %in% dual_genomes_upstream) {
     
     cat("Removing dual genome prefix\n")
-    # Remove Dual genome prefix
-    head(rownames(seurat_obj), 10)
-
     # 1. Extract counts from the Seurat object
     counts <- GetAssayData(object = seurat_obj, assay  = assay, slot   = "counts")
     genome <- yaml$genome_name_upstream
@@ -432,8 +430,7 @@ if (source_genome == "contamination") {
     
     # 3. Recreate the Seurat object
     seurat_obj <- CreateSeuratObject(counts = counts, meta.data = seurat_obj@meta.data)
-    # Visual sanity check
-    head(rownames(seurat_obj), 10)
+    head(rownames(seurat_obj), 10)     # Visual sanity check
     
     } else {
       cat("No need to remove dual genome prefix\n")
