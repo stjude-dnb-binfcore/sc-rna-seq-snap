@@ -135,12 +135,6 @@ future_globals_value_contamination: 400 # Default. Adjust based on dataset size 
 #   - Mouse: "GRCm39", "mm10", "mm9"
 genome_name_contamination: "GRCm39"
 
-
-# The user may remove the genome prefix for Dual genome references (especially if they want to use SingleR, merge with other cohorts aligned with different genome references or to simplify gene names for visualization purposes
-# then they can define here which genome reference to use during processing the seurat object after removing the contamination
-# This will be used only if the `genome_name_upstream` variable is using a dual genome, i.e., "DualGRCh38", "Dualhg19", "DualGRCm39", "Dualmm10", "Dualmm9"
-genome_name_contamination: "GRCm39" # Options for the `Genome_Specific_Cell_Cycle_Scoring` function: (1) human: "GRCh38" and "hg19"; (2) mouse: "GRCm39", "mm10", and "mm9".
-
 # `./analyses/cell-types-annotation`
 module_with_input_data: "cluster-cell-calling" # Options: "cluster-cell-calling" or "cell-contamination-removal-analysis"
 input_data_folder_name: "01_cluster_cell_calling" # Options: "01_cluster_cell_calling" or "03_cluster_cell_calling" if the data are coming from the `cell-contamination-removal-analysis` module
