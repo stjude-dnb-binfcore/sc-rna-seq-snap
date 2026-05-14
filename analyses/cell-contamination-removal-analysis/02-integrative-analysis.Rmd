@@ -42,7 +42,6 @@ params:
   num_dim_seurat: './'
   num_dim_seurat_integration: './'
   big_data_value: './'
-  genome_name: './'
   Regress_Cell_Cycle_value: './'
   num_dim_harmony: './'
   n_neighbors_value: './'

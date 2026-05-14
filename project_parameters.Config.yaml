@@ -121,6 +121,20 @@ keep_clusters_contamination_module: [1, 2, 3, 4, 5, 7, 8, 9, 10, 12, 13, 15, 16]
 assay_contamination_module: "RNA" # Options: "RNA" (default) or "RNA_SoupX"
 future_globals_value_contamination: 400 # Default. Adjust based on dataset size and available memory. See `future_globals_value_upstream` in the `upstream-analysis` module for more details.
 
+# Optional (recommended): Remove genome-specific prefixes for dual-genome references
+# e.g., for compatibility with tools such as SingleR, integration with cohorts aligned to different references, or simplified gene naming for visualization.
+#
+# When prefixes are removed after contamination filtering, the user must specify
+# which genome reference to use for downstream processing of the Seurat object.
+#
+# This parameter is only applied when `genome_name_upstream` corresponds to a dual-genome reference:
+# "DualGRCh38", "Dualhg19", "DualGRCm39", "Dualmm10", "Dualmm9"
+#
+# Valid options for `genome_name_contamination` (used in Genome_Specific_Cell_Cycle_Scoring):
+#   - Human: "GRCh38", "hg19"
+#   - Mouse: "GRCm39", "mm10", "mm9"
+genome_name_contamination: "GRCm39"
+
 # `./analyses/cell-types-annotation`
 module_with_input_data: "cluster-cell-calling" # Options: "cluster-cell-calling" or "cell-contamination-removal-analysis"
 input_data_folder_name: "01_cluster_cell_calling" # Options: "01_cluster_cell_calling" or "03_cluster_cell_calling" if the data are coming from the `cell-contamination-removal-analysis` module
