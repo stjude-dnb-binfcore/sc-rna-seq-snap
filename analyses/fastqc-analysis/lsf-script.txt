@@ -1,8 +1,21 @@
 #BSUB -P project
 #BSUB -J fastqc-analysis
 #BSUB -oo job.out -eo job.err
-#BSUB -n 2
-#BSUB -R "rusage[mem=16GB] span[hosts=1]"
+#BSUB -n 6
+#BSUB -R "rusage[mem=2GB] span[hosts=1]"
 #BSUB -cwd "."
 
-singularity exec ../../rstudio_4.4.0_seurat_4.4.0_latest.sif bash run-fastqc-analysis.sh
+########################################
+# Thread control (prevent hidden oversubscription)
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+
+# JVM thread control
+# By default, the JVM decides: number of GC threads ≈ number of detected CPU cores
+# So on a node with (for example): 32 cores → JVM might try to use ~32 GC threads
+export JAVA_TOOL_OPTIONS="-XX:ParallelGCThreads=1 -XX:ConcGCThreads=1"
+########################################
+
+singularity exec --cleanenv --env OPENBLAS_CORETYPE=Haswell ../../rstudio_4.4.0_seurat_4.4.0_latest.sif bash run-fastqc-analysis.sh
