@@ -9,7 +9,7 @@ The `submit-multiple-jobs.sh` script is designed to run the following two steps:
    - Step 2: To run `j2.sh` to summarize alignment results, i.e., `summarize-cellranger-analysis`. The latter script will be on hold and executed once all libraries are aligned and `j1.sh` is complete. This is been taken care of by the `waiter.sh` script.
 
 Parameters according to the project and analysis strategy will need to be specified in the following scripts:
-- `../../project_parameters.Config.yaml`: define the `metadata_dir`, `genome_reference_path`, `cellranger_parameters`, and `genome_name_cellranger`. For a list of genome references maintained and supported by the Bioinformatics Core at DNB, please review the [Genome References wiki page](https://github.com/stjude-dnb-binfcore/sc-rna-seq-snap/wiki/2.-Genome-References). Please submit an [issue](https://github.com/stjude-dnb-binfcore/sc-rna-seq-snap/issues) to request the path to the reference genome of preference. Otherwise, specify the path to the reference genome of your preference. 
+- `../../project_parameters.Config.yaml`: define the `metadata_dir`, `genome_reference_path`, `cellranger_parameters`, `cellranger_version`, and `genome_name_cellranger`. For a list of genome references maintained and supported by the Bioinformatics Core at DNB, please review the [Genome References wiki page](https://github.com/stjude-dnb-binfcore/sc-rna-seq-snap/wiki/2.-Genome-References). Please submit an [issue](https://github.com/stjude-dnb-binfcore/sc-rna-seq-snap/issues) to request the path to the reference genome of preference. Otherwise, specify the path to the reference genome of your preference. 
 
 Moreover, we recommend setting `create_bam_value` to `false` for non-human experiments to reduce memory usage per project. 
 
@@ -50,13 +50,13 @@ To run all of the scripts in this module sequentially on an interactive session 
 bsub < submit-multiple-jobs.sh
 ```
 
-Please note that this will run the analysis module outside of the container while submitting lsf job on HPC. This is currently the only option of running the `cellranger-analysis` module. By default, we are using `python/3.9.9` and `cellranger/8.0.1` as available on St Jude HPC.
+Please note that this module runs outside of the container while submitting LSF jobs on HPC. This is currently the only option for running the `cellranger-analysis` module. Cell Ranger is loaded from the St Jude HPC module named in `cellranger_version` in `project_parameters.Config.yaml` (default: `cellranger/9.0.1`; e.g. `cellranger/8.0.1`). The summarization step in `j2.sh` uses `python/3.9.9` on HPC.
 
 
 ## Folder content
 This folder contains scripts tasked to run and summarize Cell Ranger count for single or multiple libraries for sc-/sn-RNA-Seq Analysis in 10X Genomics data across the project. For more information and updates, please see [Cell Ranger support page](https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-gex-count).
 
-This module uses CellRanger v8.0.1 for the alignment.
+The Cell Ranger version used for alignment is set by `cellranger_version` in `project_parameters.Config.yaml` (see above).
 
 
 ## Folder structure 

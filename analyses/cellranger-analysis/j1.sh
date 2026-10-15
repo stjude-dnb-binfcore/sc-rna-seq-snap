@@ -4,10 +4,6 @@ set -e
 set -o pipefail
 
 ########################################################################
-# Load modules
-#module load python/3.9.9
-module load cellranger/8.0.1
-########################################################################
 
 # Set up running directory
 cd "$(dirname "${BASH_SOURCE[0]}")" 
@@ -63,6 +59,17 @@ if [ ! -f "$SAMPLES_FILE" ]; then
   echo "Error: TSV file not found at $SAMPLES_FILE"
   exit 1
 fi
+
+########################################################################
+# Load modules
+#module load python/3.9.9
+#module load cellranger/8.0.1
+
+cellranger_version=$(cat ${rootdir}/project_parameters.Config.yaml | grep 'cellranger_version:' | awk '{print $2}')
+cellranger_version=${cellranger_version//\"/}  # Removes all double quotes
+echo "$cellranger_version"  # Output: This is a string with quotes.
+
+module load $cellranger_version
 
 ########################################################################
 # STEP 1 ###############################################################
