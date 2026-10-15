@@ -50,7 +50,6 @@ params:
   reference_dir: '.'
   reference_file_name: '.'
   genome_name: '.'
-  resolution: '.'
   celltype_reference: '.'
   root_dir: './'
   PROJECT_NAME: '.'
