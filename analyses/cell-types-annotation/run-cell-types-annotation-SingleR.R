@@ -38,10 +38,6 @@ fine_report_dir <- file.path(module_plots_dir, "02_cell_types_annotation_SingleR
 if (!dir.exists(fine_report_dir)) {
   dir.create(fine_report_dir)}
 
-#gene_markers_report_dir <- file.path(module_plots_dir, "03_cell_types_annotation_gene_markers") 
-#if (!dir.exists(fine_report_dir)) {
-#  dir.create(fine_report_dir)}
-
 ################################################################################################################
 # Celldex reference for SingleR (configured in project_parameters.Config.yaml as
 # `singler_celldex_reference`: the celldex *function name* only, e.g. HumanPrimaryCellAtlasData).
