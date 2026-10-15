@@ -20,10 +20,9 @@ The structure of this folder is as follows:
 ├── img
 ├── palettes
 |   ├── binary_color_palette.tsv
-|   ├── cell_types_palette.tsv
+|   ├── cell_type_color_key.tsv
 |   ├── divergent_color_palette.tsv
 |   ├── gradient_color_palette.tsv
-|   ├── HumanPrimaryCellAtlasData_cell_types_with_colors.tsv
 |   ├── project_palette.tsv
 |   └── qc_color_palette.tsv
 ├── README.md
