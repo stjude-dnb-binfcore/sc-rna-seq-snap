@@ -38,7 +38,6 @@ params:
   use_seurat_integration: './'
   use_harmony_integration: './'
   use_liger_integration: './'
-  integration_method: './'
   num_dim_seurat: './'
   num_dim_seurat_integration: './'
   big_data_value: './'
