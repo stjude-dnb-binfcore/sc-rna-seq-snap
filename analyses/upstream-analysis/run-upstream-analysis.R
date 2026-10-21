@@ -95,7 +95,8 @@ rmarkdown::render('03_run_scDblFinder.Rmd',
                     CONTACT_EMAIL = yaml$CONTACT_EMAIL,
                     PIPELINE = yaml$PIPELINE, 
                     START_DATE = yaml$START_DATE,
-                    COMPLETION_DATE = yaml$COMPLETION_DATE))
+                    COMPLETION_DATE = yaml$COMPLETION_DATE,
+                    dbr_per1k = yaml$dbr_per1k_upstream_module))
 
 ##############################################################################################################
 # (4) Merging filtered data

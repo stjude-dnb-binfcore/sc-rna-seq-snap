@@ -285,7 +285,7 @@ if (use_SoupX_filtering == "YES"){
 Here, `r print_message`.
 
 # Filter doublets out
-Next, we will remove any doublets from all samples as identified by [ScDblFinder](https://bioconductor.org/packages/devel/bioc/vignettes/scDblFinder/inst/doc/scDblFinder.html). This is an optional step, so it will be skipped or not as defined in params.
+Next, we will remove any doublets from all samples as identified by [ScDblFinder](https://bioconductor.org/packages/devel/bioc/vignettes/scDblFinder/inst/doc/scDblFinder.html). Per-cell scDblFinder metadata is always merged into the Seurat object; removing doublets is optional and controlled by `params`.
 
 ```{r filter-doublets, echo=TRUE}
 # Read scDblFinder results
@@ -299,40 +299,32 @@ cells_number_raw <- table(scDblFinder_obj@meta.data$orig.ident) %>%
         cells_number_raw = Freq) %>% 
   dplyr::select(-Var1, -Freq)
 
+#############################################################################
+# Add scDblFinder metadata (always), so doublet calls are retained for exploration
+# even when doublet removal is disabled (e.g. R Shiny app).
+metadata <- as_data_frame_seurat(scDblFinder_obj, metadata = TRUE) 
+seurat_obj@meta.data <- merge_metadata(seurat_obj, metadata) 
+
+# Check if there are duplicated column names
+if (any(duplicated(names(scDblFinder_obj@meta.data)))) {
+  duplicated_columns <- which(duplicated(names(scDblFinder_obj@meta.data)))
+  scDblFinder_obj@meta.data <- scDblFinder_obj@meta.data[, -duplicated_columns]
+  cat("Duplicated columns removed from scDblFinder object.\n")
+  } else {
+    cat("No duplicated columns found in scDblFinder object.\n")
+    }
+
+if (any(duplicated(names(seurat_obj@meta.data)))) {
+  duplicated_columns <- which(duplicated(names(seurat_obj@meta.data)))
+  seurat_obj@meta.data <- seurat_obj@meta.data[, -duplicated_columns]
+  cat("Duplicated columns removed from seurat object.\n")
+  } else {
+    cat("No duplicated columns found in seurat object.\n")
+    }
+#############################################################################
+
 if (use_scDblFinder_filtering == "YES"){
   print_message_doublets <- "we will use scDblFinder to remove doublets"
-  #############################################################################
-  # Add metadata
-  # Check if there are duplicated column names
-  if (any(duplicated(names(scDblFinder_obj@meta.data)))) {
-    # Identify duplicated columns
-    duplicated_columns <- which(duplicated(names(scDblFinder_obj@meta.data)))
-  
-    # Remove columns with duplicated names
-    scDblFinder_obj@meta.data <- scDblFinder_obj@meta.data[, -duplicated_columns]
-    cat("Duplicated columns removed.\n")
-    } else {
-      scDblFinder_obj@meta.data <- scDblFinder_obj@meta.data
-      cat("No duplicated columns found.\n")
-      }
-  
-  # Add metadata   
-  metadata <- as_data_frame_seurat(scDblFinder_obj, metadata = TRUE) 
-  seurat_obj@meta.data <- merge_metadata(seurat_obj, metadata) 
-  
-  # Check if there are duplicated column names
-  if (any(duplicated(names(seurat_obj@meta.data)))) {
-    # Identify duplicated columns
-    duplicated_columns <- which(duplicated(names(seurat_obj@meta.data)))
-  
-    # Remove columns with duplicated names
-    seurat_obj@meta.data <- seurat_obj@meta.data[, -duplicated_columns]
-    cat("Duplicated columns removed.\n")
-    } else {
-      seurat_obj@meta.data <- seurat_obj@meta.data
-      cat("No duplicated columns found.\n")
-    }
-  
   ##########################################################################################################
   # Report Singlets 
   singlet_cells <- colnames(scDblFinder_obj)[which(scDblFinder_obj@meta.data$scDblFinder.class == "singlet")]

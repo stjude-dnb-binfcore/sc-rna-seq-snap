@@ -224,6 +224,8 @@ scDblFinder() has two main modes of operation: cluster-based or not. Both perfor
 
 The input data for scDblFinder can be either i) a count matrix (full or sparse), with genes/features as rows and cells/droplets as columns; or ii) an object of class SingleCellExperiment. In either case, the object should not contain empty drops, but should not otherwise have undergone very stringent filtering (which would bias the estimate of the doublet rate). 
 
+The expected doublet rate per 1000 cells is configurable in `project_parameters.Config.yaml` as `dbr_per1k_upstream_module` (`dbr.per1k` in scDblFinder). Use `0.008` for standard 10x Chromium and `0.004` for high-throughput (HT) 10x kits.
+
 ### Final filter
 
 We merge count matrices from previous QC steps after filtering out low quality cells, ambient RNA (optional as defined in the `params`), and doublets (optional as defined in the `params`). Seurat object and metadata for the library along with UMAP embeddings are saved to be used for downstream analyses.

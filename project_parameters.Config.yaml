@@ -66,6 +66,11 @@ num_neighbors_filter_object: 30 # set one value for `04_run_filter_object.Rmd`
 use_condition_split_filter_object: "YES" # Options: "YES" (default) or "NO", for `04_run_filter_object.Rmd`
 print_pdf_filter_object: "NO" # # Options: "NO" (default ALWAYS), for `04_run_filter_object.Rmd`
 use_SoupX_filtering_filter_object: "NO" # Options: "YES" or "NO" (default) , for `04_run_filter_object.Rmd`.
+# Expected doublet rate per 1000 cells passed to scDblFinder as `dbr.per1k` in `03_run_scDblFinder.Rmd`.
+# Standard 10x Chromium: 0.008 (0.8% per 1k cells; scDblFinder default).
+# High-throughput (HT) 10x kits: 0.004 (0.4% per 1k cells); see scDblFinder documentation.
+dbr_per1k_upstream_module: 0.008
+
 use_scDblFinder_filtering_filter_object: "NO" # Options: "YES" or "NO" (default) , for `04_run_filter_object.Rmd`.
 #PCA_Feature_List_value: transcription.factor.gene.list # set for 04_run_filter_object.Rmd if necessary
 use_SoupX_filtering_summary_report: "NO" # Options: "YES" or "NO" (default) , for `05_run_summary_report.Rmd`.
