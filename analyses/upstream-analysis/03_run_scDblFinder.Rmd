@@ -35,6 +35,7 @@ header-includes:
   - \usepackage{graphicx}
   - \usepackage{float}
 params:
+  dbr_per1k: '.'
   root_dir: './'
   metadata_dir: './'
   metadata_file: '.'
@@ -49,7 +50,6 @@ params:
   PIPELINE: '.'
   START_DATE: '.'
   COMPLETION_DATE: '.'
-  dbr_per1k: '.'
 ---
 ```{r logo-file, echo=FALSE}
 attach(params)
@@ -199,9 +199,11 @@ print(sample_name)
 ```
 
 # Read raw seurat_objs 
+
 We will load the raw seurat object as generated in the `02A_seurat_alignment_qc.Rmd` step of the pipeline. We will run dimensionality reductions and convert to single cell experiments.
 
 # Run scDblFinder 
+
 Next, the `scDblFinder function` is used to identify cells that are doublets based on cluster-based generation of artificial doublets. We will save the cells that need to be filtered based on scDblFinder analysis in a separate table.
 
 ```{r run-recoverDoublets-plot-predictions, fig.width = 15, fig.height = 4, fig.fullwidth = TRUE, echo=TRUE}
@@ -316,6 +318,7 @@ write_tsv(doublets_metrics, paste0(ScDblFinder_results_dir, "/", "doublets_metri
 ```
 
 # Doublets detection per sample
+
 We will summarize the estimated and removed doublets per sample.
 
 ```{r, fig.align = "left", results = "asis", message = FALSE, warning = FALSE, echo = FALSE}
@@ -328,6 +331,7 @@ cat("  \n\\pagebreak  \n")
 ```
 
 # Create seurat object with all samples
+
 We will create seurat objects and merge them into one. This will be used for filtering out the doublets.
 
 ```{r create-object, echo=TRUE}

@@ -82,6 +82,7 @@ rmarkdown::render('03_run_scDblFinder.Rmd',
                   output_file = paste('Report-', 'scDblFinder', '-', Sys.Date(), sep = ''),
                   output_format = 'all',
                   params = list(
+                    dbr_per1k = yaml$dbr_per1k_upstream_module,
                     root_dir = yaml$root_dir,
                     metadata_dir = yaml$metadata_dir,
                     metadata_file = yaml$metadata_file,
@@ -95,8 +96,8 @@ rmarkdown::render('03_run_scDblFinder.Rmd',
                     CONTACT_EMAIL = yaml$CONTACT_EMAIL,
                     PIPELINE = yaml$PIPELINE, 
                     START_DATE = yaml$START_DATE,
-                    COMPLETION_DATE = yaml$COMPLETION_DATE,
-                    dbr_per1k = yaml$dbr_per1k_upstream_module))
+                    COMPLETION_DATE = yaml$COMPLETION_DATE
+                    ))
 
 ##############################################################################################################
 # (4) Merging filtered data
@@ -124,6 +125,8 @@ rmarkdown::render('04_run_filter_object.Rmd',
                     condition_value2 = yaml$condition_value2,
                     condition_value3 = yaml$condition_value3,
                     PCA_Feature_List_value = yaml$PCA_Feature_List_value,
+                    dbr_per1k = yaml$dbr_per1k_upstream_module,
+                    
                     root_dir = yaml$root_dir,
                     metadata_dir = yaml$metadata_dir,
                     metadata_file = yaml$metadata_file,
@@ -150,6 +153,8 @@ rmarkdown::render('05_run_summary_report.Rmd',
                     use_SoupX_filtering = yaml$use_SoupX_filtering_summary_report,
                     use_scDblFinder_filtering = yaml$use_scDblFinder_filtering_summary_report,
                     cellranger_parameters = yaml$cellranger_parameters,
+                    dbr_per1k = yaml$dbr_per1k_upstream_module,
+                    
                     root_dir = yaml$root_dir,
                     metadata_dir = yaml$metadata_dir,
                     metadata_file = yaml$metadata_file,
