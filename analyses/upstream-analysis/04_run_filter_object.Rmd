@@ -302,17 +302,17 @@ cells_number_raw <- table(scDblFinder_obj@meta.data$orig.ident) %>%
 #############################################################################
 # Add scDblFinder metadata (always), so doublet calls are retained for exploration
 # even when doublet removal is disabled (e.g. R Shiny app).
-metadata <- as_data_frame_seurat(scDblFinder_obj, metadata = TRUE) 
-seurat_obj@meta.data <- merge_metadata(seurat_obj, metadata) 
-
-# Check if there are duplicated column names
+# Deduplicate column names first: merged scDblFinder objects can repeat names after merge/cbind.
 if (any(duplicated(names(scDblFinder_obj@meta.data)))) {
   duplicated_columns <- which(duplicated(names(scDblFinder_obj@meta.data)))
-  scDblFinder_obj@meta.data <- scDblFinder_obj@meta.data[, -duplicated_columns]
+  scDblFinder_obj@meta.data <- scDblFinder_obj@meta.data[, -duplicated_columns, drop = FALSE]
   cat("Duplicated columns removed from scDblFinder object.\n")
   } else {
     cat("No duplicated columns found in scDblFinder object.\n")
     }
+
+metadata <- as_data_frame_seurat(scDblFinder_obj, metadata = TRUE) 
+seurat_obj@meta.data <- merge_metadata(seurat_obj, metadata) 
 
 if (any(duplicated(names(seurat_obj@meta.data)))) {
   duplicated_columns <- which(duplicated(names(seurat_obj@meta.data)))

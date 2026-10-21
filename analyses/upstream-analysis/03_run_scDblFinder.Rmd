@@ -346,6 +346,12 @@ cat("Adding metadata to merged_seurat_obj\n")
 sample.metadata <- rbind(project.metadata[i, ], project.metadata[i, ][rep(1, length(merged_seurat_obj$nCount_RNA)-1), ])
 merged_seurat_obj@meta.data <- cbind(merged_seurat_obj@meta.data, sample.metadata)
 
+# Keep first occurrence when cbind introduces duplicate column names
+if (any(duplicated(names(merged_seurat_obj@meta.data)))) {
+  merged_seurat_obj@meta.data <- merged_seurat_obj@meta.data[, !duplicated(names(merged_seurat_obj@meta.data)), drop = FALSE]
+  cat("Duplicated metadata columns removed from merged scDblFinder object.\n")
+}
+
 # Cells_number_before_filter per sample_id
 print(table(merged_seurat_obj@meta.data$orig.ident))
 
