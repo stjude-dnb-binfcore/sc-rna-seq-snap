@@ -99,8 +99,11 @@ The proportion of doublets is proportional to the number of cells captured. It i
 
 Doublets are prevalent in single-cell sequencing data and can lead to artifactual findings. We will use a computational approach to calculate and remove doublets from the library. Here, we use [ScDblFinder](https://bioconductor.org/packages/devel/bioc/vignettes/scDblFinder/inst/doc/scDblFinder.html) method for identifying doublets/multiplets in single-cell data.
 
+The expected doublet rate per 1000 cells is set via `dbr_per1k_upstream_module` in `project_parameters.Config.yaml` (passed to scDblFinder as `dbr.per1k`). Use `0.008` for standard 10x Chromium and `0.004` for high-throughput (HT) 10x kits.
+
 The `seurat_obj_raw.rds` object from step (1) is used for this step.
  -  Summary table with doublet metrics and doublets prediction plot are generated.
+ -  Per-cell scDblFinder columns (`scDblFinder.class`, `scDblFinder.score`, etc.) are merged into the filtered Seurat object in step (4), whether or not doublets are removed.
 
 
 ### (4) Merging filtered data

@@ -39,6 +39,7 @@ params:
   use_SoupX_filtering: "."
   use_scDblFinder_filtering: "."
   cellranger_parameters: "."
+  dbr_per1k: '.'
   root_dir: './'
   metadata_dir: './'
   metadata_file: '.'
@@ -223,6 +224,8 @@ The scDblFinder method combines the strengths of various doublet detection appro
 scDblFinder() has two main modes of operation: cluster-based or not. Both perform quite well (see [Germain et al., 2021](https://f1000research.com/articles/10-979)). In general, it is recommended the cluster-based approach in datasets with a very clear cluster structure, and the random approach in more complex datasets.
 
 The input data for scDblFinder can be either i) a count matrix (full or sparse), with genes/features as rows and cells/droplets as columns; or ii) an object of class SingleCellExperiment. In either case, the object should not contain empty drops, but should not otherwise have undergone very stringent filtering (which would bias the estimate of the doublet rate). 
+
+The expected doublet rate per 1000 cells is configurable in `project_parameters.Config.yaml` as `dbr_per1k_upstream_module` (`dbr.per1k` in scDblFinder). Use `0.008` for standard 10x Chromium and `0.004` for high-throughput (HT) 10x kits.
 
 ### Final filter
 
@@ -424,6 +427,8 @@ if (use_SoupX_filtering == "YES"){
 ## Read scDblFinder plots and results
 
 We will summarize the estimated and removed doublets per sample. Results are shown by sample (as ordered in the `Samples` section). This is an optional step, so it will be skipped or not as defined in `params`. 
+
+The expected doublet rate scales with cell count via `dbr.per1k` (doublets per 1000 cells). For this run, `dbr.per1k = ` `r params$dbr_per1k`. Use `0.008` for standard 10x Chromium libraries and `0.004` for high-throughput (HT) 10x kits ([scDblFinder vignette](https://bioconductor.org/packages/release/bioc/vignettes/scDblFinder/inst/doc/scDblFinder.html)).
 
 ```{r read-scDblFinder, echo = FALSE}
 if (use_scDblFinder_filtering == "YES"){
