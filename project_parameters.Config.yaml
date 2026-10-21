@@ -153,7 +153,9 @@ reference_assay_annotation_module: "RNA"  # Options: "RNA" (default) or "RNA_Sou
 singler_celldex_reference: "HumanPrimaryCellAtlasData"
 
 gene_markers_dir_annotation_module: "./" # path to gene markers dir
-gene_markers_file_name_annotation_module: "<filename>.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`.
+gene_markers_file_name_annotation_module: "<filename>.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_type_color_key.tsv`.
+# Controls which annotation steps `run-cell-types-annotation.sh` runs and how
+# `run-merge-cell-types-annotations-all.R` merges outputs. Set this once here; do not edit the bash script.
 # Options: "all" (for using singler, a list of gene markers and reference dataset), 
 #           "singler" (for using only singler method for both broad and fine annotation), 
 #           "singler&gene_markers" (for using SingleR and a list of gene markers),  
@@ -163,10 +165,10 @@ gene_markers_file_name_annotation_module: "<filename>.tsv" # File name with the 
 #           "reference" (for using a reference dataset)
 method_annotation_module: "singler" 
 
-ct_palette_file_broad: "cell_types_palette.tsv"  # File name with the cell types. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder. 
-ct_palette_file_fine: "cell_types_palette.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
-ct_palette_file_gene_markers: "cell_types_palette.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
-ct_palette_file_reference: "cell_types_palette.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
+ct_palette_file_broad: "cell_type_color_key.tsv"  # File name with the cell types. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_type_color_key.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder. 
+ct_palette_file_fine: "cell_type_color_key.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_type_color_key.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
+ct_palette_file_gene_markers: "cell_type_color_key.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_type_color_key.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
+ct_palette_file_reference: "cell_type_color_key.tsv" # File name with the gene markers. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_type_color_key.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder.
 
 reference_dir_annotation_module: "./" # path to reference dir
 reference_file_name_annotation_module: "<filename>.rds" # File name with the reference object. It needs to be in `rds` format.
@@ -184,7 +186,7 @@ sample:
 
 cell_type_label_numbat: "predicted.cell.signature.ident" # Options: "singler.broad", "singler.fine", and "predicted.cell.signature.ident" as defined in the `./analyses/cell-types-annotation` module
 min_LLR_value_numbat: 50 # Value for filtering CNVs by evidence (default).
-ct_palette_file_numbat: "cell_types_palette.tsv"  # File name with the cell types. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_types_palette.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder. 
+ct_palette_file_numbat: "cell_type_color_key.tsv"  # File name with the cell types. It needs to be in `tsv` format. Please ensure cell type names exist and match the ones in the `.figures/palettes/cell_type_color_key.tsv`. Alternatively, create a tsv file with your own palette and add it to the `.figures/palettes/` folder. 
 palette_variable_numbat: "timepoint_palette.tsv"  # File name with the variable. It needs to be in `tsv` format and in the `.figures/palettes/` folder. 
 variable_numbat: "timepoint" # Variable of interest for investigating clonal evolution. Value to be extracted from column name in `project_metadata.tsv` file.
 
