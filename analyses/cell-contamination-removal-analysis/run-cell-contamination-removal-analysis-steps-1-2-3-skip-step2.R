@@ -33,8 +33,9 @@ report_dir <- file.path(analysis_dir, "plots")
 # Run Rmd scripts 
 ################################################################################################################
 future_globals_value <- as.numeric(yaml$future_globals_value_contamination) * 1024^3
-resolution = yaml$resolution_clustering_module
-#integration_method = yaml$integration_method
+resolution <- yaml$resolution_clustering_module
+# Used by 03 Rmd via rmarkdown::render() caller environment (not passed in params).
+integration_method <- yaml$integration_method_clustering_module
 
 
 ##########################################################################################
@@ -61,8 +62,7 @@ rmarkdown::render('01-cell-contamination-removal.Rmd', clean = TRUE,
                   output_dir = file.path(report_dir),
                   output_file = c(paste('Report-', 'cell-contamination-removal', '-', Sys.Date(), sep = '')),
                   output_format = 'all',
-                  params = list(integration_method = yaml$integration_method_clustering_module,
-                                # this will be the single resolution that fits the data the best
+                  params = list(# this will be the single resolution that fits the data the best
                                 resolution_list = yaml$resolution_list_find_markers, 
                                 # number of clusters to keep
                                 keep_clusters = yaml$keep_clusters_contamination_module, 
@@ -114,8 +114,7 @@ rmarkdown::render('03-cluster-cell-calling.Rmd', clean = TRUE,
                   output_dir = file.path(report_dir),
                   output_file = c(paste('Report-', glue::glue("cluster-cell-calling-{resolution}"), '-', Sys.Date(), sep = '')),
                   output_format = 'all',
-                  params = list(integration_method = yaml$integration_method_clustering_module,
-                                num_dim = yaml$num_dim_clustering_module, 
+                  params = list(num_dim = yaml$num_dim_clustering_module, 
                                 reduction_value = yaml$reduction_value_clustering_module,
                                 resolution_list = yaml$resolution_list_clustering_module, 
                                 resolution_list_default = yaml$resolution_list_default_clustering_module,

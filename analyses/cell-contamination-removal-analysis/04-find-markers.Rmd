@@ -35,7 +35,6 @@ header-includes:
   - \usepackage{graphicx}
   - \usepackage{float}
 params:
-  integration_method: '.'
   resolution_list: '.'
   future_globals_value: '.'
   n_value: '.'
