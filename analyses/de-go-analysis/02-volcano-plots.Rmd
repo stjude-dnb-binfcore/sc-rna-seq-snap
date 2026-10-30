@@ -37,6 +37,7 @@ header-includes:
 params:
   resolution_list: '.'
   n_value: '.'
+  dego_condition_comparison_mode: 'global_interaction'
   condition_value1: '.'
   condition_value2: '.'
   condition_value3: '.'
@@ -224,6 +225,17 @@ markers_file_condition_value1 <- file.path(markers_dir_module, glue::glue("Res_{
 markers_file_condition_value2 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value2.tsv"))
 markers_file_condition_value3 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value3.tsv"))
 
+dego_mode <- tolower(as.character(dego_condition_comparison_mode))
+dego_mode <- gsub("-", "_", dego_mode)
+show_global_interaction <- dego_mode %in% c("global_interaction", "both")
+show_within_celltype <- dego_mode %in% c("within_celltype", "both")
+within_markers_file <- function(suffix) {
+  file.path(
+    markers_dir_module,
+    glue::glue("Res_{resolution_list}_Markers_within_celltype_{suffix}.tsv")
+  )
+}
+
 # Create plots directory
 plots_dir <- file.path(module_plots_dir, "02-volcano-plots") 
 if (!dir.exists(plots_dir)) {
@@ -262,16 +274,16 @@ all.markers_overall <- read.csv(markers_file_overall, sep = "\t", header = TRUE)
 volcano_plot_results <- create_volcano_plot(all.markers = all.markers_overall, n_value = n_value, plots_dir = plots_dir_overall)
 ```
 
-## Per `r condition_value1`
+## Global interaction — per `r condition_value1`
 
-```{r volcano-plot-condition1, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+```{r volcano-plot-condition1, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_global_interaction}
 all.markers_condition_value1 <- read.csv(markers_file_condition_value1, sep = "\t", header = TRUE)
 volcano_plot_results <- create_volcano_plot(all.markers = all.markers_condition_value1, n_value = n_value, plots_dir = plots_dir_condition1)
 ```
 
-## Per `r condition_value2`
+## Global interaction — per `r condition_value2`
 
-```{r volcano-plot-condition2, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+```{r volcano-plot-condition2, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_global_interaction}
 if (!is.null(condition_value2)) {
   
   all.markers_condition_value2 <- read.csv(markers_file_condition_value2, sep = "\t", header = TRUE)
@@ -284,9 +296,9 @@ if (!is.null(condition_value2)) {
 }
 ```
 
-## Per `r condition_value3`
+## Global interaction — per `r condition_value3`
 
-```{r volcano-plot-condition3, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+```{r volcano-plot-condition3, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_global_interaction}
 if (!is.null(condition_value3)) {
     
   all.markers_condition_value3 <- read.csv(markers_file_condition_value3, sep = "\t", header = TRUE)
@@ -297,6 +309,35 @@ if (!is.null(condition_value3)) {
   
   volcano_plot_results <- create_volcano_plot(all.markers = all.markers_condition_value3, n_value = n_value, plots_dir = plots_dir_condition3)
 }
+```
+
+# Within cell type — volcano plots
+
+## Within cell type — per `r condition_value1`
+
+```{r volcano-within-condition1, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_within_celltype}
+plots_dir_within_v1 <- file.path(plots_dir, "05-volcano-plots-within-celltype-condition1")
+if (!dir.exists(plots_dir_within_v1)) dir.create(plots_dir_within_v1)
+all.markers_within_v1 <- read.csv(within_markers_file("condition_value1"), sep = "\t", header = TRUE)
+volcano_plot_results <- create_volcano_plot(all.markers = all.markers_within_v1, n_value = n_value, plots_dir = plots_dir_within_v1)
+```
+
+## Within cell type — per `r condition_value2`
+
+```{r volcano-within-condition2, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_within_celltype && !is.null(condition_value2) && !condition_value2 %in% c("NULL", ".", "")}
+plots_dir_within_v2 <- file.path(plots_dir, "06-volcano-plots-within-celltype-condition2")
+if (!dir.exists(plots_dir_within_v2)) dir.create(plots_dir_within_v2)
+all.markers_within_v2 <- read.csv(within_markers_file("condition_value2"), sep = "\t", header = TRUE)
+volcano_plot_results <- create_volcano_plot(all.markers = all.markers_within_v2, n_value = n_value, plots_dir = plots_dir_within_v2)
+```
+
+## Within cell type — per `r condition_value3`
+
+```{r volcano-within-condition3, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_within_celltype && !is.null(condition_value3) && !condition_value3 %in% c("NULL", ".", "")}
+plots_dir_within_v3 <- file.path(plots_dir, "07-volcano-plots-within-celltype-condition3")
+if (!dir.exists(plots_dir_within_v3)) dir.create(plots_dir_within_v3)
+all.markers_within_v3 <- read.csv(within_markers_file("condition_value3"), sep = "\t", header = TRUE)
+volcano_plot_results <- create_volcano_plot(all.markers = all.markers_within_v3, n_value = n_value, plots_dir = plots_dir_within_v3)
 ```
 
 ```{r echo=FALSE}

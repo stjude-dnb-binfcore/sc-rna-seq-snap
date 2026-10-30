@@ -191,7 +191,17 @@ palette_variable_numbat: "timepoint_palette.tsv"  # File name with the variable.
 variable_numbat: "timepoint" # Variable of interest for investigating clonal evolution. Value to be extracted from column name in `project_metadata.tsv` file.
 
 # `de-go-analysis`
+# dego_condition_comparison_mode:
+#   global_interaction — original module: each cell_type.condition vs all other cells (default)
+#   within_celltype — FindMarkers ident.1 vs ident.2 within each cell type (parallel; min cell filter)
+#   both — run global_interaction and within_celltype (longest run)
+dego_condition_comparison_mode: "global_interaction"
 cell_type_label_go_module: "predicted.cell.signature.ident" # Options: "singler.broad", "singler.fine", and "predicted.cell.signature.ident" as defined in the `./analyses/cell-types-annotation` module
+min_cells_per_group_dego_module: 25 # Minimum cells per cell type in each condition level for within-cell-type DE (both ident.1 and ident.2 must meet this threshold)
+dego_ident1: NULL # Optional: condition level for ident.1 in FindMarkers (e.g. "knock-out"). Required when the condition column has more than two levels.
+dego_ident2: NULL # Optional: reference condition level for ident.2 (e.g. "wt"). If NULL and exactly two levels exist, uses sorted levels (ident.1 = second, ident.2 = first).
+dego_parallel_workers: NULL # NULL = (available cores - 1). Workers for parallel DE across cell types within each condition column.
+dego_parallel_condition_columns: "NO" # "YES" runs condition_value1/2/3 DE in parallel Rscript processes; "NO" runs them sequentially (default).
 OrgDb_value: "org.Mm.eg.db"   # Options for gene annotation: (1) Human: "org.Hs.eg.db"; (2) Mouse: "org.Mm.eg.db"
 # With universe: enrichment is relative to the genes that were actually measurable/eligible (e.g., all genes expressed above a threshold, all genes tested in DE)
 # Without universe: enrichment is relative to all genes in the organism database, which can inflate significance or bias results (common in scRNAseq where many genes are never detected).

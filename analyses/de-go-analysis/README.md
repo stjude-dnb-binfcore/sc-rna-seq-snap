@@ -8,6 +8,14 @@
 Parameters according to the project and analysis strategy will need to be specified in the following scripts:
 - `project_parameters.Config.yaml` located at the `root_dir`.
 
+**Condition comparison mode** (`dego_condition_comparison_mode`):
+
+| Value | Behavior |
+|-------|----------|
+| `global_interaction` | **Default / original module.** Each `cell_type.condition` identity vs all other cells (`FindAllMarkers` on interaction). |
+| `within_celltype` | Per cell type, `FindMarkers` for ident.1 vs ident.2 only; min cell filter; parallel cell types. |
+| `both` | Runs both strategies (longest runtime). |
+
 
 ### Run module on an interactive session on HPC within the container
 
@@ -57,10 +65,14 @@ The structure of this folder is as follows:
 ├── README.md
 ├── results
 |   └── 01-de-analysis
+├── run-de-computation.R
+├── run-de-computation-by-condition.R
 ├── run-de-go-analysis.R
 ├── run-de-go-analysis.sh
 └── util
 |   ├── function-create-volcano-plot.R
+|   ├── function-de-global-interaction.R
+|   ├── function-de-within-celltype-comparison.R
 |___└── function-go-clusterprofiler-markers.R
 ```
 

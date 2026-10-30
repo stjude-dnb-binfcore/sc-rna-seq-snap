@@ -37,6 +37,7 @@ header-includes:
 params:
   OrgDb_value: '.'
   resolution_list: '.'
+  dego_condition_comparison_mode: 'global_interaction'
   condition_value1: '.'
   condition_value2: '.'
   condition_value3: '.'
@@ -171,6 +172,13 @@ markers_file_condition_value1 <- file.path(results_dir, glue::glue("Res_{resolut
 markers_file_condition_value2 <- file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value2.tsv"))
 markers_file_condition_value3 <- file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value3.tsv"))
 
+dego_mode <- tolower(as.character(dego_condition_comparison_mode))
+dego_mode <- gsub("-", "_", dego_mode)
+show_global_interaction <- dego_mode %in% c("global_interaction", "both")
+show_within_celltype <- dego_mode %in% c("within_celltype", "both")
+within_markers_file <- function(suffix) {
+  file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_within_celltype_{suffix}.tsv"))
+}
 
 # Create plots directory
 go_plots_dir <- file.path(module_plots_dir, "03-go-clusterprofiler") 
@@ -253,9 +261,9 @@ if (universe_value == "NO"){
   }
 ```
 
-## Per `r condition_value1`
+## Global interaction — per `r condition_value1`
 
-```{r go-clusterProfiler-condition-value1, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE}
+```{r go-clusterProfiler-condition-value1, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE, eval=show_global_interaction}
 all.markers_condition_value1 <- read.csv(markers_file_condition_value1, sep = "\t", header = TRUE)
 top_n_value_condition_value1 <- all.markers_condition_value1 %>% 
   group_by(cluster) %>%
@@ -283,9 +291,9 @@ if (universe_value == "NO"){
   }
 ```
 
-## Per `r condition_value2`
+## Global interaction — per `r condition_value2`
 
-```{r go-clusterProfiler-condition-value2, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE}
+```{r go-clusterProfiler-condition-value2, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE, eval=show_global_interaction}
 if (!is.null(condition_value2)) {
   
   go_plots_dir_condition_value2 <- file.path(go_plots_dir, "03-go-clusterprofiler-overall-condition2") 
@@ -320,9 +328,9 @@ if (!is.null(condition_value2)) {
 }
 ```
 
-## Per `r condition_value3`
+## Global interaction — per `r condition_value3`
 
-```{r go-clusterProfiler-condition-value3, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE}
+```{r go-clusterProfiler-condition-value3, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE, eval=show_global_interaction}
 if (!is.null(condition_value3)) {
   
   go_plots_dir_condition_value3 <- file.path(go_plots_dir, "04-go-clusterprofiler-overall-condition3") 
@@ -354,6 +362,99 @@ if (!is.null(condition_value3)) {
                                                          universe_value = geneList,
                                                          show_number_pathways = show_number_pathways)
   }
+}
+```
+
+## Within cell type — per `r condition_value1`
+
+```{r go-within-condition-value1, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE, eval=show_within_celltype}
+go_plots_dir_within_v1 <- file.path(go_plots_dir, "05-go-within-celltype-condition1")
+if (!dir.exists(go_plots_dir_within_v1)) dir.create(go_plots_dir_within_v1)
+all.markers_within_v1 <- read.csv(within_markers_file("condition_value1"), sep = "\t", header = TRUE)
+top_n_within_v1 <- all.markers_within_v1 %>%
+  group_by(cluster) %>%
+  dplyr::filter(p_val < 1e-05) %>%
+  dplyr::filter(abs(avg_log2FC) > 1)
+if (universe_value == "NO") {
+  ego_results <- run_clusterwise_GO_enrichment_markers(
+    closest_genes_all = top_n_within_v1,
+    OrgDb_value = OrgDb_value,
+    plots_dir = go_plots_dir_within_v1,
+    universe_value = NULL,
+    show_number_pathways = show_number_pathways
+  )
+} else {
+  geneList <- as.character(all.markers_within_v1$gene)
+  geneList <- geneList[!is.na(geneList) & geneList != ""]
+  ego_results <- run_clusterwise_GO_enrichment_markers(
+    closest_genes_all = top_n_within_v1,
+    OrgDb_value = OrgDb_value,
+    plots_dir = go_plots_dir_within_v1,
+    universe_value = geneList,
+    show_number_pathways = show_number_pathways
+  )
+}
+```
+
+## Within cell type — per `r condition_value2`
+
+```{r go-within-condition-value2, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE, eval=show_within_celltype && !is.null(condition_value2) && !condition_value2 %in% c("NULL", ".", "")}
+go_plots_dir_within_v2 <- file.path(go_plots_dir, "06-go-within-celltype-condition2")
+if (!dir.exists(go_plots_dir_within_v2)) dir.create(go_plots_dir_within_v2)
+all.markers_within_v2 <- read.csv(within_markers_file("condition_value2"), sep = "\t", header = TRUE)
+top_n_within_v2 <- all.markers_within_v2 %>%
+  group_by(cluster) %>%
+  dplyr::filter(p_val < 1e-05) %>%
+  dplyr::filter(abs(avg_log2FC) > 1)
+if (universe_value == "NO") {
+  ego_results <- run_clusterwise_GO_enrichment_markers(
+    closest_genes_all = top_n_within_v2,
+    OrgDb_value = OrgDb_value,
+    plots_dir = go_plots_dir_within_v2,
+    universe_value = NULL,
+    show_number_pathways = show_number_pathways
+  )
+} else {
+  geneList <- as.character(all.markers_within_v2$gene)
+  geneList <- geneList[!is.na(geneList) & geneList != ""]
+  ego_results <- run_clusterwise_GO_enrichment_markers(
+    closest_genes_all = top_n_within_v2,
+    OrgDb_value = OrgDb_value,
+    plots_dir = go_plots_dir_within_v2,
+    universe_value = geneList,
+    show_number_pathways = show_number_pathways
+  )
+}
+```
+
+## Within cell type — per `r condition_value3`
+
+```{r go-within-condition-value3, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE, eval=show_within_celltype && !is.null(condition_value3) && !condition_value3 %in% c("NULL", ".", "")}
+go_plots_dir_within_v3 <- file.path(go_plots_dir, "07-go-within-celltype-condition3")
+if (!dir.exists(go_plots_dir_within_v3)) dir.create(go_plots_dir_within_v3)
+all.markers_within_v3 <- read.csv(within_markers_file("condition_value3"), sep = "\t", header = TRUE)
+top_n_within_v3 <- all.markers_within_v3 %>%
+  group_by(cluster) %>%
+  dplyr::filter(p_val < 1e-05) %>%
+  dplyr::filter(abs(avg_log2FC) > 1)
+if (universe_value == "NO") {
+  ego_results <- run_clusterwise_GO_enrichment_markers(
+    closest_genes_all = top_n_within_v3,
+    OrgDb_value = OrgDb_value,
+    plots_dir = go_plots_dir_within_v3,
+    universe_value = NULL,
+    show_number_pathways = show_number_pathways
+  )
+} else {
+  geneList <- as.character(all.markers_within_v3$gene)
+  geneList <- geneList[!is.na(geneList) & geneList != ""]
+  ego_results <- run_clusterwise_GO_enrichment_markers(
+    closest_genes_all = top_n_within_v3,
+    OrgDb_value = OrgDb_value,
+    plots_dir = go_plots_dir_within_v3,
+    universe_value = geneList,
+    show_number_pathways = show_number_pathways
+  )
 }
 ```
 
