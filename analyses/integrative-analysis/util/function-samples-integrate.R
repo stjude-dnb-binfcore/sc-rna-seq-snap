@@ -112,8 +112,6 @@ seurat_integration <- function(seurat_obj_list, nfeatures_value, num_dim_seurat,
 #' @param seurat_obj
 #' @param variables_to_integrate
 #' @param num_dim
-#' @param Other_Vars_Regress
-#' @param Modules_to_Regress
 #'
 #' @return
 #' @export
@@ -121,8 +119,7 @@ seurat_integration <- function(seurat_obj_list, nfeatures_value, num_dim_seurat,
 #' @examples
 #' 
 #'
-harmony_integration <- function(seurat_obj, variables_to_integrate, num_dim, 
-                                Other_Vars_Regress, Modules_to_Regress){
+harmony_integration <- function(seurat_obj, variables_to_integrate, num_dim){
   
   set.seed(1234) # Make code reproducible
   
