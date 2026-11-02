@@ -17,10 +17,12 @@ run_de_go_computation <- function(config_path = "../../project_parameters.Config
   on.exit(setwd(old_wd), add = TRUE)
   setwd(module_dir)
 
-  if (!file.exists(config_path)) {
-    stop("Configuration file not found: ", config_path)
+  config_util <- file.path(module_dir, "util", "function-de-go-config.R")
+  if (!file.exists(config_util)) {
+    config_util <- "util/function-de-go-config.R"
   }
-  yaml <- read_yaml(config_path)
+  source(config_util)
+  yaml <- read_dego_config_yaml(config_path)
 
   root_dir <- yaml$root_dir
   analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis")

@@ -28,9 +28,16 @@ read_dego_project_yaml <- function(root_dir = ".") {
   if (is.null(cfg_path)) {
     return(NULL)
   }
-  lines <- readLines(cfg_path, encoding = "UTF-8", warn = FALSE)
+  read_dego_config_yaml(cfg_path)
+}
+
+read_dego_config_yaml <- function(config_path) {
+  if (!file.exists(config_path)) {
+    stop("Configuration file not found: ", config_path)
+  }
+  lines <- readLines(config_path, encoding = "UTF-8", warn = FALSE)
   if (length(lines) == 0L) {
-    return(NULL)
+    stop("Configuration file is empty: ", config_path)
   }
   yaml::read_yaml(text = paste(lines, collapse = "\n"))
 }

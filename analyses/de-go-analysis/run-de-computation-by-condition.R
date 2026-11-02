@@ -28,10 +28,12 @@ suffix_to_col <- function(yaml, suffix) {
   )
 }
 
-if (!file.exists(config_path)) {
-  stop("Configuration file not found: ", config_path)
+config_util <- file.path(getwd(), "util", "function-de-go-config.R")
+if (!file.exists(config_util)) {
+  config_util <- "util/function-de-go-config.R"
 }
-yaml <- read_yaml(config_path)
+source(config_util)
+yaml <- read_dego_config_yaml(config_path)
 source(file.path(
   yaml$root_dir, "analyses", "de-go-analysis", "util", "function-de-global-interaction.R"
 ))
