@@ -9,6 +9,7 @@ run_global_interaction_de_for_column <- function(seurat_obj,
                                                  results_dir,
                                                  resolution_list,
                                                  assay,
+                                                 min_cells_per_group = 25,
                                                  logfc.threshold = 0.25,
                                                  min.pct = 0.1,
                                                  test.use = "wilcox",
@@ -30,12 +31,15 @@ run_global_interaction_de_for_column <- function(seurat_obj,
     min.pct = min.pct,
     return.thresh = return.thresh
   )
-  out_path <- file.path(
-    results_dir,
-    paste0("Res_", resolution_list, "_Markers_all_", output_suffix, ".tsv")
+  res <- finalize_global_interaction_markers(
+    markers = all.markers,
+    idents_counts = table(Idents(seurat_obj)),
+    min_cells_per_group = min_cells_per_group,
+    results_dir = results_dir,
+    resolution_list = resolution_list,
+    output_suffix = output_suffix
   )
-  write.table(all.markers, file = out_path, sep = "\t", quote = FALSE, row.names = FALSE)
-  invisible(out_path)
+  invisible(res$path)
 }
 
 normalize_dego_comparison_mode <- function(mode) {

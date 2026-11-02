@@ -126,6 +126,7 @@ rmarkdown::render(
       n_value = yaml$n_value_find_markers,
       resolution_list = yaml$resolution_list_find_markers,
       dego_condition_comparison_mode = dego_mode,
+      min_cells_per_group = yaml$min_cells_per_group_dego_module,
       condition_value1 = yaml$condition_value1,
       condition_value2 = yaml$condition_value2,
       condition_value3 = yaml$condition_value3
@@ -147,6 +148,7 @@ rmarkdown::render(
       OrgDb_value = yaml$OrgDb_value,
       resolution_list = yaml$resolution_list_find_markers,
       dego_condition_comparison_mode = dego_mode,
+      min_cells_per_group = yaml$min_cells_per_group_dego_module,
       condition_value1 = yaml$condition_value1,
       condition_value2 = yaml$condition_value2,
       condition_value3 = yaml$condition_value3,

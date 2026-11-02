@@ -80,12 +80,12 @@ run_de_go_computation <- function(config_path = "../../project_parameters.Config
     min.pct = 0.1,
     return.thresh = 0.01
   )
-  write.table(
-    all.markers,
-    file = file.path(results_dir, paste0("Res_", resolution_list, "_Markers_all.tsv")),
-    sep = "\t",
-    quote = FALSE,
-    row.names = FALSE
+  finalize_overall_celltype_markers(
+    markers = all.markers,
+    idents_counts = table(Idents(seurat_obj)),
+    min_cells_per_group = min_cells,
+    results_dir = results_dir,
+    resolution_list = resolution_list
   )
 
   condition_jobs <- list(
@@ -161,7 +161,8 @@ run_de_go_computation <- function(config_path = "../../project_parameters.Config
         output_suffix = job$suffix,
         results_dir = results_dir,
         resolution_list = resolution_list,
-        assay = assay
+        assay = assay,
+        min_cells_per_group = min_cells
       )
     }
   }

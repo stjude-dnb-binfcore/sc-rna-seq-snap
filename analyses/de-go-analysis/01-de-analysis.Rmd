@@ -182,6 +182,7 @@ if (is_dego_param_placeholder(dego_condition_comparison_mode)) {
     dego_condition_comparison_mode <- yaml_proj$dego_condition_comparison_mode
   }
 }
+min_cells_per_group <- resolve_dego_min_cells_param(min_cells_per_group, root_dir)
 
 dego_mode <- tolower(as.character(dego_condition_comparison_mode))
 dego_mode <- gsub("-", "_", dego_mode)
@@ -239,6 +240,18 @@ First, we will use the seurat object as generated from the pipeline in the `cell
 
 Comparison mode for this project: **`r dego_mode`** (`dego_condition_comparison_mode` in `project_parameters.Config.yaml`).
 
+# Minimum cell count filter (`min_cells_per_group_dego_module`)
+
+All differential expression, volcano, and GO steps in this module use the same threshold: **`r min_cells_per_group`** cells (`min_cells_per_group_dego_module` in `project_parameters.Config.yaml`).
+
+| Step | Rule |
+|------|------|
+| **Overall** (`r cell_type_label_go`) | Identities with fewer than **`r min_cells_per_group`** cells are removed from marker tables and downstream plots. |
+| **Global interaction** | Each `cell_type.condition` identity must have ≥ **`r min_cells_per_group`** cells. |
+| **Within cell type** | Each cell type must have ≥ **`r min_cells_per_group`** cells in **both** condition arms (`ident.1` and `ident.2`). |
+
+Excluded identities are saved under `./results/results_`r dego_mode`/01-de-analysis/` as `Res_*_Low_cell_*.tsv` (overall and global interaction) and `Res_*_Skipped_celltypes_*.tsv` (within cell type).
+
 ```{r read-object, echo=TRUE, eval=run_global_in_notebook}
 seurat_obj <- readRDS(data_file)
 assert_seurat_metadata_column(seurat_obj, cell_type_label_go, "cell type labels")
@@ -247,7 +260,15 @@ DefaultAssay(seurat_obj) <- assay
 
 ```{r read-precomputed-overall, echo=TRUE, eval=!run_global_in_notebook}
 markers_file_overall <- file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all.tsv"))
-all.markers <- read.delim(markers_file_overall, stringsAsFactors = FALSE)
+all.markers <- read_dego_markers_filtered(markers_file_overall, min_cells_per_group)
+```
+
+```{r read-precomputed-overall-excluded, echo=TRUE, eval=!run_global_in_notebook, results='asis'}
+excl_overall_pre <- read_low_cell_exclusion_table(results_dir, resolution_list, "overall")
+if (!is.null(excl_overall_pre) && nrow(excl_overall_pre) > 0) {
+  cat("\n\n### Cell types excluded (overall DE; below min cell count)\n\n")
+  print(kable(excl_overall_pre))
+}
 ```
 
 # Differential Expression (DE) Per Cell Type
@@ -259,8 +280,25 @@ We save all the tables with Differential Expression (DE) per `r cell_type_label_
 ```{r find-markers-cell-type, echo=TRUE, eval=run_global_in_notebook}
 Idents(seurat_obj) <- seurat_obj@meta.data[[cell_type_label_go]]
 table(Idents(seurat_obj))
-all.markers <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
-write.table(all.markers, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+all.markers_raw <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
+overall_res <- finalize_overall_celltype_markers(
+  markers = all.markers_raw,
+  idents_counts = table(Idents(seurat_obj)),
+  min_cells_per_group = min_cells_per_group,
+  results_dir = results_dir,
+  resolution_list = resolution_list
+)
+all.markers <- overall_res$markers
+```
+
+```{r overall-low-cell-excluded, echo=TRUE, results='asis'}
+excl_overall <- read_low_cell_exclusion_table(results_dir, resolution_list, "overall")
+if (!is.null(excl_overall) && nrow(excl_overall) > 0) {
+  cat("\n\n### Cell types excluded (overall DE; below min cell count)\n\n")
+  print(kable(excl_overall))
+} else {
+  cat("\n\n*No overall cell types excluded at min cell threshold ", min_cells_per_group, ".*\n\n", sep = "")
+}
 ```
 
 ```{r find-markers-cell-type-interactive-table, echo=TRUE}
@@ -290,6 +328,8 @@ For example:
 
 This analysis therefore highlights genes that are specific to a given cell-type/condition combination relative to the global cellular background, rather than performing a direct condition-to-condition comparison within the same cell type.
 
+Composite identities with fewer than **`r min_cells_per_group`** cells are excluded from comparison tables and downstream plots (see `Res_*_Low_cell_global_interaction_*.tsv`).
+
 **NOTE**: For direct within–cell-type condition contrasts, set `dego_condition_comparison_mode: "within_celltype"` in `project_parameters.Config.yaml` (see section below).
 
 ## Per `r condition_value1`
@@ -301,7 +341,15 @@ Idents(seurat_obj) <- interaction(
   drop = TRUE)
 table(Idents(seurat_obj)) # View cell identities, get summary table
 all.markers_condition_value1 <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
-write.table(all.markers_condition_value1, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all_condition_value1.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+global_res_v1 <- finalize_global_interaction_markers(
+  markers = all.markers_condition_value1,
+  idents_counts = table(Idents(seurat_obj)),
+  min_cells_per_group = min_cells_per_group,
+  results_dir = results_dir,
+  resolution_list = resolution_list,
+  output_suffix = "condition_value1"
+)
+all.markers_condition_value1 <- global_res_v1$markers
 ```
 
 ```{r read-global-condition1, echo=TRUE, eval=!run_global_in_notebook && show_global_interaction}
@@ -309,6 +357,15 @@ all.markers_condition_value1 <- read.delim(
   file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value1.tsv")),
   stringsAsFactors = FALSE
 )
+all.markers_condition_value1 <- filter_markers_min_cells(all.markers_condition_value1, min_cells_per_group)
+```
+
+```{r global-low-cell-excluded-v1, echo=TRUE, eval=show_global_interaction, results='asis'}
+excl_g1 <- read_low_cell_exclusion_table(results_dir, resolution_list, "global_interaction_condition_value1")
+if (!is.null(excl_g1) && nrow(excl_g1) > 0) {
+  cat("\n\n### Global interaction — excluded identities (`r condition_value1`)\n\n")
+  print(kable(excl_g1))
+}
 ```
 
 ```{r find-markers-cell-type-interactive-table-type-condition1, echo=TRUE, eval=show_global_interaction}
@@ -329,7 +386,15 @@ if (!is.null(condition_value2)) {
   drop = TRUE)
   table(Idents(seurat_obj)) # View cell identities, get summary table
   all.markers_condition_value2 <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
-  write.table(all.markers_condition_value2, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all_condition_value2.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  global_res_v2 <- finalize_global_interaction_markers(
+    markers = all.markers_condition_value2,
+    idents_counts = table(Idents(seurat_obj)),
+    min_cells_per_group = min_cells_per_group,
+    results_dir = results_dir,
+    resolution_list = resolution_list,
+    output_suffix = "condition_value2"
+  )
+  all.markers_condition_value2 <- global_res_v2$markers
 }
 ```
 
@@ -339,6 +404,15 @@ if (!is.null(condition_value2) && !condition_value2 %in% c("NULL", ".", "")) {
     file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value2.tsv")),
     stringsAsFactors = FALSE
   )
+  all.markers_condition_value2 <- filter_markers_min_cells(all.markers_condition_value2, min_cells_per_group)
+}
+```
+
+```{r global-low-cell-excluded-v2, echo=TRUE, eval=show_global_interaction && !is.null(condition_value2) && !condition_value2 %in% c("NULL", ".", ""), results='asis'}
+excl_g2 <- read_low_cell_exclusion_table(results_dir, resolution_list, "global_interaction_condition_value2")
+if (!is.null(excl_g2) && nrow(excl_g2) > 0) {
+  cat("\n\n### Global interaction — excluded identities (`r condition_value2`)\n\n")
+  print(kable(excl_g2))
 }
 ```
 
@@ -362,7 +436,15 @@ if (!is.null(condition_value3)) {
   drop = TRUE)
   table(Idents(seurat_obj)) # View cell identities, get summary table
   all.markers_condition_value3 <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
-  write.table(all.markers_condition_value3, file = paste(results_dir, "/", "Res_", resolution_list, "_Markers_all_condition_value3.tsv", sep = ""), sep = "\t", quote = FALSE, row.names = FALSE)
+  global_res_v3 <- finalize_global_interaction_markers(
+    markers = all.markers_condition_value3,
+    idents_counts = table(Idents(seurat_obj)),
+    min_cells_per_group = min_cells_per_group,
+    results_dir = results_dir,
+    resolution_list = resolution_list,
+    output_suffix = "condition_value3"
+  )
+  all.markers_condition_value3 <- global_res_v3$markers
 }
 ```
 
@@ -372,6 +454,15 @@ if (!is.null(condition_value3) && !condition_value3 %in% c("NULL", ".", "")) {
     file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value3.tsv")),
     stringsAsFactors = FALSE
   )
+  all.markers_condition_value3 <- filter_markers_min_cells(all.markers_condition_value3, min_cells_per_group)
+}
+```
+
+```{r global-low-cell-excluded-v3, echo=TRUE, eval=show_global_interaction && !is.null(condition_value3) && !condition_value3 %in% c("NULL", ".", ""), results='asis'}
+excl_g3 <- read_low_cell_exclusion_table(results_dir, resolution_list, "global_interaction_condition_value3")
+if (!is.null(excl_g3) && nrow(excl_g3) > 0) {
+  cat("\n\n### Global interaction — excluded identities (`r condition_value3`)\n\n")
+  print(kable(excl_g3))
 }
 ```
 
@@ -401,7 +492,7 @@ skipped_path <- function(suffix) {
 ## Within cell type — per `r condition_value1`
 
 ```{r within-condition1, echo=TRUE, eval=show_within_celltype}
-all.markers_within_v1 <- read.delim(within_markers_path("condition_value1"), stringsAsFactors = FALSE)
+all.markers_within_v1 <- read_dego_markers_filtered(within_markers_path("condition_value1"), min_cells_per_group)
 skipped_v1 <- if (file.exists(skipped_path("condition_value1"))) {
   read.delim(skipped_path("condition_value1"), stringsAsFactors = FALSE)
 } else {
@@ -422,7 +513,7 @@ if (!is.null(skipped_v1) && nrow(skipped_v1) > 0) {
 ## Within cell type — per `r condition_value2`
 
 ```{r within-condition2, echo=TRUE, eval=show_within_celltype && !is.null(condition_value2) && !condition_value2 %in% c("NULL", ".", "")}
-all.markers_within_v2 <- read.delim(within_markers_path("condition_value2"), stringsAsFactors = FALSE)
+all.markers_within_v2 <- read_dego_markers_filtered(within_markers_path("condition_value2"), min_cells_per_group)
 skipped_v2 <- if (file.exists(skipped_path("condition_value2"))) {
   read.delim(skipped_path("condition_value2"), stringsAsFactors = FALSE)
 } else {
@@ -436,7 +527,7 @@ datatable(all.markers_within_v2,
 ## Within cell type — per `r condition_value3`
 
 ```{r within-condition3, echo=TRUE, eval=show_within_celltype && !is.null(condition_value3) && !condition_value3 %in% c("NULL", ".", "")}
-all.markers_within_v3 <- read.delim(within_markers_path("condition_value3"), stringsAsFactors = FALSE)
+all.markers_within_v3 <- read_dego_markers_filtered(within_markers_path("condition_value3"), min_cells_per_group)
 skipped_v3 <- if (file.exists(skipped_path("condition_value3"))) {
   read.delim(skipped_path("condition_value3"), stringsAsFactors = FALSE)
 } else {
@@ -445,6 +536,19 @@ skipped_v3 <- if (file.exists(skipped_path("condition_value3"))) {
 datatable(all.markers_within_v3,
           options = list(pageLength = 5, autoWidth = TRUE, server = TRUE),
           filter = "top")
+```
+
+# Min cell filter — run summary
+
+```{r min-cells-exclusion-summary, echo=TRUE, results='asis'}
+excl_summary <- summarize_dego_min_cells_exclusions(results_dir, resolution_list)
+cat("\n\nThreshold: ", min_cells_per_group, " cells (min_cells_per_group_dego_module).\n\n", sep = "")
+if (nrow(excl_summary) > 0) {
+  cat("### Excluded identities / cell types (all analyses in this run)\n\n")
+  print(kable(excl_summary))
+} else {
+  cat("*No exclusions recorded at this threshold for saved TSV sidecars.*\n\n")
+}
 ```
 
 ```{r echo=FALSE}

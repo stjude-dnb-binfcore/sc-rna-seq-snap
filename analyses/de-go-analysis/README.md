@@ -23,6 +23,8 @@ Outputs are written under mode-specific subfolders so you can change `dego_condi
 
 `<mode>` is `global_interaction`, `within_celltype`, or `both`.
 
+`min_cells_per_group_dego_module` applies to **all steps and modes** (overall cell types, global interaction, and within-cell-type contrasts) in the three HTML/PDF reports. Exclusions are written to `Res_*_Low_cell_*.tsv` (overall and global interaction) and `Res_*_Skipped_celltypes_*.tsv` (within cell type), and summarized in each report.
+
 
 ### Run module on an interactive session on HPC within the container
 
