@@ -38,6 +38,8 @@ source(file.path(
   yaml$root_dir, "analyses", "de-go-analysis", "util", "function-de-global-interaction.R"
 ))
 mode <- normalize_dego_comparison_mode(yaml$dego_condition_comparison_mode)
+root_dir <- yaml$root_dir
+analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis")
 if (!mode %in% c("within_celltype", "both")) {
   message("Skipping ", output_suffix, ": mode=", mode, " does not use within-cell-type precompute")
   quit(save = "no", status = 0)
@@ -49,8 +51,6 @@ if (is.null(condition_col) || condition_col %in% c("NULL", ".", "")) {
   quit(save = "no", status = 0)
 }
 
-root_dir <- yaml$root_dir
-analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis")
 source(file.path(analysis_dir, "util", "function-de-within-celltype-comparison.R"))
 
 future_globals_value <- as.numeric(yaml$future_globals_value_dego) * 1024^3
@@ -75,7 +75,7 @@ if (!is.null(ident2) && ident2 %in% c("NULL", ".", "")) ident2 <- NULL
 
 data_file <- file.path(root_dir, "analyses", "cell-types-annotation", "results", "cell_types_annotations_all", "seurat_obj_cell_types_annotations_all.rds")
 
-results_dir <- file.path(analysis_dir, "results", "01-de-analysis")
+results_dir <- dego_results_de_dir(analysis_dir, mode)
 if (!dir.exists(results_dir)) {
   dir.create(results_dir, recursive = TRUE)
 }

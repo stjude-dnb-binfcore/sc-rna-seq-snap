@@ -210,18 +210,17 @@ if (run_global_in_notebook) {
 # Directories and paths to file Inputs/Outputs
 
 ```{r set-dir-and-file-names, echo=TRUE}
-analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis") 
-module_results_dir <- file.path(analysis_dir, "results")
-module_plots_dir <- file.path(analysis_dir, "plots")
+analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis")
 data_dir <- file.path(root_dir, "analyses", "cell-types-annotation", "results", "cell_types_annotations_all")
 
 # Input files
 data_file <- file.path(data_dir, "seurat_obj_cell_types_annotations_all.rds")
 
-# Create results_dir
-results_dir <- file.path(module_results_dir, "01-de-analysis")
+results_dir <- dego_results_de_dir(analysis_dir, dego_mode)
+module_plots_dir <- dego_module_plots_dir(analysis_dir, dego_mode)
 if (!dir.exists(results_dir)) {
-  dir.create(results_dir)}
+  dir.create(results_dir, recursive = TRUE)
+}
 ```
 
 ```{r echo=FALSE, warning=FALSE}
@@ -253,7 +252,7 @@ all.markers <- read.delim(markers_file_overall, stringsAsFactors = FALSE)
 
 # Differential Expression (DE) Per Cell Type
 
-We save all the tables with Differential Expression (DE) per `r cell_type_label_go` at: <font size="3"><span style="color:blue">./results/01-de-analysis/<FILENAME>.tsv.</span></font>\
+We save all the tables with Differential Expression (DE) per `r cell_type_label_go` at: <font size="3"><span style="color:blue">./results/results_`r dego_mode`/01-de-analysis/&lt;FILENAME&gt;.tsv.</span></font>\
 
 ## Overall
 

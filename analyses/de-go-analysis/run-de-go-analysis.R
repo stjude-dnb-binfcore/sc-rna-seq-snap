@@ -42,6 +42,10 @@ if (!dir.exists(module_results_dir)) {
 source("util/function-de-global-interaction.R")
 source("util/function-de-go-config.R")
 dego_mode <- normalize_dego_comparison_mode(yaml$dego_condition_comparison_mode)
+dego_plots_dir <- dego_module_plots_dir(analysis_dir, dego_mode)
+if (!dir.exists(dego_plots_dir)) {
+  dir.create(dego_plots_dir, recursive = TRUE)
+}
 
 future_globals_value <- as.numeric(yaml$future_globals_value_dego) * 1024^3
 
@@ -64,8 +68,7 @@ if (run_dego_mode_needs_precompute(dego_mode)) {
   source("run-de-computation.R")
   precomputed <- run_de_go_computation(config_path = configFile, module_dir = ".")
   markers_all <- file.path(
-    module_results_dir,
-    "01-de-analysis",
+    dego_results_de_dir(analysis_dir, dego_mode),
     paste0("Res_", yaml$resolution_list_find_markers, "_Markers_all.tsv")
   )
   if (!isTRUE(precomputed) || !file.exists(markers_all)) {
@@ -83,7 +86,7 @@ if (run_dego_mode_needs_precompute(dego_mode)) {
 rmarkdown::render(
   "01-de-analysis.Rmd",
   clean = TRUE,
-  output_dir = file.path(module_plots_dir),
+  output_dir = dego_plots_dir,
   output_file = paste("Report-", "de-analysis", "-", Sys.Date(), sep = ""),
   output_format = "all",
   params = c(
@@ -115,7 +118,7 @@ rmarkdown::render(
 rmarkdown::render(
   "02-volcano-plots.Rmd",
   clean = TRUE,
-  output_dir = file.path(module_plots_dir),
+  output_dir = dego_plots_dir,
   output_file = paste("Report-", "volcano-plots", "-", Sys.Date(), sep = ""),
   output_format = "all",
   params = c(
@@ -136,7 +139,7 @@ rmarkdown::render(
 rmarkdown::render(
   "03-go-clusterprofiler.Rmd",
   clean = TRUE,
-  output_dir = file.path(module_plots_dir),
+  output_dir = dego_plots_dir,
   output_file = paste("Report-", "go-clusterprofiler", "-", Sys.Date(), sep = ""),
   output_format = "all",
   params = c(

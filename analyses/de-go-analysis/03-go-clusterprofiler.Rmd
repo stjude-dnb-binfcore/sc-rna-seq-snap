@@ -161,19 +161,22 @@ suppressPackageStartupMessages({
 # Directories and paths to file Inputs/Outputs
 
 ```{r set-dir-and-file-names, echo=TRUE}
-analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis") 
-module_results_dir <- file.path(analysis_dir, "results")
-module_plots_dir <- file.path(analysis_dir, "plots")
-results_dir <- file.path(analysis_dir, "results", "01-de-analysis")
+analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis")
+config_util <- file.path(analysis_dir, "util", "function-de-go-config.R")
+if (!file.exists(config_util)) {
+  config_util <- "util/function-de-go-config.R"
+}
+source(config_util)
+
+dego_mode <- normalize_dego_mode_label(dego_condition_comparison_mode)
+results_dir <- dego_results_de_dir(analysis_dir, dego_mode)
+module_plots_dir <- dego_module_plots_dir(analysis_dir, dego_mode)
 
 # Input files
 markers_file_overall <- file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all.tsv"))
 markers_file_condition_value1 <- file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value1.tsv"))
 markers_file_condition_value2 <- file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value2.tsv"))
 markers_file_condition_value3 <- file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value3.tsv"))
-
-dego_mode <- tolower(as.character(dego_condition_comparison_mode))
-dego_mode <- gsub("-", "_", dego_mode)
 show_global_interaction <- dego_mode %in% c("global_interaction", "both")
 show_within_celltype <- dego_mode %in% c("within_celltype", "both")
 within_markers_file <- function(suffix) {

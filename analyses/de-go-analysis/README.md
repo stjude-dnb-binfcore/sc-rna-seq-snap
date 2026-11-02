@@ -16,6 +16,13 @@ Parameters according to the project and analysis strategy will need to be specif
 | `within_celltype` | Per cell type, `FindMarkers` for ident.1 vs ident.2 only; min cell filter; parallel cell types. |
 | `both` | Runs both strategies (longest runtime). |
 
+Outputs are written under mode-specific subfolders so you can change `dego_condition_comparison_mode` in YAML and re-run without overwriting a prior run:
+
+- **Results (TSVs):** `results/results_<mode>/01-de-analysis/` (e.g. `results/results_global_interaction/01-de-analysis/`)
+- **Plots and reports:** `plots/plots_<mode>/` (HTML/PDF reports and volcano/GO subfolders)
+
+`<mode>` is `global_interaction`, `within_celltype`, or `both`.
+
 
 ### Run module on an interactive session on HPC within the container
 
@@ -54,17 +61,18 @@ The structure of this folder is as follows:
 ├── 03-go-clusterprofiler
 ├── lsf_script.txt
 ├── plots
-|   ├── 02-volcano-plots
-|   ├── 03-go-clusterprofiler
-|   ├── Report-de-analysis-<Sys.Date()>.html
-|   ├── Report-de-analysis-<Sys.Date()>.pdf
-|   ├── Report-volcano-plots-<Sys.Date()>.html
-|   ├── Report-volcano-plots-<Sys.Date()>.pdf
-|   ├── Report-go-clusterprofiler-<Sys.Date()>.html
-|   └── Report-go-clusterprofiler-<Sys.Date()>.pdf
+|   ├── plots_global_interaction
+|   |   ├── 02-volcano-plots
+|   |   ├── 03-go-clusterprofiler
+|   |   └── Report-*.{html,pdf}
+|   ├── plots_within_celltype
+|   └── plots_both
 ├── README.md
 ├── results
-|   └── 01-de-analysis
+|   ├── results_global_interaction
+|   |   └── 01-de-analysis
+|   ├── results_within_celltype
+|   └── results_both
 ├── run-de-computation.R
 ├── run-de-computation-by-condition.R
 ├── run-de-go-analysis.R

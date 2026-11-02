@@ -37,7 +37,7 @@ run_de_go_computation <- function(config_path = "../../project_parameters.Config
 
   data_file <- file.path(root_dir, "analyses", "cell-types-annotation", "results", "cell_types_annotations_all", "seurat_obj_cell_types_annotations_all.rds")
   
-  results_dir <- file.path(analysis_dir, "results", "01-de-analysis")
+  results_dir <- dego_results_de_dir(analysis_dir, mode)
   if (!dir.exists(results_dir)) {
     dir.create(results_dir, recursive = TRUE)
   }

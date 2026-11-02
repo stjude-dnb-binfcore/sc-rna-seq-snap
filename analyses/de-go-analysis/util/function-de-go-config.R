@@ -62,6 +62,31 @@ resolve_dego_string_param <- function(param_value,
   )
 }
 
+normalize_dego_mode_label <- function(mode) {
+  mode <- tolower(gsub("-", "_", as.character(mode)))
+  valid <- c("global_interaction", "within_celltype", "both")
+  if (!mode %in% valid) {
+    stop(
+      "dego_condition_comparison_mode must be one of: ",
+      paste(valid, collapse = ", "),
+      "; got: ", mode
+    )
+  }
+  mode
+}
+
+#' Mode-specific results: results/results_<mode>/01-de-analysis/
+dego_results_de_dir <- function(analysis_dir, mode) {
+  mode <- normalize_dego_mode_label(mode)
+  file.path(analysis_dir, "results", paste0("results_", mode), "01-de-analysis")
+}
+
+#' Mode-specific plots root: plots/plots_<mode>/
+dego_module_plots_dir <- function(analysis_dir, mode) {
+  mode <- normalize_dego_mode_label(mode)
+  file.path(analysis_dir, "plots", paste0("plots_", mode))
+}
+
 assert_seurat_metadata_column <- function(seurat_obj, column, context = "metadata") {
   if (!column %in% colnames(seurat_obj@meta.data)) {
     stop(
