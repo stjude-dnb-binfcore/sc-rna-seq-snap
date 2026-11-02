@@ -235,6 +235,81 @@ read_low_cell_exclusion_table <- function(results_dir, resolution_list, label) {
   read.delim(path, stringsAsFactors = FALSE)
 }
 
+dego_within_contrast_path <- function(results_dir, resolution_list, suffix) {
+  file.path(results_dir, paste0("Res_", resolution_list, "_Within_contrast_", suffix, ".tsv"))
+}
+
+read_within_celltype_contrast <- function(results_dir,
+                                          resolution_list,
+                                          suffix,
+                                          markers = NULL) {
+  if (!is.null(markers) && nrow(markers) > 0L && all(c("ident1", "ident2") %in% names(markers))) {
+    return(data.frame(
+      condition_column = if ("condition_column" %in% names(markers)) {
+        as.character(markers$condition_column[[1L]])
+      } else {
+        NA_character_
+      },
+      ident1 = as.character(markers$ident1[[1L]]),
+      ident2 = as.character(markers$ident2[[1L]]),
+      ident1_role = "ident.1 (positive avg_log2FC = higher expression vs ident.2)",
+      ident2_role = "ident.2 (reference)",
+      all_levels_in_column = NA_character_,
+      min_cells_per_group = NA_integer_,
+      stringsAsFactors = FALSE
+    ))
+  }
+  path <- dego_within_contrast_path(results_dir, resolution_list, suffix)
+  if (!file.exists(path)) {
+    return(NULL)
+  }
+  read.delim(path, stringsAsFactors = FALSE)
+}
+
+within_celltype_contrast_cell_counts <- function(markers) {
+  if (is.null(markers) || nrow(markers) == 0L || !"cluster" %in% names(markers)) {
+    return(NULL)
+  }
+  cols <- intersect(c("cluster", "ident1", "ident2", "n_ident1", "n_ident2"), names(markers))
+  if (!all(c("cluster", "n_ident1", "n_ident2") %in% cols)) {
+    return(NULL)
+  }
+  unique(markers[, cols, drop = FALSE])
+}
+
+cat_within_celltype_contrast_report <- function(contrast,
+                                                markers = NULL,
+                                                condition_label = NULL) {
+  if (is.null(contrast) || nrow(contrast) == 0L) {
+    cat("\n\n*Within-cell-type contrast metadata not found. Re-run DE precompute to write `Res_*_Within_contrast_*.tsv`.*\n\n")
+    return(invisible(NULL))
+  }
+  cond_col <- contrast$condition_column[[1L]]
+  if (!is.na(condition_label) && nzchar(as.character(condition_label))) {
+    cat("\n\n**Condition metadata column:** `", condition_label, "` (`", cond_col, "`)\n\n", sep = "")
+  } else {
+    cat("\n\n**Condition metadata column:** `", cond_col, "`\n\n", sep = "")
+  }
+  cat(
+    "**FindMarkers contrast (same for every cell type in this section):**  \n",
+    "- **ident.1 = ", contrast$ident1[[1L]], "** — genes with positive `avg_log2FC` are higher in this group.  \n",
+    "- **ident.2 = ", contrast$ident2[[1L]], "** — reference group.  \n\n",
+    sep = ""
+  )
+  if ("all_levels_in_column" %in% names(contrast) &&
+      !is.na(contrast$all_levels_in_column[[1L]]) &&
+      nzchar(as.character(contrast$all_levels_in_column[[1L]]))) {
+    cat("All levels in column: ", contrast$all_levels_in_column[[1L]], ".\n\n", sep = "")
+  }
+  counts_tbl <- within_celltype_contrast_cell_counts(markers)
+  if (!is.null(counts_tbl) && nrow(counts_tbl) > 0L) {
+    cat("**Cells per cell type used in the contrast:**\n\n")
+    print(knitr::kable(counts_tbl))
+    cat("\n")
+  }
+  invisible(NULL)
+}
+
 summarize_dego_min_cells_exclusions <- function(results_dir, resolution_list) {
   low_cell_pat <- paste0("^Res_", resolution_list, "_Low_cell_.*\\.tsv$")
   skipped_pat <- paste0("^Res_", resolution_list, "_Skipped_celltypes_.*\\.tsv$")

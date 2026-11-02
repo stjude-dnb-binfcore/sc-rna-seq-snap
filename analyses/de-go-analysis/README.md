@@ -13,7 +13,7 @@ Parameters according to the project and analysis strategy will need to be specif
 | Value | Behavior |
 |-------|----------|
 | `global_interaction` | **Default / original module.** Each `cell_type.condition` identity vs all other cells (`FindAllMarkers` on interaction). |
-| `within_celltype` | Per cell type, `FindMarkers` for ident.1 vs ident.2 only; min cell filter; parallel cell types. |
+| `within_celltype` | Per cell type, `FindMarkers` for ident.1 vs ident.2 only; min cell filter; parallel cell types. Contrast is recorded in `Res_*_Within_contrast_*.tsv` and repeated in HTML/PDF reports and volcano subtitles. |
 | `both` | Runs both strategies (longest runtime). |
 
 Outputs are written under mode-specific subfolders so you can change `dego_condition_comparison_mode` in YAML and re-run without overwriting a prior run:

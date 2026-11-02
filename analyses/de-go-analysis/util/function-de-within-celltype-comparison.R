@@ -228,6 +228,27 @@ run_within_celltype_de_for_column <- function(seurat_obj,
     " vs ident.2=", idents$ident2
   )
 
+  contrast_path <- file.path(
+    results_dir,
+    paste0("Res_", resolution_list, "_Within_contrast_", output_suffix, ".tsv")
+  )
+  write.table(
+    data.frame(
+      condition_column = condition_col,
+      ident1 = idents$ident1,
+      ident2 = idents$ident2,
+      ident1_role = "ident.1 (positive avg_log2FC = higher expression vs ident.2)",
+      ident2_role = "ident.2 (reference)",
+      all_levels_in_column = paste(idents$levels, collapse = ", "),
+      min_cells_per_group = min_cells_per_group,
+      stringsAsFactors = FALSE
+    ),
+    file = contrast_path,
+    sep = "\t",
+    quote = FALSE,
+    row.names = FALSE
+  )
+
   res <- run_within_celltype_de(
     seurat_obj = seurat_obj,
     cell_type_col = cell_type_col,
