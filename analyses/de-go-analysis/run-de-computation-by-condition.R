@@ -9,6 +9,8 @@ suppressPackageStartupMessages({
   library(future)
 })
 
+#################################################################################
+# Set up directories and paths to root_dir and analysis_dir
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 1L) {
   stop("Usage: Rscript run-de-computation-by-condition.R <condition_value1|condition_value2|condition_value3> [config_path]")
@@ -69,14 +71,8 @@ ident2 <- yaml$dego_ident2
 if (!is.null(ident1) && ident1 %in% c("NULL", ".", "")) ident1 <- NULL
 if (!is.null(ident2) && ident2 %in% c("NULL", ".", "")) ident2 <- NULL
 
-data_file <- file.path(
-  root_dir,
-  "analyses",
-  "cell-types-annotation",
-  "results",
-  "cell_types_annotations_all",
-  "seurat_obj_cell_types_annotations_all.rds"
-)
+data_file <- file.path(root_dir, "analyses", "cell-types-annotation", "results", "cell_types_annotations_all", "seurat_obj_cell_types_annotations_all.rds")
+
 results_dir <- file.path(analysis_dir, "results", "01-de-analysis")
 if (!dir.exists(results_dir)) {
   dir.create(results_dir, recursive = TRUE)
@@ -99,3 +95,4 @@ run_within_celltype_de_for_column(
   min_cells_per_group = min_cells,
   parallel_workers = parallel_workers
 )
+################################################################################################################

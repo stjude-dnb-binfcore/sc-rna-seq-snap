@@ -9,6 +9,8 @@ suppressPackageStartupMessages({
   library(future)
 })
 
+#################################################################################
+# load config file
 run_de_go_computation <- function(config_path = "../../project_parameters.Config.yaml",
                                   module_dir = ".") {
   old_wd <- getwd()
@@ -31,14 +33,8 @@ run_de_go_computation <- function(config_path = "../../project_parameters.Config
     return(invisible(FALSE))
   }
 
-  data_file <- file.path(
-    root_dir,
-    "analyses",
-    "cell-types-annotation",
-    "results",
-    "cell_types_annotations_all",
-    "seurat_obj_cell_types_annotations_all.rds"
-  )
+  data_file <- file.path(root_dir, "analyses", "cell-types-annotation", "results", "cell_types_annotations_all", "seurat_obj_cell_types_annotations_all.rds")
+  
   results_dir <- file.path(analysis_dir, "results", "01-de-analysis")
   if (!dir.exists(results_dir)) {
     dir.create(results_dir, recursive = TRUE)

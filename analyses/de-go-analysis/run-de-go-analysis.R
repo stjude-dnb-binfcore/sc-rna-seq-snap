@@ -6,6 +6,8 @@ suppressPackageStartupMessages({
   library(tidyverse)
 })
 
+#################################################################################
+# load config file
 configFile <- paste0("../../project_parameters.Config.yaml")
 if (!file.exists(configFile)) {
   cat("\n Error: configuration file not found:", configFile)
@@ -22,6 +24,8 @@ if (is.null(yaml$cell_type_label_go_module) || !nzchar(as.character(yaml$cell_ty
   )
 }
 
+#################################################################################
+# Set up directories and paths to root_dir and analysis_dir
 root_dir <- yaml$root_dir
 analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis")
 
@@ -61,6 +65,8 @@ if (run_dego_mode_needs_precompute(dego_mode)) {
   run_de_go_computation(config_path = configFile, module_dir = ".")
 }
 
+################################################################################################################
+# step 1
 rmarkdown::render(
   "01-de-analysis.Rmd",
   clean = TRUE,
@@ -91,6 +97,8 @@ rmarkdown::render(
   )
 )
 
+################################################################################################################
+# step 2
 rmarkdown::render(
   "02-volcano-plots.Rmd",
   clean = TRUE,
@@ -110,6 +118,8 @@ rmarkdown::render(
   )
 )
 
+################################################################################################################
+# step 3
 rmarkdown::render(
   "03-go-clusterprofiler.Rmd",
   clean = TRUE,
@@ -130,3 +140,4 @@ rmarkdown::render(
     common_report_params
   )
 )
+################################################################################################################
