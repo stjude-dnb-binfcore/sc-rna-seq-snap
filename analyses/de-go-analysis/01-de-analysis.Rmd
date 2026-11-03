@@ -184,28 +184,11 @@ if (is_dego_param_placeholder(dego_condition_comparison_mode)) {
 }
 min_cells_per_group <- resolve_dego_min_cells_param(min_cells_per_group, root_dir)
 
-dego_mode <- tolower(as.character(dego_condition_comparison_mode))
-dego_mode <- gsub("-", "_", dego_mode)
-run_global_in_notebook <- identical(dego_mode, "global_interaction")
-show_global_interaction <- dego_mode %in% c("global_interaction", "both")
-show_within_celltype <- dego_mode %in% c("within_celltype", "both")
-
-if (run_global_in_notebook) {
-  fgv <- suppressWarnings(as.numeric(future_globals_value))
-  if (length(fgv) != 1L || !is.finite(fgv) || fgv <= 0) {
-    fgv_gib <- suppressWarnings(as.numeric(future_globals_value_dego_gib))
-    if (length(fgv_gib) != 1L || !is.finite(fgv_gib) || fgv_gib <= 0) {
-      fgv_gib <- 200
-    }
-    fgv <- fgv_gib * 1024^3
-  }
-  options(future.globals.maxSize = fgv, future.rng.onMisuse = "ignore")
-  n_workers <- as.integer(parallelly::availableCores()) - 1L
-  if (!is.finite(n_workers) || n_workers < 1L) {
-    n_workers <- 1L
-  }
-  plan(multisession, workers = n_workers)
-}
+analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis")
+source(file.path(analysis_dir, "util", "function-de-global-interaction.R"))
+dego_mode <- normalize_dego_comparison_mode(dego_condition_comparison_mode)
+show_global_interaction <- run_dego_mode_runs_global_interaction_de(dego_mode)
+show_within_celltype <- run_dego_mode_runs_within_celltype_de(dego_mode)
 ```
 
 # Directories and paths to file Inputs/Outputs
@@ -234,11 +217,19 @@ a4width <- 8.3
 a4height <- 11.7
 ```
 
-# Read seurat object
+# How this report relates to DE computation
 
-First, we will use the seurat object as generated from the pipeline in the `cell-types-annotation` module.
+All modes use the same workflow: **`run-de-computation.R`** writes TSVs under `results/results_`r dego_mode`/01-de-analysis/`; **this report (script 1) only reads those files** and does not re-run `FindAllMarkers` / `FindMarkers`.
 
 Comparison mode for this project: **`r dego_mode`** (`dego_condition_comparison_mode` in `project_parameters.Config.yaml`).
+
+| Report section | DE question | Included when mode is |
+|----------------|-------------|------------------------|
+| **Overall** | Which genes define each **`r cell_type_label_go`** vs all other cells? | Always |
+| **Global interaction** | For each **`cell_type × condition`** identity, which genes are specific to that group vs **everyone else**? | `global_interaction`, `both` |
+| **Within cell type** | Within one cell type, **`ident.1` vs `ident.2`** on a condition column (direct contrast)? | `within_celltype`, `both` |
+
+Seurat input: `cell-types-annotation` → `seurat_obj_cell_types_annotations_all.rds` (used in precompute, not loaded again here unless you knit this Rmd alone without running the module).
 
 # Minimum cell count filter (`min_cells_per_group_dego_module`)
 
@@ -252,18 +243,12 @@ All differential expression, volcano, and GO steps in this module use the same t
 
 Excluded identities are saved under `./results/results_`r dego_mode`/01-de-analysis/` as `Res_*_Low_cell_*.tsv` (overall and global interaction) and `Res_*_Skipped_celltypes_*.tsv` (within cell type).
 
-```{r read-object, echo=TRUE, eval=run_global_in_notebook}
-seurat_obj <- readRDS(data_file)
-assert_seurat_metadata_column(seurat_obj, cell_type_label_go, "cell type labels")
-DefaultAssay(seurat_obj) <- assay
-```
-
-```{r read-precomputed-overall, echo=TRUE, eval=!run_global_in_notebook}
+```{r read-precomputed-overall, echo=TRUE}
 markers_file_overall <- file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all.tsv"))
 all.markers <- read_dego_markers_filtered(markers_file_overall, min_cells_per_group)
 ```
 
-```{r read-precomputed-overall-excluded, echo=TRUE, eval=!run_global_in_notebook, results='asis'}
+```{r read-precomputed-overall-excluded, echo=TRUE, results='asis'}
 excl_overall_pre <- read_low_cell_exclusion_table(results_dir, resolution_list, "overall")
 if (!is.null(excl_overall_pre) && nrow(excl_overall_pre) > 0) {
   cat("\n\n### Cell types excluded (overall DE; below min cell count)\n\n")
@@ -276,20 +261,6 @@ if (!is.null(excl_overall_pre) && nrow(excl_overall_pre) > 0) {
 We save all the tables with Differential Expression (DE) per `r cell_type_label_go` at: <font size="3"><span style="color:blue">./results/results_`r dego_mode`/01-de-analysis/&lt;FILENAME&gt;.tsv.</span></font>\
 
 ## Overall
-
-```{r find-markers-cell-type, echo=TRUE, eval=run_global_in_notebook}
-Idents(seurat_obj) <- seurat_obj@meta.data[[cell_type_label_go]]
-table(Idents(seurat_obj))
-all.markers_raw <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
-overall_res <- finalize_overall_celltype_markers(
-  markers = all.markers_raw,
-  idents_counts = table(Idents(seurat_obj)),
-  min_cells_per_group = min_cells_per_group,
-  results_dir = results_dir,
-  resolution_list = resolution_list
-)
-all.markers <- overall_res$markers
-```
 
 ```{r overall-low-cell-excluded, echo=TRUE, results='asis'}
 excl_overall <- read_low_cell_exclusion_table(results_dir, resolution_list, "overall")
@@ -310,6 +281,14 @@ datatable(all.markers,
 ```
 
 # Differential Expression (DE) Per Cell Type and Condition (global interaction)
+
+```{r global-section-banner, echo=FALSE, results='asis', eval=!show_global_interaction}
+cat("\n\n*(This section is omitted for `dego_condition_comparison_mode: \"", dego_mode, "\"` — enable `global_interaction` or `both` to include it.)*\n\n")
+```
+
+```{r global-section-start, echo=FALSE, results='asis', eval=show_global_interaction}
+cat("\n\n")
+```
 
 Here, we define cell identities as the interaction between:
    (1) the cell type label (cell_type_label_go), and
@@ -334,30 +313,11 @@ Composite identities with fewer than **`r min_cells_per_group`** cells are exclu
 
 ## Per `r condition_value1`
 
-```{r find-markers-cell-type-condition1, echo=TRUE, eval=run_global_in_notebook && show_global_interaction}
-Idents(seurat_obj) <- interaction(
-  seurat_obj@meta.data[[cell_type_label_go]],
-  seurat_obj@meta.data[[condition_value1]],
-  drop = TRUE)
-table(Idents(seurat_obj)) # View cell identities, get summary table
-all.markers_condition_value1 <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
-global_res_v1 <- finalize_global_interaction_markers(
-  markers = all.markers_condition_value1,
-  idents_counts = table(Idents(seurat_obj)),
-  min_cells_per_group = min_cells_per_group,
-  results_dir = results_dir,
-  resolution_list = resolution_list,
-  output_suffix = "condition_value1"
-)
-all.markers_condition_value1 <- global_res_v1$markers
-```
-
-```{r read-global-condition1, echo=TRUE, eval=!run_global_in_notebook && show_global_interaction}
-all.markers_condition_value1 <- read.delim(
+```{r read-global-condition1, echo=TRUE, eval=show_global_interaction}
+all.markers_condition_value1 <- read_dego_markers_filtered(
   file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value1.tsv")),
-  stringsAsFactors = FALSE
+  min_cells_per_group
 )
-all.markers_condition_value1 <- filter_markers_min_cells(all.markers_condition_value1, min_cells_per_group)
 ```
 
 ```{r global-low-cell-excluded-v1, echo=TRUE, eval=show_global_interaction, results='asis'}
@@ -378,33 +338,12 @@ datatable(all.markers_condition_value1,
 
 ## Per `r condition_value2`
 
-```{r find-markers-cell-type-condition2, echo=TRUE, eval=run_global_in_notebook && show_global_interaction}
-if (!is.null(condition_value2)) {
-  Idents(seurat_obj) <- interaction(
-  seurat_obj@meta.data[[cell_type_label_go]],
-  seurat_obj@meta.data[[condition_value2]],
-  drop = TRUE)
-  table(Idents(seurat_obj)) # View cell identities, get summary table
-  all.markers_condition_value2 <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
-  global_res_v2 <- finalize_global_interaction_markers(
-    markers = all.markers_condition_value2,
-    idents_counts = table(Idents(seurat_obj)),
-    min_cells_per_group = min_cells_per_group,
-    results_dir = results_dir,
-    resolution_list = resolution_list,
-    output_suffix = "condition_value2"
-  )
-  all.markers_condition_value2 <- global_res_v2$markers
-}
-```
-
-```{r read-global-condition2, echo=TRUE, eval=!run_global_in_notebook && show_global_interaction}
+```{r read-global-condition2, echo=TRUE, eval=show_global_interaction}
 if (!is.null(condition_value2) && !condition_value2 %in% c("NULL", ".", "")) {
-  all.markers_condition_value2 <- read.delim(
+  all.markers_condition_value2 <- read_dego_markers_filtered(
     file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value2.tsv")),
-    stringsAsFactors = FALSE
+    min_cells_per_group
   )
-  all.markers_condition_value2 <- filter_markers_min_cells(all.markers_condition_value2, min_cells_per_group)
 }
 ```
 
@@ -428,33 +367,12 @@ if (!is.null(condition_value2) && exists("all.markers_condition_value2")) {
 
 ## Per `r condition_value3`
 
-```{r find-markers-cell-type-condition3, echo=TRUE, eval=run_global_in_notebook && show_global_interaction}
-if (!is.null(condition_value3)) {
-  Idents(seurat_obj) <- interaction(
-  seurat_obj@meta.data[[cell_type_label_go]],
-  seurat_obj@meta.data[[condition_value3]],
-  drop = TRUE)
-  table(Idents(seurat_obj)) # View cell identities, get summary table
-  all.markers_condition_value3 <- FindAllMarkers(seurat_obj, assay = assay, logfc.threshold = 0.25, test.use = "wilcox", min.pct = 0.1, return.thresh = 0.01)
-  global_res_v3 <- finalize_global_interaction_markers(
-    markers = all.markers_condition_value3,
-    idents_counts = table(Idents(seurat_obj)),
-    min_cells_per_group = min_cells_per_group,
-    results_dir = results_dir,
-    resolution_list = resolution_list,
-    output_suffix = "condition_value3"
-  )
-  all.markers_condition_value3 <- global_res_v3$markers
-}
-```
-
-```{r read-global-condition3, echo=TRUE, eval=!run_global_in_notebook && show_global_interaction}
+```{r read-global-condition3, echo=TRUE, eval=show_global_interaction}
 if (!is.null(condition_value3) && !condition_value3 %in% c("NULL", ".", "")) {
-  all.markers_condition_value3 <- read.delim(
+  all.markers_condition_value3 <- read_dego_markers_filtered(
     file.path(results_dir, glue::glue("Res_{resolution_list}_Markers_all_condition_value3.tsv")),
-    stringsAsFactors = FALSE
+    min_cells_per_group
   )
-  all.markers_condition_value3 <- filter_markers_min_cells(all.markers_condition_value3, min_cells_per_group)
 }
 ```
 
@@ -478,7 +396,11 @@ if (!is.null(condition_value3) && exists("all.markers_condition_value3")) {
 
 # Differential Expression (DE) within each cell type (condition contrast)
 
-For each cell type, cells are subset to that type and [FindMarkers()](https://satijalab.org/seurat/reference/findmarkers) compares two condition levels (ident.1 vs ident.2). Cell types with fewer than **`r min_cells_per_group`** cells in either level are skipped (see `Res_*_Skipped_celltypes_*.tsv`). Computation runs in `run-de-computation.R` when mode is `within_celltype` or `both`.
+```{r within-section-banner, echo=FALSE, results='asis', eval=!show_within_celltype}
+cat("\n\n*(This section is omitted for `dego_condition_comparison_mode: \"", dego_mode, "\"` — enable `within_celltype` or `both` to include it.)*\n\n")
+```
+
+For each cell type, cells are subset to that type and [FindMarkers()](https://satijalab.org/seurat/reference/findmarkers) compares two condition levels (ident.1 vs ident.2). Cell types with fewer than **`r min_cells_per_group`** cells in either level are skipped (see `Res_*_Skipped_celltypes_*.tsv`). DE is computed in **`run-de-computation.R`** before this report is built.
 
 ```{r within-path-helpers, echo=TRUE, eval=show_within_celltype}
 within_markers_path <- function(suffix) {

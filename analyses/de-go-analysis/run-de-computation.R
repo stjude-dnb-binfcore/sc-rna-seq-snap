@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 #################################################################################
-# Optional DE pre-computation for de-go-analysis (within_celltype / both modes)
+# DE pre-computation for de-go-analysis (all modes; reports read TSVs only)
 #################################################################################
 suppressPackageStartupMessages({
   library(yaml)
@@ -30,10 +30,7 @@ run_de_go_computation <- function(config_path = "../../project_parameters.Config
   source(file.path(analysis_dir, "util", "function-de-within-celltype-comparison.R"))
 
   mode <- normalize_dego_comparison_mode(yaml$dego_condition_comparison_mode)
-  if (!run_dego_mode_needs_precompute(mode)) {
-    message("dego_condition_comparison_mode=", mode, ": skipping run-de-computation.R (DE runs in 01-de-analysis.Rmd)")
-    return(invisible(FALSE))
-  }
+  message("dego_condition_comparison_mode=", mode, ": running DE pre-computation (01-de-analysis.Rmd reads TSVs only)")
 
   data_file <- file.path(root_dir, "analyses", "cell-types-annotation", "results", "cell_types_annotations_all", "seurat_obj_cell_types_annotations_all.rds")
   
@@ -97,8 +94,8 @@ run_de_go_computation <- function(config_path = "../../project_parameters.Config
     !is.null(j$col) && !j$col %in% c("NULL", ".", "") && nzchar(as.character(j$col))
   }, condition_jobs)
 
-  run_within <- mode %in% c("within_celltype", "both")
-  run_global <- identical(mode, "both")
+  run_within <- run_dego_mode_runs_within_celltype_de(mode)
+  run_global <- run_dego_mode_runs_global_interaction_de(mode)
 
   run_parallel_columns <- identical(toupper(as.character(yaml$dego_parallel_condition_columns)), "YES")
   n_col_jobs <- length(condition_jobs)
@@ -152,7 +149,7 @@ run_de_go_computation <- function(config_path = "../../project_parameters.Config
   }
 
   if (run_global) {
-    message("FindAllMarkers: global cell_type x condition interaction (both mode)")
+    message("FindAllMarkers: global cell_type x condition interaction (mode=", mode, ")")
     for (job in condition_jobs) {
       run_global_interaction_de_for_column(
         seurat_obj = seurat_obj,

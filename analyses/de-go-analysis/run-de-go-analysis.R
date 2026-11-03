@@ -64,21 +64,19 @@ common_report_params <- list(
   COMPLETION_DATE = yaml$COMPLETION_DATE
 )
 
-if (run_dego_mode_needs_precompute(dego_mode)) {
-  source("run-de-computation.R")
-  precomputed <- run_de_go_computation(config_path = configFile, module_dir = ".")
-  markers_all <- file.path(
-    dego_results_de_dir(analysis_dir, dego_mode),
-    paste0("Res_", yaml$resolution_list_find_markers, "_Markers_all.tsv")
+source("run-de-computation.R")
+precomputed <- run_de_go_computation(config_path = configFile, module_dir = ".")
+markers_all <- file.path(
+  dego_results_de_dir(analysis_dir, dego_mode),
+  paste0("Res_", yaml$resolution_list_find_markers, "_Markers_all.tsv")
+)
+if (!isTRUE(precomputed) || !file.exists(markers_all)) {
+  stop(
+    "DE pre-computation did not complete for dego_condition_comparison_mode=",
+    dego_mode,
+    ". Expected file missing: ", markers_all,
+    ". Check job logs and project_parameters.Config.yaml encoding (UTF-8)."
   )
-  if (!isTRUE(precomputed) || !file.exists(markers_all)) {
-    stop(
-      "DE pre-computation did not complete for dego_condition_comparison_mode=",
-      dego_mode,
-      ". Expected file missing: ", markers_all,
-      ". Check job logs and project_parameters.Config.yaml encoding (UTF-8)."
-    )
-  }
 }
 
 ################################################################################################################

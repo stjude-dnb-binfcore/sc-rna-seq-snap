@@ -60,11 +60,22 @@ normalize_dego_comparison_mode <- function(mode) {
 }
 
 run_dego_mode_needs_precompute <- function(mode) {
-  mode %in% c("within_celltype", "both")
+  normalize_dego_comparison_mode(mode)
+  TRUE
 }
 
 run_dego_mode_runs_global_in_notebook <- function(mode) {
-  identical(mode, "global_interaction")
+  FALSE
+}
+
+run_dego_mode_runs_global_interaction_de <- function(mode) {
+  mode <- normalize_dego_comparison_mode(mode)
+  mode %in% c("global_interaction", "both")
+}
+
+run_dego_mode_runs_within_celltype_de <- function(mode) {
+  mode <- normalize_dego_comparison_mode(mode)
+  mode %in% c("within_celltype", "both")
 }
 
 ############################################################################################################

@@ -10,11 +10,13 @@ Parameters according to the project and analysis strategy will need to be specif
 
 **Condition comparison mode** (`dego_condition_comparison_mode`):
 
-| Value | DE strategy | Where DE runs | Reports (01 / 02 / 03) | Typical runtime |
-|-------|-------------|---------------|-------------------------|-----------------|
-| `global_interaction` | Each `cell_type.condition` identity vs **all other cells** (`FindAllMarkers` on interaction). Overall cell-type DE included. | **`01-de-analysis.Rmd` (knit)** — `run-de-computation.R` skipped | Overall + **global interaction** only | Often **slowest** (DE while knitting DE report) |
-| `within_celltype` | Per cell type, **`ident.1` vs `ident.2`** only (`FindMarkers` on condition within subset). Overall cell-type DE included. Contrast in `Res_*_Within_contrast_*.tsv`. | **`run-de-computation.R`**, then reports read TSVs | Overall + **within cell type** only | Usually **fastest** (no global-interaction DE) |
-| `both` | **Both** strategies above in one run | **All DE in `run-de-computation.R`**, then reports read TSVs | **Full** module (overall, global, within) | More DE than global-only; often **faster than `global_interaction`-only** (no global DE in Rmd) |
+| Value | What DE computes | Report sections (01 / 02 / 03) |
+|-------|------------------|--------------------------------|
+| `global_interaction` | **Overall** cell types vs rest; **global interaction** (`cell_type × condition` each vs all other cells) | Overall + global interaction |
+| `within_celltype` | **Overall** cell types; **within type** `ident.1` vs `ident.2` per cell type (contrast in `Res_*_Within_contrast_*.tsv`) | Overall + within cell type |
+| `both` | All of the above | Full module |
+
+**Pipeline (all modes):** `run-de-computation.R` writes TSVs → `01-de-analysis.Rmd` / volcano / GO **read** those files (script 1 does not re-run `FindAllMarkers`). Modes differ only in **which DE steps run** and **which report sections appear**, not in how the code path works.
 
 See comments on `dego_condition_comparison_mode` in `project_parameters.Config.yaml` for full detail.
 
