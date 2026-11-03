@@ -191,13 +191,36 @@ palette_variable_numbat: "timepoint_palette.tsv"  # File name with the variable.
 variable_numbat: "timepoint" # Variable of interest for investigating clonal evolution. Value to be extracted from column name in `project_metadata.tsv` file.
 
 # `de-go-analysis`
-# dego_condition_comparison_mode:
-#   global_interaction — original module: each cell_type.condition vs all other cells (default)
-#   within_celltype — FindMarkers ident.1 vs ident.2 within each cell type (parallel; min cell filter)
-#   both — run global_interaction and within_celltype (longest run)
+# dego_condition_comparison_mode — controls DE strategy, where computation runs, and report sections.
+# Outputs are mode-specific (no overwrite between modes): results/results_<mode>/01-de-analysis/ and plots/plots_<mode>/
+#
+# global_interaction (default)
+#   Biology: For each condition column (condition_value1/2/3), identities are cell_type x condition (e.g. Tcell.DiseaseA).
+#            FindAllMarkers tests each identity vs all other cells (not a direct A vs B contrast within one cell type).
+#   Computation: Overall cell-type FindAllMarkers + global-interaction FindAllMarkers run inside 01-de-analysis.Rmd (knit).
+#                run-de-computation.R is skipped. Volcano/GO read TSVs from results/results_global_interaction/.
+#   Reports: DE + volcano + GO for overall cell types and global interaction; no within-cell-type sections.
+#   Runtime: Often slowest wall-clock (heavy DE interleaved with knitting the DE report).
+#
+# within_celltype
+#   Biology: Within each cell type, FindMarkers compares two condition levels (ident.1 vs ident.2; see dego_ident1/2).
+#            Contrast is written to Res_*_Within_contrast_*.tsv and shown in HTML/PDF and volcano subtitles.
+#   Computation: run-de-computation.R first (overall cell types + within-cell-type per condition column; parallel by cell type).
+#                01/02/03 mostly read TSVs; no global-interaction DE or report sections.
+#   Reports: Overall + within-cell-type only.
+#   Runtime: Usually fastest (no global-interaction DE; precompute + lighter reports).
+#
+# both
+#   Biology: Runs global_interaction and within_celltype analyses above in one job.
+#   Computation: All DE in run-de-computation.R (overall + within + global interaction); reports read TSVs for every section.
+#   Reports: Full module — overall, global interaction, and within-cell-type.
+#   Runtime: More DE than global_interaction alone, but often faster than global_interaction-only because global DE
+#             is not recomputed inside 01-de-analysis.Rmd. Typically slower than within_celltype-only.
+#
+# Tip: Run modes sequentially (or parallel jobs with separate YAML copies) to populate results_* and plots_* for each mode.
 dego_condition_comparison_mode: "global_interaction"
 cell_type_label_go_module: "predicted.cell.signature.ident" # Options: "singler.broad", "singler.fine", and "predicted.cell.signature.ident" as defined in the `./analyses/cell-types-annotation` module
-min_cells_per_group_dego_module: 25 # Minimum cells per cell type in each condition level for within-cell-type DE (both ident.1 and ident.2 must meet this threshold)
+min_cells_per_group_dego_module: 25 # Min cells per identity/group for all DE modes: overall cell types, global-interaction identities, and within-cell-type ident.1 and ident.2 (see Res_*_Low_cell_* and Res_*_Skipped_celltypes_* TSVs)
 dego_ident1: NULL # Optional: condition level for ident.1 in FindMarkers (e.g. "knock-out"). Required when the condition column has more than two levels.
 dego_ident2: NULL # Optional: reference condition level for ident.2 (e.g. "wt"). If NULL and exactly two levels exist, uses sorted levels (ident.1 = second, ident.2 = first).
 dego_parallel_workers: NULL # NULL = (available cores - 1). Workers for parallel DE across cell types within each condition column.

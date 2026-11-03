@@ -10,11 +10,13 @@ Parameters according to the project and analysis strategy will need to be specif
 
 **Condition comparison mode** (`dego_condition_comparison_mode`):
 
-| Value | Behavior |
-|-------|----------|
-| `global_interaction` | **Default / original module.** Each `cell_type.condition` identity vs all other cells (`FindAllMarkers` on interaction). |
-| `within_celltype` | Per cell type, `FindMarkers` for ident.1 vs ident.2 only; min cell filter; parallel cell types. Contrast is recorded in `Res_*_Within_contrast_*.tsv` and repeated in HTML/PDF reports and volcano subtitles. |
-| `both` | Runs both strategies (longest runtime). |
+| Value | DE strategy | Where DE runs | Reports (01 / 02 / 03) | Typical runtime |
+|-------|-------------|---------------|-------------------------|-----------------|
+| `global_interaction` | Each `cell_type.condition` identity vs **all other cells** (`FindAllMarkers` on interaction). Overall cell-type DE included. | **`01-de-analysis.Rmd` (knit)** — `run-de-computation.R` skipped | Overall + **global interaction** only | Often **slowest** (DE while knitting DE report) |
+| `within_celltype` | Per cell type, **`ident.1` vs `ident.2`** only (`FindMarkers` on condition within subset). Overall cell-type DE included. Contrast in `Res_*_Within_contrast_*.tsv`. | **`run-de-computation.R`**, then reports read TSVs | Overall + **within cell type** only | Usually **fastest** (no global-interaction DE) |
+| `both` | **Both** strategies above in one run | **All DE in `run-de-computation.R`**, then reports read TSVs | **Full** module (overall, global, within) | More DE than global-only; often **faster than `global_interaction`-only** (no global DE in Rmd) |
+
+See comments on `dego_condition_comparison_mode` in `project_parameters.Config.yaml` for full detail.
 
 Outputs are written under mode-specific subfolders so you can change `dego_condition_comparison_mode` in YAML and re-run without overwriting a prior run:
 
