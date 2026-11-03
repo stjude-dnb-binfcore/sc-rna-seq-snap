@@ -219,7 +219,7 @@ variable_numbat: "timepoint" # Variable of interest for investigating clonal evo
 #
 # Tip: Run modes sequentially (or parallel jobs with separate YAML copies) to populate results_* and plots_* for each mode.
 dego_condition_comparison_mode: "global_interaction"
-cell_type_label_go_module: "predicted.cell.signature.ident" # Options: "singler.broad", "singler.fine", and "predicted.cell.signature.ident" as defined in the `./analyses/cell-types-annotation` module
+cell_type_label_go_module: "singler.broad" # Options: "singler.broad", "singler.fine", and "predicted.cell.signature.ident" as defined in the `./analyses/cell-types-annotation` module
 min_cells_per_group_dego_module: 25 # Min cells per identity/group for all DE modes: overall cell types, global-interaction identities, and within-cell-type ident.1 and ident.2 (see Res_*_Low_cell_* and Res_*_Skipped_celltypes_* TSVs)
 dego_ident1: NULL # Optional: condition level for ident.1 in FindMarkers (e.g. "knock-out"). Required when the condition column has more than two levels.
 dego_ident2: NULL # Optional: reference condition level for ident.2 (e.g. "wt"). If NULL and exactly two levels exist, uses sorted levels (ident.1 = second, ident.2 = first).
