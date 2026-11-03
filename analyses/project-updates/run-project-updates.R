@@ -19,8 +19,9 @@ if (!file.exists(configFile)){
   cat("\n Error: configuration file not found:", configFile)
   stop("Exit...")}
 
-# read `yaml` file defining the `params` of the project and strategy analysis
-yaml <- read_yaml(configFile)
+# read `yaml` file (UTF-8; same approach as de-go-analysis)
+config_lines <- readLines(configFile, encoding = "UTF-8", warn = FALSE)
+yaml <- read_yaml(text = paste(config_lines, collapse = "\n"))
 
 # Set up directories and paths to root_dir and analysis_dir
 root_dir <- yaml$root_dir
@@ -48,7 +49,13 @@ mac_results_filepath <- yaml$mac_results_filepath
 cohort_value <- yaml$cohort_value
 
 is_yes_param <- function(x) {
-  identical(toupper(as.character(x)), "YES")
+  if (is.null(x) || length(x) != 1L || is.na(x)) {
+    return(FALSE)
+  }
+  if (isTRUE(x)) {
+    return(TRUE)
+  }
+  identical(toupper(trimws(as.character(x))), "YES")
 }
 
 include_de_go_project_updates <- is_yes_param(yaml$include_de_go_analysis_project_updates_module)
@@ -80,7 +87,8 @@ report_params <- list(
   annotation_file1 = yaml$gene_markers_file_name_annotation_module,
   annotation_file2 = yaml$reference_file_name_annotation_module,
   integration_method = yaml$integration_method_clustering_module,
-  include_de_go_analysis_project_updates_module = yaml$include_de_go_analysis_project_updates_module,
+  include_de_go_analysis_project_updates_module = if (include_de_go_project_updates) "YES" else "NO",
+  include_de_go_project_updates = include_de_go_project_updates,
   dego_condition_comparison_mode = dego_mode_project_updates,
   cell_type_label_go_module = yaml$cell_type_label_go_module,
   min_cells_per_group_dego_module = yaml$min_cells_per_group_dego_module,

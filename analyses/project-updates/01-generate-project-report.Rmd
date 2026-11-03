@@ -56,6 +56,7 @@ params:
   annotation_file2: '.'
   integration_method: '.'
   include_de_go_analysis_project_updates_module: 'NO'
+  include_de_go_project_updates: false
   dego_condition_comparison_mode: 'global_interaction'
   cell_type_label_go_module: '.'
   min_cells_per_group_dego_module: 25
@@ -192,10 +193,17 @@ cells_table_file <- file.path(Filter_object_results_dir, "number_of_cells_per_sa
 
 summary_samples_table_file <- file.path(metadata_dir, metadata_file) # summary_samples_table file
 
-include_de_go_project_updates <- identical(
-  toupper(as.character(include_de_go_analysis_project_updates_module)),
-  "YES"
-)
+dego_project_updates_yes <- function(x) {
+  if (is.null(x) || length(x) != 1L) {
+    return(FALSE)
+  }
+  if (isTRUE(x)) {
+    return(TRUE)
+  }
+  identical(toupper(trimws(as.character(x))), "YES")
+}
+include_de_go_project_updates <- isTRUE(params$include_de_go_project_updates) ||
+  dego_project_updates_yes(params$include_de_go_analysis_project_updates_module)
 dego_mode <- dego_condition_comparison_mode
 dego_analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis")
 dego_config_util <- file.path(dego_analysis_dir, "util", "function-de-go-config.R")
@@ -457,7 +465,10 @@ For more information, please see: `r results_filepath`/`r cohort_value`/analyses
 
 For more information, please see: `r results_filepath`/`r cohort_value`/analyses/clone-phylogeny-analysis/plots
 
-```{r de-go-analysis-section, echo = FALSE, results = "asis", eval = include_de_go_project_updates}
+```{r de-go-analysis-section, echo = FALSE, results = "asis"}
+if (!isTRUE(include_de_go_project_updates)) {
+  invisible(NULL)
+} else {
 attach(params)
 dego_condition_cols <- c(condition_value1, condition_value2, condition_value3)
 dego_condition_cols <- dego_condition_cols[
@@ -529,6 +540,7 @@ if (results_exist) {
   }
 }
 detach(params)
+}
 ```
 
 ## rshiny-app
