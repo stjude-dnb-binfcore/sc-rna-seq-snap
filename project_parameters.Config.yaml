@@ -232,6 +232,7 @@ future_globals_value_dego: 200 # Default. Adjust based on dataset size and avail
 
 
 # `./analyses/project-updates`
+include_de_go_analysis_project_updates_module: "NO" # "YES" adds a de-go-analysis section (mode-specific plots/results paths). "NO" omits it from the project updates report.
 results_filepath: "./" # Absolute path to the dir where local fork repo lives
 mac_results_filepath: "./" # Absolute path to the dir where local fork repo lives
 cohort_value: "/NAME_OF_FORK_REPO>"  # Name of the local fork repo
