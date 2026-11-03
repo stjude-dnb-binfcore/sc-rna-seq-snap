@@ -7,6 +7,8 @@
 Parameters according to the project and analysis strategy will need to be specified in the following scripts:
 - `project_parameters.Config.yaml` located at the `root_dir`.
 
+Optional **de-go-analysis** reports in the Shiny app: set `include_de_go_analysis_rshiny_app_module: "YES"`. After `run-de-go-analysis`, re-run this module. HTML reports from `plots/plots_<dego_condition_comparison_mode>/` are copied to `results/shinyApp/www/de_go_reports/` and a **DE & GO reports** tab is added to `ui.R`. A manifest is written to `results/de_go_shiny_manifest.tsv`.
+
 
 ### Run module on an interactive session on HPC within the container
 
@@ -44,5 +46,6 @@ The structure of this folder is as follows:
 ├── README.md
 ├── run-rshiny-app.sh
 └── util
-|___└── makeShinyFiles_assay.R
+    ├── makeShinyFiles_assay.R
+    └── function-attach-dego-shiny-app.R
 ```

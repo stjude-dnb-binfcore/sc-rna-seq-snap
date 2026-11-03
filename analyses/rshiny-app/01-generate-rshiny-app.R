@@ -31,8 +31,9 @@ if (!file.exists(configFile)){
   cat("\n Error: configuration file not found:", configFile)
   stop("Exit...")}
 
-# read `yaml` file defining the `params` of the project and strategy analysis
-yaml <- read_yaml(configFile)
+# read `yaml` file (UTF-8; same approach as de-go-analysis / project-updates)
+config_lines <- readLines(configFile, encoding = "UTF-8", warn = FALSE)
+yaml <- read_yaml(text = paste(config_lines, collapse = "\n"))
 #################################################################################
 # Parameters
 root_dir <- yaml$root_dir
@@ -43,6 +44,22 @@ assay <- yaml$assay_filter_object
 annotations_dir <- yaml$annotations_dir_rshiny_app
 annotations_filename <- yaml$annotations_filename_rshiny_app
 reduction_value <- yaml$reduction_value_annotation_module
+resolution_list_dego <- yaml$resolution_list_find_markers
+dego_mode_rshiny <- yaml$dego_condition_comparison_mode
+if (is.null(dego_mode_rshiny) || !nzchar(as.character(dego_mode_rshiny))) {
+  dego_mode_rshiny <- "global_interaction"
+}
+
+is_dego_shiny_yes <- function(x) {
+  if (is.null(x) || length(x) != 1L || is.na(x)) {
+    return(FALSE)
+  }
+  if (isTRUE(x)) {
+    return(TRUE)
+  }
+  identical(toupper(trimws(as.character(x))), "YES")
+}
+include_de_go_rshiny <- is_dego_shiny_yes(yaml$include_de_go_analysis_rshiny_app_module)
 
 
 # Set up directories and paths to root_dir and analysis_dir
@@ -71,6 +88,7 @@ if (!dir.exists(results_dir)) {
 # It was downloaded from here: https://github.com/SGDDNB/ShinyCell/blob/master/R
 # We modified the function to account for any type of assay
 source(paste0(module_dir, "/util/makeShinyFiles_assay.R"))
+source(paste0(module_dir, "/util/function-attach-dego-shiny-app.R"))
 
 ################################################################################################################
 ### Generate R shiny app ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
@@ -124,12 +142,27 @@ makeShinyFiles_assay(seu1,
                      shiny.dir = paste(results_dir, "shinyApp", sep = "/"))
 
 cat("Make R shiny app for all files", "\n")
+shiny_app_dir <- file.path(results_dir, "shinyApp")
 makeShinyCodesMulti(
-  shiny.title = PROJECT_NAME, 
+  shiny.title = PROJECT_NAME,
   shiny.footnotes = PI_NAME,
   shiny.prefix = c("sc1"),
   shiny.headers = c("Annotations"),
   #shiny.prefix = c("sc1", "sc2"),
   #shiny.headers = c("broad_SingleR", "fine_SingleR"),
-  shiny.dir = paste(results_dir, "shinyApp", sep = "/")) 
-################################################################################################################   
+  shiny.dir = shiny_app_dir)
+
+if (include_de_go_rshiny) {
+  attach_de_go_reports_to_shiny_app(
+    shiny_dir = shiny_app_dir,
+    root_dir = root_dir,
+    dego_mode = dego_mode_rshiny,
+    resolution_list = resolution_list_dego
+  )
+} else {
+  message(
+    "de-go reports not added to Shiny app ",
+    "(set include_de_go_analysis_rshiny_app_module: \"YES\" in project_parameters.Config.yaml)"
+  )
+}
+################################################################################################################
