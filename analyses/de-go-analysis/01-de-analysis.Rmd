@@ -248,14 +248,6 @@ markers_file_overall <- file.path(results_dir, glue::glue("Res_{resolution_list}
 all.markers <- read_dego_markers_filtered(markers_file_overall, min_cells_per_group)
 ```
 
-```{r read-precomputed-overall-excluded, echo=TRUE, results='asis'}
-excl_overall_pre <- read_low_cell_exclusion_table(results_dir, resolution_list, "overall")
-if (!is.null(excl_overall_pre) && nrow(excl_overall_pre) > 0) {
-  cat("\n\n### Cell types excluded (overall DE; below min cell count)\n\n")
-  print(kable(excl_overall_pre))
-}
-```
-
 # Differential Expression (DE) Per Cell Type
 
 We save all the tables with Differential Expression (DE) per `r cell_type_label_go` at: <font size="3"><span style="color:blue">./results/results_`r dego_mode`/01-de-analysis/&lt;FILENAME&gt;.tsv.</span></font>\
@@ -282,34 +274,46 @@ datatable(all.markers,
 
 # Differential Expression (DE) Per Cell Type and Condition (global interaction)
 
-```{r global-section-banner, echo=FALSE, results='asis', eval=!show_global_interaction}
-cat("\n\n*(This section is omitted for `dego_condition_comparison_mode: \"", dego_mode, "\"` — enable `global_interaction` or `both` to include it.)*\n\n")
+```{r global-section-prose, echo=FALSE, results='asis', eval=show_global_interaction}
+cat(
+  "\n\nHere, we define cell identities as the interaction between:\n",
+  "   (1) the cell type label (", cell_type_label_go, "), and\n",
+  "   (2) each configured experimental condition column (e.g. ", condition_value1, ").\n\n",
+  "This creates composite identities of the form `<cell_type>.<condition>`, ",
+  "e.g., Amacrine.knock-out, Amacrine.wt, Bipolar.knock-out, Bipolar.wt, etc.\n\n",
+  "[FindAllMarkers()](https://satijalab.org/seurat/reference/findallmarkers) ",
+  "identifies differentially expressed genes for each `<cell_type>.<condition>` group ",
+  "compared to *all other cells* in the dataset, not just the corresponding condition ",
+  "within the same cell type.\n\n",
+  "For example:\n",
+  "   - Amacrine.knock-out is compared against all remaining cells, including:\n",
+  "       • Amacrine.wt\n",
+  "       • Bipolar.knock-out\n",
+  "       • Bipolar.wt\n",
+  "       • all other cell types and conditions\n\n",
+  "This analysis highlights genes specific to a given cell-type/condition combination ",
+  "relative to the global cellular background, rather than a direct condition-to-condition ",
+  "comparison within the same cell type.\n\n",
+  "Composite identities with fewer than **", min_cells_per_group, "** cells are excluded ",
+  "from comparison tables and downstream plots (see `Res_*_Low_cell_global_interaction_*.tsv`).\n",
+  sep = ""
+)
+if (!show_within_celltype) {
+  cat(
+    "\n\n**NOTE**: For direct within–cell-type condition contrasts, set ",
+    "`dego_condition_comparison_mode: \"within_celltype\"` or `\"both\"` in ",
+    "`project_parameters.Config.yaml` (see section below).\n\n"
+  )
+}
 ```
 
-```{r global-section-start, echo=FALSE, results='asis', eval=show_global_interaction}
-cat("\n\n")
+```{r global-section-stub, echo=FALSE, results='asis', eval=!show_global_interaction}
+cat(
+  "\n\n*Global interaction DE was not run for `dego_condition_comparison_mode: \"",
+  dego_mode,
+  "\"`. Set `global_interaction` or `both` in `project_parameters.Config.yaml` to include it.*\n\n"
+)
 ```
-
-Here, we define cell identities as the interaction between:
-   (1) the cell type label (cell_type_label_go), and
-   (2) the experimental condition (condition_value1).
-
-This creates composite identities of the form `<cell_type>.<condition>`, e.g., Amacrine.knock-out, Amacrine.wt, Bipolar.knock-out, Bipolar.wt, etc.
-
-FindAllMarkers() is then used to identify differentially expressed genes for each `<cell_type>.<condition>` group compared to *all other cells* in the dataset, not just the corresponding condition within the same cell type.
-
-For example:
-   - Amacrine.knock-out is compared against all remaining cells, including:
-       • Amacrine.wt
-       • Bipolar.knock-out
-       • Bipolar.wt
-       • all other cell types and conditions
-
-This analysis therefore highlights genes that are specific to a given cell-type/condition combination relative to the global cellular background, rather than performing a direct condition-to-condition comparison within the same cell type.
-
-Composite identities with fewer than **`r min_cells_per_group`** cells are excluded from comparison tables and downstream plots (see `Res_*_Low_cell_global_interaction_*.tsv`).
-
-**NOTE**: For direct within–cell-type condition contrasts, set `dego_condition_comparison_mode: "within_celltype"` in `project_parameters.Config.yaml` (see section below).
 
 ## Per `r condition_value1`
 
