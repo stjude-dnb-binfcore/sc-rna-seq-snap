@@ -77,28 +77,55 @@ inject_dego_tab_in_ui <- function(ui_path) {
   if (any(grepl("DE & GO reports", ui, fixed = TRUE))) {
     return(invisible(TRUE))
   }
-  shiny_app_line <- grep("^shinyApp\\(", ui)[1]
-  if (is.na(shiny_app_line)) {
-    message("shinyApp( not found in ui.R; skipping DE/GO tab")
+
+  tab_lines <- c(
+    "  tabPanel(",
+    "    title = \"DE & GO reports\",",
+    "    icon = icon(\"file-alt\"),",
+    "    tags$iframe(",
+    "      src = \"de_go_reports/index.html\",",
+    "      width = \"100%\", height = \"900px\",",
+    "      style = \"border: none;\"",
+    "    )",
+    "  ),"
+  )
+
+  insert_at <- NA_integer_
+  nav_start <- grep("^navbarPage\\(", ui)[1]
+  if (!is.na(nav_start)) {
+    footer_line <- grep('p\\("Dyer Lab"', ui)[1]
+    if (is.na(footer_line)) {
+      footer_line <- grep("ShinyCell", ui)[1]
+    }
+    if (!is.na(footer_line)) {
+      menu_close <- grep("^   \\),\\s*$", ui)
+      menu_close <- menu_close[menu_close > nav_start & menu_close < footer_line]
+      if (length(menu_close) > 0L) {
+        insert_at <- menu_close[length(menu_close)]
+      }
+    }
+  }
+
+  if (is.na(insert_at)) {
+    shiny_app_line <- grep("^shinyApp\\(", ui)[1]
+    if (!is.na(shiny_app_line)) {
+      insert_at <- shiny_app_line - 1L
+      while (insert_at > 1L && grepl("^\\s*$", ui[insert_at])) {
+        insert_at <- insert_at - 1L
+      }
+      tab_lines[1] <- "    , tabPanel("
+      tab_lines[length(tab_lines)] <- "    )"
+    }
+  }
+
+  if (is.na(insert_at)) {
+    message("Could not find navbarPage / shinyApp anchor in ui.R; skipping DE/GO tab")
     return(invisible(FALSE))
   }
-  insert_at <- shiny_app_line - 1L
-  while (insert_at > 1L && grepl("^\\s*$", ui[insert_at])) {
-    insert_at <- insert_at - 1L
-  }
-  tab_lines <- c(
-    "    , tabPanel(",
-    "      title = \"DE & GO reports\",",
-    "      icon = icon(\"file-alt\"),",
-    "      tags$iframe(",
-    "        src = \"de_go_reports/index.html\",",
-    "        width = \"100%\", height = \"900px\",",
-    "        style = \"border: none;\"",
-    "      )",
-    "    )"
-  )
+
   ui <- append(ui, tab_lines, after = insert_at)
   writeLines(ui, ui_path, useBytes = TRUE)
+  message("Added \"DE & GO reports\" tab to ui.R")
   invisible(TRUE)
 }
 
