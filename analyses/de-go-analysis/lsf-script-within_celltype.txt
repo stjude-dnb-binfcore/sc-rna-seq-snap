@@ -1,0 +1,8 @@
+#BSUB -P project
+#BSUB -J run-de-go-analysis-within_celltype
+#BSUB -oo job-within_celltype.out -eo job-within_celltype.err
+#BSUB -n 4
+#BSUB -R "rusage[mem=32GB] span[hosts=1]"
+#BSUB -cwd "."
+
+singularity exec ../../rstudio_4.4.0_seurat_4.4.0_latest.sif bash run-de-go-analysis.sh
