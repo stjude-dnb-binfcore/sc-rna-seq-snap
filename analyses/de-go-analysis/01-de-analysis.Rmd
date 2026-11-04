@@ -327,7 +327,7 @@ all.markers_condition_value1 <- read_dego_markers_filtered(
 ```{r global-low-cell-excluded-v1, echo=TRUE, eval=show_global_interaction, results='asis'}
 excl_g1 <- read_low_cell_exclusion_table(results_dir, resolution_list, "global_interaction_condition_value1")
 if (!is.null(excl_g1) && nrow(excl_g1) > 0) {
-  cat("\n\n### Global interaction — excluded identities (`r condition_value1`)\n\n")
+  cat("\n\n### Global interaction - excluded identities (", condition_value1, ")\n\n", sep = "")
   print(kable(excl_g1))
 }
 ```
@@ -354,7 +354,7 @@ if (!is.null(condition_value2) && !condition_value2 %in% c("NULL", ".", "")) {
 ```{r global-low-cell-excluded-v2, echo=TRUE, eval=show_global_interaction && !is.null(condition_value2) && !condition_value2 %in% c("NULL", ".", ""), results='asis'}
 excl_g2 <- read_low_cell_exclusion_table(results_dir, resolution_list, "global_interaction_condition_value2")
 if (!is.null(excl_g2) && nrow(excl_g2) > 0) {
-  cat("\n\n### Global interaction — excluded identities (`r condition_value2`)\n\n")
+  cat("\n\n### Global interaction - excluded identities (", condition_value2, ")\n\n", sep = "")
   print(kable(excl_g2))
 }
 ```
@@ -383,7 +383,7 @@ if (!is.null(condition_value3) && !condition_value3 %in% c("NULL", ".", "")) {
 ```{r global-low-cell-excluded-v3, echo=TRUE, eval=show_global_interaction && !is.null(condition_value3) && !condition_value3 %in% c("NULL", ".", ""), results='asis'}
 excl_g3 <- read_low_cell_exclusion_table(results_dir, resolution_list, "global_interaction_condition_value3")
 if (!is.null(excl_g3) && nrow(excl_g3) > 0) {
-  cat("\n\n### Global interaction — excluded identities (`r condition_value3`)\n\n")
+  cat("\n\n### Global interaction - excluded identities (", condition_value3, ")\n\n", sep = "")
   print(kable(excl_g3))
 }
 ```
