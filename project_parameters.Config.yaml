@@ -177,7 +177,7 @@ celltype_reference_module: "predicted.cell.signature.ident" # Column name from t
 # `rshiny-app`
 annotations_dir_rshiny_app: "cell_types_annotations_all" # Options: to update based on the folder with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
 annotations_filename_rshiny_app: "seurat_obj_cell_types_annotations_all.rds" # Options: to update based on the object with the desired annotations to use for the R shiny app from the `cell-types-annotation` module
-include_de_go_analysis_rshiny_app_module: "NO" # "YES" copies de-go HTML reports into the Shiny app (www/de_go_reports/) and adds a "DE & GO reports" tab (uses dego_condition_comparison_mode paths).
+include_de_go_analysis_rshiny_app_module: "NO" # "YES" copies de-go HTML reports into the Shiny app (www/de_go_reports/) and adds "DE & GO reports" and "Volcano plots" tabs when Report-*.html files exist (uses dego_condition_comparison_mode paths; volcano uses Report-*volcano*.html).
 
 # `./analyses/clone-phylogeny-analysis`
 # list of samples to run
