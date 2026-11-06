@@ -274,7 +274,11 @@ within_celltype_contrast_cell_counts <- function(markers) {
   if (!all(c("cluster", "n_ident1", "n_ident2") %in% cols)) {
     return(NULL)
   }
-  unique(markers[, cols, drop = FALSE])
+  out <- unique(markers[, cols, drop = FALSE])
+  # Avoid knitr row-number column from Seurat output row indices (rownames)
+  rownames(out) <- NULL
+  names(out)[names(out) == "cluster"] <- "cell_type"
+  out
 }
 
 cat_within_celltype_contrast_report <- function(contrast,
@@ -292,8 +296,8 @@ cat_within_celltype_contrast_report <- function(contrast,
   }
   cat(
     "**FindMarkers contrast (same for every cell type in this section):**  \n",
-    "- **ident.1 = ", contrast$ident1[[1L]], "** — genes with positive `avg_log2FC` are higher in this group.  \n",
-    "- **ident.2 = ", contrast$ident2[[1L]], "** — reference group.  \n\n",
+    "- **ident.1 = ", contrast$ident1[[1L]], "** - genes with positive `avg_log2FC` are higher in this group.  \n",
+    "- **ident.2 = ", contrast$ident2[[1L]], "** - reference group.  \n\n",
     sep = ""
   )
   if ("all_levels_in_column" %in% names(contrast) &&
@@ -304,7 +308,7 @@ cat_within_celltype_contrast_report <- function(contrast,
   counts_tbl <- within_celltype_contrast_cell_counts(markers)
   if (!is.null(counts_tbl) && nrow(counts_tbl) > 0L) {
     cat("**Cells per cell type used in the contrast:**\n\n")
-    print(knitr::kable(counts_tbl))
+    print(knitr::kable(counts_tbl, row.names = FALSE))
     cat("\n")
   }
   invisible(NULL)
