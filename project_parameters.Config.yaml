@@ -194,7 +194,33 @@ palette_variable_numbat: "timepoint_palette.tsv"  # File name with the variable.
 variable_numbat: "timepoint" # Variable of interest for investigating clonal evolution. Value to be extracted from column name in `project_metadata.tsv` file.
 
 # `de-go-analysis`
-cell_type_label_go_module: "predicted.cell.signature.ident" # Options: "singler.broad", "singler.fine", and "predicted.cell.signature.ident" as defined in the `./analyses/cell-types-annotation` module
+# dego_condition_comparison_mode — which DE analyses to run and which report sections to include.
+# All modes use the SAME pipeline: run-de-computation.R (DE) → 01/02/03 reports (read TSVs only).
+# Outputs are mode-specific: results/results_<mode>/01-de-analysis/ and plots/plots_<mode>/
+#
+# global_interaction (default)
+#   DE run: Overall cell types + global interaction (cell_type x condition vs all other cells) per condition_value1/2/3.
+#   Reports: Overall + global interaction tables/plots; NO within-cell-type sections.
+#
+# within_celltype
+#   DE run: Overall cell types + within-cell-type FindMarkers (ident.1 vs ident.2 per cell type; see dego_ident1/2).
+#           Contrast: Res_*_Within_contrast_*.tsv; shown in reports and volcano subtitles.
+#   Reports: Overall + within-cell-type only; NO global interaction sections.
+#
+# both
+#   DE run: Overall + global interaction + within-cell-type (everything above).
+#   Reports: Full module (all sections).
+#
+# Runtime: within_celltype < global_interaction ≲ both (global interaction DE is the heaviest step).
+#
+# Tip: Run modes sequentially (or parallel jobs with separate YAML copies) to populate results_* and plots_* for each mode.
+dego_condition_comparison_mode: "global_interaction"
+cell_type_label_go_module: "singler.broad" # Options: "singler.broad", "singler.fine", and "predicted.cell.signature.ident" as defined in the `./analyses/cell-types-annotation` module
+min_cells_per_group_dego_module: 25 # Min cells per identity/group for all DE modes: overall cell types, global-interaction identities, and within-cell-type ident.1 and ident.2 (see Res_*_Low_cell_* and Res_*_Skipped_celltypes_* TSVs)
+dego_ident1: NULL # Optional: condition level for ident.1 in FindMarkers (e.g. "knock-out"). Required when the condition column has more than two levels.
+dego_ident2: NULL # Optional: reference condition level for ident.2 (e.g. "wt"). If NULL and exactly two levels exist, uses sorted levels (ident.1 = second, ident.2 = first).
+dego_parallel_workers: NULL # NULL = (available cores - 1). Workers for parallel DE across cell types within each condition column.
+dego_parallel_condition_columns: "NO" # "YES" runs condition_value1/2/3 DE in parallel Rscript processes; "NO" runs them sequentially (default).
 OrgDb_value: "org.Mm.eg.db"   # Options for gene annotation: (1) Human: "org.Hs.eg.db"; (2) Mouse: "org.Mm.eg.db"
 # With universe: enrichment is relative to the genes that were actually measurable/eligible (e.g., all genes expressed above a threshold, all genes tested in DE)
 # Without universe: enrichment is relative to all genes in the organism database, which can inflate significance or bias results (common in scRNAseq where many genes are never detected).

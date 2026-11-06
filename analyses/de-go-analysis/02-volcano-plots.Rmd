@@ -37,6 +37,8 @@ header-includes:
 params:
   resolution_list: '.'
   n_value: '.'
+  dego_condition_comparison_mode: 'global_interaction'
+  min_cells_per_group: 25
   condition_value1: '.'
   condition_value2: '.'
   condition_value3: '.'
@@ -213,16 +215,34 @@ suppressPackageStartupMessages({
 # Directories and paths to file Inputs/Outputs
 
 ```{r set-dir-and-file-names, echo=TRUE}
-analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis") 
-module_results_dir <- file.path(analysis_dir, "results")
-module_plots_dir <- file.path(analysis_dir, "plots")
-markers_dir_module <- file.path(analysis_dir, "results", "01-de-analysis")
+analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis")
+config_util <- file.path(analysis_dir, "util", "function-de-go-config.R")
+if (!file.exists(config_util)) {
+  config_util <- "util/function-de-go-config.R"
+}
+source(config_util)
+
+dego_mode <- normalize_dego_mode_label(dego_condition_comparison_mode)
+min_cells_per_group <- resolve_dego_min_cells_param(min_cells_per_group, root_dir)
+markers_dir_module <- dego_results_de_dir(analysis_dir, dego_mode)
+module_plots_dir <- dego_module_plots_dir(analysis_dir, dego_mode)
+read_dego_markers_for_plots <- function(path) {
+  read_dego_markers_filtered(path, min_cells_per_group)
+}
 
 # Input files
 markers_file_overall <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all.tsv"))
 markers_file_condition_value1 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value1.tsv"))
 markers_file_condition_value2 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value2.tsv"))
 markers_file_condition_value3 <- file.path(markers_dir_module, glue::glue("Res_{resolution_list}_Markers_all_condition_value3.tsv"))
+show_global_interaction <- dego_mode %in% c("global_interaction", "both")
+show_within_celltype <- dego_mode %in% c("within_celltype", "both")
+within_markers_file <- function(suffix) {
+  file.path(
+    markers_dir_module,
+    glue::glue("Res_{resolution_list}_Markers_within_celltype_{suffix}.tsv")
+  )
+}
 
 # Create plots directory
 plots_dir <- file.path(module_plots_dir, "02-volcano-plots") 
@@ -251,6 +271,20 @@ a4width <- 8.3
 a4height <- 11.7
 ```
 
+# Minimum cell count filter (`min_cells_per_group_dego_module`)
+
+Volcano plots use the same threshold as the DE module: **`r min_cells_per_group`** cells. Identities below this count are omitted (see `Res_*_Low_cell_*.tsv` and `Res_*_Skipped_celltypes_*.tsv` under `results/results_`r dego_mode`/01-de-analysis/`).
+
+```{r volcano-min-cells-summary, echo=TRUE, results='asis'}
+excl_summary_volcano <- summarize_dego_min_cells_exclusions(markers_dir_module, resolution_list)
+if (nrow(excl_summary_volcano) > 0) {
+  cat("\n\n### Exclusions applied to volcano inputs\n\n")
+  print(kable(excl_summary_volcano))
+} else {
+  cat("\n\n*No exclusion sidecar files found; marker tables may still be filtered when `cluster_cell_count` or `n_ident1`/`n_ident2` columns are present.*\n\n")
+}
+```
+
 # Volcano Plots Per Cell Type
 
 The analysis labels the top `r n_value` genes ranked by significance to highlight the most potentially biologically relevant up‑ and down‑regulated features.
@@ -258,23 +292,23 @@ The analysis labels the top `r n_value` genes ranked by significance to highligh
 ## Overall
 
 ```{r volcano-plot, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
-all.markers_overall <- read.csv(markers_file_overall, sep = "\t", header = TRUE)
+all.markers_overall <- read_dego_markers_for_plots(markers_file_overall)
 volcano_plot_results <- create_volcano_plot(all.markers = all.markers_overall, n_value = n_value, plots_dir = plots_dir_overall)
 ```
 
-## Per `r condition_value1`
+## Global interaction — per `r condition_value1`
 
-```{r volcano-plot-condition1, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
-all.markers_condition_value1 <- read.csv(markers_file_condition_value1, sep = "\t", header = TRUE)
+```{r volcano-plot-condition1, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_global_interaction}
+all.markers_condition_value1 <- read_dego_markers_for_plots(markers_file_condition_value1)
 volcano_plot_results <- create_volcano_plot(all.markers = all.markers_condition_value1, n_value = n_value, plots_dir = plots_dir_condition1)
 ```
 
-## Per `r condition_value2`
+## Global interaction — per `r condition_value2`
 
-```{r volcano-plot-condition2, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+```{r volcano-plot-condition2, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_global_interaction}
 if (!is.null(condition_value2)) {
   
-  all.markers_condition_value2 <- read.csv(markers_file_condition_value2, sep = "\t", header = TRUE)
+  all.markers_condition_value2 <- read_dego_markers_for_plots(markers_file_condition_value2)
 
   plots_dir_condition2 <- file.path(plots_dir, "03-volcano-plots-condition2") 
   if (!dir.exists(plots_dir_condition2)) {
@@ -284,12 +318,12 @@ if (!is.null(condition_value2)) {
 }
 ```
 
-## Per `r condition_value3`
+## Global interaction — per `r condition_value3`
 
-```{r volcano-plot-condition3, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE}
+```{r volcano-plot-condition3, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_global_interaction}
 if (!is.null(condition_value3)) {
     
-  all.markers_condition_value3 <- read.csv(markers_file_condition_value3, sep = "\t", header = TRUE)
+  all.markers_condition_value3 <- read_dego_markers_for_plots(markers_file_condition_value3)
 
   plots_dir_condition3 <- file.path(plots_dir, "04-volcano-plots-condition3") 
   if (!dir.exists(plots_dir_condition3)) {
@@ -297,6 +331,58 @@ if (!is.null(condition_value3)) {
   
   volcano_plot_results <- create_volcano_plot(all.markers = all.markers_condition_value3, n_value = n_value, plots_dir = plots_dir_condition3)
 }
+```
+
+# Within cell type — volcano plots
+
+Each volcano is one **cell type** (`cluster`). The x-axis is `avg_log2FC` from [FindMarkers()](https://satijalab.org/seurat/reference/findmarkers) comparing **ident.1 vs ident.2** within that cell type (same contrast for all panels in a condition block). Plot subtitles repeat ident.1 / ident.2.
+
+## Within cell type — per `r condition_value1`
+
+```{r within-contrast-volcano-v1, echo=FALSE, eval=show_within_celltype, results='asis'}
+all.markers_within_v1 <- read_dego_markers_for_plots(within_markers_file("condition_value1"))
+contrast_v1 <- read_within_celltype_contrast(
+  markers_dir_module, resolution_list, "condition_value1", all.markers_within_v1
+)
+cat_within_celltype_contrast_report(contrast_v1, all.markers_within_v1, condition_value1)
+```
+
+```{r volcano-within-condition1, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_within_celltype}
+plots_dir_within_v1 <- file.path(plots_dir, "05-volcano-plots-within-celltype-condition1")
+if (!dir.exists(plots_dir_within_v1)) dir.create(plots_dir_within_v1)
+volcano_plot_results <- create_volcano_plot(all.markers = all.markers_within_v1, n_value = n_value, plots_dir = plots_dir_within_v1)
+```
+
+## Within cell type — per `r condition_value2`
+
+```{r within-contrast-volcano-v2, echo=FALSE, eval=show_within_celltype && !is.null(condition_value2) && !condition_value2 %in% c("NULL", ".", ""), results='asis'}
+all.markers_within_v2 <- read_dego_markers_for_plots(within_markers_file("condition_value2"))
+contrast_v2 <- read_within_celltype_contrast(
+  markers_dir_module, resolution_list, "condition_value2", all.markers_within_v2
+)
+cat_within_celltype_contrast_report(contrast_v2, all.markers_within_v2, condition_value2)
+```
+
+```{r volcano-within-condition2, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_within_celltype && !is.null(condition_value2) && !condition_value2 %in% c("NULL", ".", "")}
+plots_dir_within_v2 <- file.path(plots_dir, "06-volcano-plots-within-celltype-condition2")
+if (!dir.exists(plots_dir_within_v2)) dir.create(plots_dir_within_v2)
+volcano_plot_results <- create_volcano_plot(all.markers = all.markers_within_v2, n_value = n_value, plots_dir = plots_dir_within_v2)
+```
+
+## Within cell type — per `r condition_value3`
+
+```{r within-contrast-volcano-v3, echo=FALSE, eval=show_within_celltype && !is.null(condition_value3) && !condition_value3 %in% c("NULL", ".", ""), results='asis'}
+all.markers_within_v3 <- read_dego_markers_for_plots(within_markers_file("condition_value3"))
+contrast_v3 <- read_within_celltype_contrast(
+  markers_dir_module, resolution_list, "condition_value3", all.markers_within_v3
+)
+cat_within_celltype_contrast_report(contrast_v3, all.markers_within_v3, condition_value3)
+```
+
+```{r volcano-within-condition3, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_within_celltype && !is.null(condition_value3) && !condition_value3 %in% c("NULL", ".", "")}
+plots_dir_within_v3 <- file.path(plots_dir, "07-volcano-plots-within-celltype-condition3")
+if (!dir.exists(plots_dir_within_v3)) dir.create(plots_dir_within_v3)
+volcano_plot_results <- create_volcano_plot(all.markers = all.markers_within_v3, n_value = n_value, plots_dir = plots_dir_within_v3)
 ```
 
 ```{r echo=FALSE}
