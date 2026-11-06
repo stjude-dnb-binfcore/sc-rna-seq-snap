@@ -40,6 +40,29 @@ params:
   cancer_type: '.'
   cohort_value: '.'
   genome_reference: '.'
+  metadata_dir: '.'
+  metadata_file: '.'
+  results_filepath: './'
+  mac_results_filepath: './'
+  min_genes: '.'
+  min_count: '.'
+  mtDNA_pct_default: '.'
+  resolution_clustering_module: '.'
+  resolution_values: '.'
+  resolution_list_find_markers: '.'
+  n_value_find_markers: '.'
+  method_annotation_module: '.'
+  annotation_file1: '.'
+  annotation_file2: '.'
+  integration_method: '.'
+  include_de_go_analysis_project_updates_module: 'NO'
+  include_de_go_project_updates: false
+  dego_condition_comparison_mode: 'global_interaction'
+  cell_type_label_go_module: '.'
+  min_cells_per_group_dego_module: 25
+  condition_value1: '.'
+  condition_value2: '.'
+  condition_value3: '.'
   root_dir: './'
   PROJECT_NAME: '.'
   PI_NAME: '.'
@@ -169,6 +192,39 @@ cells_table_file <- file.path(Filter_object_results_dir, "number_of_cells_per_sa
 #metadata_file <- file.path(metadata_dir, "project_metadata.tsv") # metadata input file
 
 summary_samples_table_file <- file.path(metadata_dir, metadata_file) # summary_samples_table file
+
+dego_project_updates_yes <- function(x) {
+  if (is.null(x) || length(x) != 1L) {
+    return(FALSE)
+  }
+  if (isTRUE(x)) {
+    return(TRUE)
+  }
+  identical(toupper(trimws(as.character(x))), "YES")
+}
+include_de_go_project_updates <- isTRUE(params$include_de_go_project_updates) ||
+  dego_project_updates_yes(params$include_de_go_analysis_project_updates_module)
+dego_mode <- dego_condition_comparison_mode
+dego_analysis_dir <- file.path(root_dir, "analyses", "de-go-analysis")
+dego_config_util <- file.path(dego_analysis_dir, "util", "function-de-go-config.R")
+if (file.exists(dego_config_util)) {
+  source(dego_config_util)
+  dego_mode <- normalize_dego_mode_label(dego_condition_comparison_mode)
+  dego_plots_dir <- dego_module_plots_dir(dego_analysis_dir, dego_mode)
+  dego_results_de_subdir <- dego_results_de_dir(dego_analysis_dir, dego_mode)
+} else {
+  dego_plots_dir <- file.path(dego_analysis_dir, "plots", paste0("plots_", dego_mode))
+  dego_results_de_subdir <- file.path(
+    dego_analysis_dir, "results", paste0("results_", dego_mode), "01-de-analysis"
+  )
+}
+dego_plots_link <- file.path(
+  "analyses", "de-go-analysis", basename(dego_plots_dir)
+)
+dego_results_link <- file.path(
+  "analyses", "de-go-analysis", "results", paste0("results_", dego_mode), "01-de-analysis"
+)
+detach(params)
 ```
 
 
@@ -409,10 +465,83 @@ For more information, please see: `r results_filepath`/`r cohort_value`/analyses
 
 For more information, please see: `r results_filepath`/`r cohort_value`/analyses/clone-phylogeny-analysis/plots
 
-## de-go-analysis
+```{r de-go-analysis-section, echo = FALSE, results = "asis"}
+if (!isTRUE(include_de_go_project_updates)) {
+  invisible(NULL)
+} else {
+attach(params)
+dego_condition_cols <- c(condition_value1, condition_value2, condition_value3)
+dego_condition_cols <- dego_condition_cols[
+  !is.null(dego_condition_cols) &
+    !dego_condition_cols %in% c("NULL", ".", "") &
+    nzchar(as.character(dego_condition_cols))
+]
 
-For more information, please see: `r results_filepath`/`r cohort_value`/analyses/de-go-analysis/plots
+cat("\n\n## de-go-analysis\n\n")
+cat(
+  "Differential expression and GO enrichment (`de-go-analysis` module) for this project.\n\n",
+  "- **Comparison mode** (`dego_condition_comparison_mode`): **`", dego_mode, "`**\n",
+  "- **Cell type metadata column**: **`", cell_type_label_go_module, "`**\n",
+  "- **Min cells per group**: **`", min_cells_per_group_dego_module, "`**\n",
+  sep = ""
+)
+if (length(dego_condition_cols) > 0L) {
+  cat("- **Condition metadata column(s)**: **", paste(dego_condition_cols, collapse = "`, `"), "**\n", sep = "")
+}
+cat("\n")
 
+plots_exist <- dir.exists(dego_plots_dir)
+results_exist <- dir.exists(dego_results_de_subdir)
+if (!plots_exist) {
+  legacy_plots <- file.path(dego_analysis_dir, "plots")
+  if (dir.exists(legacy_plots)) {
+    dego_plots_dir <<- legacy_plots
+    dego_plots_link <<- "analyses/de-go-analysis/plots"
+    plots_exist <- TRUE
+  }
+}
+if (!results_exist) {
+  legacy_results <- file.path(dego_analysis_dir, "results", "01-de-analysis")
+  if (dir.exists(legacy_results)) {
+    dego_results_de_subdir <<- legacy_results
+    dego_results_link <<- "analyses/de-go-analysis/results/01-de-analysis"
+    results_exist <- TRUE
+  }
+}
+
+cat(
+  "Reports and figures: `", results_filepath, "/", cohort_value, "/", dego_plots_link, "`\n\n",
+  "DE result tables: `", results_filepath, "/", cohort_value, "/", dego_results_link, "`\n\n",
+  sep = ""
+)
+
+if (plots_exist) {
+  report_files <- sort(list.files(dego_plots_dir, pattern = "^Report-.*\\.(html|pdf)$", ignore.case = TRUE))
+  if (length(report_files) > 0L) {
+    cat("### Module reports available\n\n")
+    report_df <- tibble::tibble(
+      Report = report_files,
+      Path = file.path(dego_plots_dir, report_files)
+    )
+    print(knitr::kable(report_df, align = "ll"))
+    cat("\n")
+  } else {
+    cat("*Plots directory exists but no `Report-*.html` / `Report-*.pdf` files found yet.*\n\n")
+  }
+} else {
+  cat("*Requested in project config, but plots output was not found. Run `analyses/de-go-analysis/run-de-go-analysis.sh` for mode `", dego_mode, "`.*\n\n", sep = "")
+}
+
+if (results_exist) {
+  marker_files <- sort(list.files(dego_results_de_subdir, pattern = "^Res_.*\\.tsv$"))
+  if (length(marker_files) > 0L) {
+    cat("### DE TSV outputs (", length(marker_files), " files)\n\n", sep = "")
+    cat(paste0("- `", marker_files, "`", collapse = "\n"), "\n\n", sep = "")
+  }
+}
+detach(params)
+}
+```
 
 ## rshiny-app
 

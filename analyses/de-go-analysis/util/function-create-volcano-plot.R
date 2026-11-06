@@ -59,6 +59,14 @@ create_volcano_plot <- function(all.markers,
     # Optionally drop NAs
     select_labels_grp <- select_labels_grp[!is.na(select_labels_grp) & nzchar(select_labels_grp)]
     
+    plot_subtitle <- NULL
+    if (all(c("ident1", "ident2") %in% names(df))) {
+      plot_subtitle <- paste0(
+        "ident.1 ", df$ident1[[1L]], " vs ident.2 ", df$ident2[[1L]],
+        " (avg_log2FC: higher in ident.1)"
+      )
+    }
+
     cat("Volcano Plot:", cl, "\n")
     p_grp <- print(EnhancedVolcano::EnhancedVolcano(df,
                                                     lab = df$gene,     # rownames(df), if unique or df$gene
@@ -71,7 +79,7 @@ create_volcano_plot <- function(all.markers,
                                                     #pCutoff = 5e-2, # adjusted or raw p-value threshold;  often use p_val_adj threshold
                                                     #FCcutoff       = 0.25,
                                                     title          = paste("Volcano Plot:", cl),
-                                                    subtitle       = NULL,
+                                                    subtitle       = plot_subtitle,
                                                     ylab           = bquote(~-Log[10]~ 'P'),
                                                     # Optional label/point tweaks
                                                     labSize        = 3.3,
