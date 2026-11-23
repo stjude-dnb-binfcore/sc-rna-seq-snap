@@ -219,7 +219,7 @@ if (file.exists(dego_config_util)) {
   )
 }
 dego_plots_link <- file.path(
-  "analyses", "de-go-analysis", basename(dego_plots_dir)
+  "analyses", "de-go-analysis", "plots", basename(dego_plots_dir)
 )
 dego_results_link <- file.path(
   "analyses", "de-go-analysis", "results", paste0("results_", dego_mode), "01-de-analysis"

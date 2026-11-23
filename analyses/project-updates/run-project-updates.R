@@ -25,28 +25,7 @@ yaml <- read_yaml(text = paste(config_lines, collapse = "\n"))
 
 # Set up directories and paths to root_dir and analysis_dir
 root_dir <- yaml$root_dir
-analysis_dir <- file.path(root_dir, "analyses", "project-updates") 
-metadata_dir <- yaml$metadata_dir
-metadata_file <- yaml$metadata_file
-
-PROJECT_NAME <- yaml$PROJECT_NAME
-genome_reference <- yaml$genome_name
-min_genes <- yaml$min_genes
-min_count <- yaml$min_count
-mtDNA_pct_default <- yaml$mtDNA_pct_default
-resolution_clustering_module <- yaml$resolution_clustering_module
-resolution_values <- yaml$resolution_list_default_clustering_module
-resolution_list_find_markers <- yaml$resolution_list_find_markers
-n_value_find_markers <- yaml$n_value_find_markers
-method_annotation_module <- yaml$method_annotation_module
-annotation_file1 <- yaml$gene_markers_file_name_annotation_module
-annotation_file2 <- yaml$reference_file_name_annotation_module
-integration_method <-  yaml$integration_method_clustering_module
-
-# Set variables for `project-updates` module
-results_filepath <- yaml$results_filepath
-mac_results_filepath <- yaml$mac_results_filepath
-cohort_value <- yaml$cohort_value
+analysis_dir <- file.path(root_dir, "analyses", "project-updates")
 
 is_yes_param <- function(x) {
   if (is.null(x) || length(x) != 1L || is.na(x)) {
@@ -115,7 +94,7 @@ if (!dir.exists(results_dir)) {
   dir.create(results_dir)}
 
 # Define dynamic output file name using Sys.Date()
-output_file <- file.path(results_dir, glue::glue("Updates-{PROJECT_NAME}-{Sys.Date()}.html"))
+output_file <- file.path(results_dir, glue::glue("Updates-{yaml$PROJECT_NAME}-{Sys.Date()}.html"))
 
 
 # Render the R Markdown file
