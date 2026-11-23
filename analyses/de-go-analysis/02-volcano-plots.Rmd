@@ -253,10 +253,6 @@ plots_dir_overall <- file.path(plots_dir, "01-volcano-plots-overall")
 if (!dir.exists(plots_dir_overall)) {
   dir.create(plots_dir_overall)}
 
-plots_dir_condition1 <- file.path(plots_dir, "02-volcano-plots-condition1") 
-if (!dir.exists(plots_dir_condition1)) {
-  dir.create(plots_dir_condition1)}
-
 # Source functions
 source(paste0(analysis_dir, "/util/function-create-volcano-plot.R"))
 ```
@@ -300,6 +296,10 @@ volcano_plot_results <- create_volcano_plot(all.markers = all.markers_overall, n
 
 ```{r volcano-plot-condition1, fig.width = 8, fig.height = 6, fig.fullwidth = TRUE, echo=TRUE, eval=show_global_interaction}
 all.markers_condition_value1 <- read_dego_markers_for_plots(markers_file_condition_value1)
+plots_dir_condition1 <- file.path(plots_dir, "02-volcano-plots-condition1")
+if (!dir.exists(plots_dir_condition1)) {
+  dir.create(plots_dir_condition1)
+}
 volcano_plot_results <- create_volcano_plot(all.markers = all.markers_condition_value1, n_value = n_value, plots_dir = plots_dir_condition1)
 ```
 
@@ -335,7 +335,7 @@ if (!is.null(condition_value3)) {
 
 # Within cell type — volcano plots
 
-Each volcano is one **cell type** (`cluster`). The x-axis is `avg_log2FC` from [FindMarkers()](https://satijalab.org/seurat/reference/findmarkers) comparing **ident.1 vs ident.2** within that cell type (same contrast for all panels in a condition block). Plot subtitles repeat ident.1 / ident.2.
+Each volcano plot displays one **cell type** (`cluster`). The x-axis is `avg_log2FC` from [FindMarkers()](https://satijalab.org/seurat/reference/findmarkers) comparing **ident.1 vs ident.2** within that cell type (same contrast for all panels in a condition block). Plot subtitles repeat ident.1 / ident.2.
 
 ## Within cell type — per `r condition_value1`
 
