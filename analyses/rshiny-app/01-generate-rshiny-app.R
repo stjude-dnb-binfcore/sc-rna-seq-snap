@@ -50,15 +50,13 @@ if (is.null(dego_mode_rshiny) || !nzchar(as.character(dego_mode_rshiny))) {
   dego_mode_rshiny <- "global_interaction"
 }
 
-is_dego_shiny_yes <- function(x) {
-  if (is.null(x) || length(x) != 1L || is.na(x)) {
-    return(FALSE)
-  }
-  if (isTRUE(x)) {
-    return(TRUE)
-  }
-  identical(toupper(trimws(as.character(x))), "YES")
+dego_shiny_util <- file.path(
+  root_dir, "analyses", "rshiny-app", "util", "function-attach-dego-shiny-app.R"
+)
+if (!file.exists(dego_shiny_util)) {
+  stop("Missing DE/GO Shiny helper: ", dego_shiny_util)
 }
+source(dego_shiny_util)
 include_de_go_rshiny <- is_dego_shiny_yes(yaml$include_de_go_analysis_rshiny_app_module)
 
 
@@ -88,7 +86,6 @@ if (!dir.exists(results_dir)) {
 # It was downloaded from here: https://github.com/SGDDNB/ShinyCell/blob/master/R
 # We modified the function to account for any type of assay
 source(paste0(module_dir, "/util/makeShinyFiles_assay.R"))
-source(paste0(module_dir, "/util/function-attach-dego-shiny-app.R"))
 
 ################################################################################################################
 ### Generate R shiny app ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
