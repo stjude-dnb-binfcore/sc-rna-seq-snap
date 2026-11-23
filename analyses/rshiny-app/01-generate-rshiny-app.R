@@ -154,7 +154,8 @@ if (include_de_go_rshiny) {
     shiny_dir = shiny_app_dir,
     root_dir = root_dir,
     dego_mode = dego_mode_rshiny,
-    resolution_list = resolution_list_dego
+    resolution_list = resolution_list_dego,
+    pi_name = PI_NAME
   )
 } else {
   message(

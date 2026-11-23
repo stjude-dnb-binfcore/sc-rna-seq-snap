@@ -373,7 +373,7 @@ write_volcano_reports_index_html <- function(report_files, dest_dir, dego_mode) 
   writeLines(body, file.path(dest_dir, "index.html"), useBytes = TRUE)
 }
 
-inject_dego_tab_in_ui <- function(ui_path) {
+inject_dego_tab_in_ui <- function(ui_path, pi_name) {
   if (!file.exists(ui_path)) {
     message("ui.R not found; skipping DE/GO tab injection: ", ui_path)
     return(invisible(FALSE))
@@ -395,21 +395,7 @@ inject_dego_tab_in_ui <- function(ui_path) {
     "  ),"
   )
 
-  insert_at <- NA_integer_
-  nav_start <- grep("^navbarPage\\(", ui)[1]
-  if (!is.na(nav_start)) {
-    footer_line <- grep('p\\("Dyer Lab"', ui)[1]
-    if (is.na(footer_line)) {
-      footer_line <- grep("ShinyCell", ui)[1]
-    }
-    if (!is.na(footer_line)) {
-      menu_close <- grep("^   \\),\\s*$", ui)
-      menu_close <- menu_close[menu_close > nav_start & menu_close < footer_line]
-      if (length(menu_close) > 0L) {
-        insert_at <- menu_close[length(menu_close)]
-      }
-    }
-  }
+  insert_at <- find_insert_before_navbar_footer(ui, pi_name = pi_name)
 
   if (is.na(insert_at)) {
     shiny_app_line <- grep("^shinyApp\\(", ui)[1]
@@ -432,6 +418,24 @@ inject_dego_tab_in_ui <- function(ui_path) {
   writeLines(ui, ui_path, useBytes = TRUE)
   message("Added \"DE & GO reports\" tab to ui.R")
   invisible(TRUE)
+}
+
+#' Last top-level \code{navbarMenu} close before \code{makeShinyCodesMulti} footnote (\code{PI_NAME}).
+find_insert_before_navbar_footer <- function(ui, pi_name) {
+  nav_start <- grep("^navbarPage\\(", ui)[1]
+  if (is.na(nav_start)) {
+    return(NA_integer_)
+  }
+  footer_line <- grep(paste0('p("', as.character(pi_name), '"'), ui, fixed = TRUE)[1]
+  if (is.na(footer_line)) {
+    return(NA_integer_)
+  }
+  menu_close <- grep("^   \\),\\s*$", ui)
+  menu_close <- menu_close[menu_close > nav_start & menu_close < footer_line]
+  if (length(menu_close) < 1L) {
+    return(NA_integer_)
+  }
+  menu_close[length(menu_close)]
 }
 
 #' Insert anchor line after which a companion tab should be added (after DE & GO tab).
@@ -489,7 +493,7 @@ find_insert_volcano_in_annotations_menu <- function(ui) {
   target - 1L
 }
 
-inject_volcano_tab_in_ui <- function(ui_path, prefix = "sc1") {
+inject_volcano_tab_in_ui <- function(ui_path, prefix = "sc1", pi_name) {
   if (!file.exists(ui_path)) {
     message("ui.R not found; skipping Volcano tab injection: ", ui_path)
     return(invisible(FALSE))
@@ -510,20 +514,7 @@ inject_volcano_tab_in_ui <- function(ui_path, prefix = "sc1") {
   }
 
   if (is.na(insert_at)) {
-    nav_start <- grep("^navbarPage\\(", ui)[1]
-    if (!is.na(nav_start)) {
-      footer_line <- grep('p\\("Dyer Lab"', ui)[1]
-      if (is.na(footer_line)) {
-        footer_line <- grep("ShinyCell", ui)[1]
-      }
-      if (!is.na(footer_line)) {
-        menu_close <- grep("^   \\),\\s*$", ui)
-        menu_close <- menu_close[menu_close > nav_start & menu_close < footer_line]
-        if (length(menu_close) > 0L) {
-          insert_at <- menu_close[length(menu_close)]
-        }
-      }
-    }
+    insert_at <- find_insert_before_navbar_footer(ui, pi_name = pi_name)
   }
 
   if (is.na(insert_at)) {
@@ -554,7 +545,8 @@ inject_volcano_tab_in_ui <- function(ui_path, prefix = "sc1") {
 attach_interactive_volcano_to_shiny_app <- function(shiny_dir,
                                                   root_dir,
                                                   dego_mode = "global_interaction",
-                                                  resolution_list = NULL) {
+                                                  resolution_list = NULL,
+                                                  pi_name) {
   server_path <- file.path(shiny_dir, "server.R")
   ui_path <- file.path(shiny_dir, "ui.R")
   if (!file.exists(server_path) || !file.exists(ui_path)) {
@@ -601,7 +593,7 @@ attach_interactive_volcano_to_shiny_app <- function(shiny_dir,
 
   inject_volcano_readRDS_after_meta_load(server_path)
   inject_volcano_server_observers(server_path, prefix)
-  inject_volcano_tab_in_ui(ui_path, prefix = prefix)
+  inject_volcano_tab_in_ui(ui_path, prefix = prefix, pi_name = pi_name)
 
   manifest <- data.frame(
     tsv = unlist(lapply(volcano_index, function(z) attr(z, "source_tsv")), use.names = FALSE),
@@ -672,7 +664,8 @@ attach_volcano_html_reports_optional <- function(shiny_dir,
 attach_de_go_reports_to_shiny_app <- function(shiny_dir,
                                              root_dir,
                                              dego_mode = "global_interaction",
-                                             resolution_list = NULL) {
+                                             resolution_list = NULL,
+                                             pi_name) {
   resolved <- resolve_dego_shiny_plots_dir(root_dir, dego_mode)
   if (is.null(resolved)) {
     message(
@@ -729,7 +722,7 @@ attach_de_go_reports_to_shiny_app <- function(shiny_dir,
         quote = FALSE
       )
 
-      inject_dego_tab_in_ui(file.path(shiny_dir, "ui.R"))
+      inject_dego_tab_in_ui(file.path(shiny_dir, "ui.R"), pi_name = pi_name)
       message(
         "Attached ", length(report_files), " de-go HTML report(s) to Shiny app (mode=",
         dego_mode_use, "). Open tab \"DE & GO reports\" or www/de_go_reports/index.html"
@@ -743,7 +736,8 @@ attach_de_go_reports_to_shiny_app <- function(shiny_dir,
     shiny_dir = shiny_dir,
     root_dir = root_dir,
     dego_mode = dego_mode_use,
-    resolution_list = resolution_list
+    resolution_list = resolution_list,
+    pi_name = pi_name
   )
 
   attach_volcano_html_reports_optional(
