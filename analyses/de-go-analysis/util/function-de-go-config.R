@@ -131,9 +131,6 @@ filter_markers_min_cells <- function(markers, min_cells_per_group) {
   markers
 }
 
-filter_comparison_markers_min_cells <- function(markers, min_cells_per_group) {
-  filter_markers_min_cells(markers, min_cells_per_group)
-}
 
 dego_low_cell_exclusion_path <- function(results_dir, resolution_list, label) {
   file.path(results_dir, paste0("Res_", resolution_list, "_Low_cell_", label, ".tsv"))
@@ -348,19 +345,6 @@ summarize_dego_min_cells_exclusions <- function(results_dir, resolution_list) {
     ))
   }
   do.call(rbind, rows)
-}
-
-assert_seurat_metadata_column <- function(seurat_obj, column, context = "metadata") {
-  if (!column %in% colnames(seurat_obj@meta.data)) {
-    stop(
-      "Column '", column, "' was not found in Seurat ", context, ". ",
-      "Check cell_type_label_go_module in project_parameters.Config.yaml. ",
-      "Available columns include: ",
-      paste(utils::head(colnames(seurat_obj@meta.data), 40L), collapse = ", "),
-      if (ncol(seurat_obj@meta.data) > 40L) ", ..." else ""
-    )
-  }
-  invisible(column)
 }
 
 ############################################################################################################
