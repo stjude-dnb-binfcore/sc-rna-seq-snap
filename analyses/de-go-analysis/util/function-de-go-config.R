@@ -104,8 +104,89 @@ resolve_dego_min_cells_param <- function(param_value, root_dir = ".") {
   25L
 }
 
-add_cluster_cell_counts_to_markers <- function(markers, idents_counts) {
-  if (is.null(markers) || nrow(markers) == 0L || !"cluster" %in% names(markers)) {
+dego_markers_context_label <- function(path, context = NULL) {
+  if (!is.null(context) && nzchar(as.character(context))) {
+    return(as.character(context))
+  }
+  if (is.null(path)) {
+    return("markers")
+  }
+  base <- basename(path)
+  if (grepl("_Markers_within_celltype_", base, fixed = TRUE)) {
+    return(sub("^Res_[0-9.]+_Markers_within_celltype_(.+?)\\.tsv$", "within_\\1", base))
+  }
+  m <- sub("^Res_[0-9.]+_Markers_all_(.+?)\\.tsv$", "\\1", base)
+  if (!identical(m, base)) {
+    return(m)
+  }
+  if (grepl("_Markers_all\\.tsv$", base)) {
+    return("overall")
+  }
+  sub("\\.tsv$", "", base)
+}
+
+assert_dego_markers_schema <- function(markers, path) {
+  if (is.null(markers)) {
+    stop("Marker table is NULL: ", path)
+  }
+  if (ncol(markers) == 0L) {
+    stop("Marker file has no columns: ", path)
+  }
+  nm <- names(markers)
+  missing_core <- setdiff(c("cluster", "avg_log2FC"), nm)
+  if (length(missing_core) > 0L) {
+    stop(
+      "Marker file missing required column(s): ",
+      paste(missing_core, collapse = ", "),
+      " (file: ", path, "; columns: ",
+      paste(nm, collapse = ", "),
+      ")"
+    )
+  }
+  if (!any(c("p_val", "p_val_adj") %in% nm)) {
+    stop("Marker file must include p_val or p_val_adj (file: ", path, ")")
+  }
+  if (nrow(markers) > 0L && !"gene" %in% nm) {
+    warning(
+      "Marker file has no 'gene' column (file: ", path,
+      "). Volcano and GO steps may fail or use row names only.",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
+add_cluster_cell_counts_to_markers <- function(markers,
+                                                 idents_counts,
+                                                 context = "markers",
+                                                 warn = TRUE) {
+  if (is.null(markers)) {
+    if (isTRUE(warn)) {
+      warning(
+        "add_cluster_cell_counts_to_markers: markers is NULL (context: ", context, ")",
+        call. = FALSE
+      )
+    }
+    return(markers)
+  }
+  if (nrow(markers) == 0L) {
+    if (isTRUE(warn)) {
+      warning(
+        "add_cluster_cell_counts_to_markers: marker table has 0 rows (context: ", context, ")",
+        call. = FALSE
+      )
+    }
+    return(markers)
+  }
+  if (!"cluster" %in% names(markers)) {
+    if (isTRUE(warn)) {
+      warning(
+        "add_cluster_cell_counts_to_markers: missing 'cluster' column (",
+        nrow(markers), " row(s); context: ", context,
+        "). cluster_cell_count cannot be added.",
+        call. = FALSE
+      )
+    }
     return(markers)
   }
   markers$cluster_cell_count <- as.integer(idents_counts[as.character(markers$cluster)])
@@ -113,27 +194,70 @@ add_cluster_cell_counts_to_markers <- function(markers, idents_counts) {
   markers
 }
 
-filter_markers_min_cells <- function(markers, min_cells_per_group) {
+filter_markers_min_cells <- function(markers,
+                                     min_cells_per_group,
+                                     context = "markers",
+                                     path = NULL,
+                                     warn = TRUE,
+                                     warn_if_empty = warn) {
+  raw_min <- min_cells_per_group
   min_cells_per_group <- as.integer(min_cells_per_group)
-  if (length(min_cells_per_group) != 1L || !is.finite(min_cells_per_group) || min_cells_per_group <= 0L) {
+  if (length(min_cells_per_group) != 1L ||
+      !is.finite(min_cells_per_group) ||
+      min_cells_per_group <= 0L) {
+    if (isTRUE(warn)) {
+      warning(
+        "filter_markers_min_cells: invalid min_cells_per_group (",
+        paste(deparse(raw_min), collapse = " "),
+        "); filtering skipped (context: ", context, ")",
+        call. = FALSE
+      )
+    }
     return(markers)
   }
   if (is.null(markers) || nrow(markers) == 0L) {
+    if (isTRUE(warn) && isTRUE(warn_if_empty)) {
+      path_note <- if (!is.null(path) && nzchar(path)) paste0("; file: ", path) else ""
+      warning(
+        "filter_markers_min_cells: no marker rows to filter (context: ",
+        context, path_note, ")",
+        call. = FALSE
+      )
+    }
     return(markers)
   }
+  n_before <- nrow(markers)
   if (all(c("n_ident1", "n_ident2") %in% names(markers))) {
     keep <- markers$n_ident1 >= min_cells_per_group & markers$n_ident2 >= min_cells_per_group
-    return(markers[keep, , drop = FALSE])
+    out <- markers[keep, , drop = FALSE]
+  } else if ("cluster_cell_count" %in% names(markers)) {
+    out <- markers[markers$cluster_cell_count >= min_cells_per_group, , drop = FALSE]
+  } else {
+    if (isTRUE(warn)) {
+      path_note <- if (!is.null(path) && nzchar(path)) paste0(" (", path, ")") else ""
+      warning(
+        "filter_markers_min_cells: min-cell filter skipped",
+        path_note,
+        " — missing n_ident1/n_ident2 and cluster_cell_count (context: ", context, ")",
+        call. = FALSE
+      )
+    }
+    return(markers)
   }
-  if ("cluster_cell_count" %in% names(markers)) {
-    return(markers[markers$cluster_cell_count >= min_cells_per_group, , drop = FALSE])
+  n_after <- nrow(out)
+  if (isTRUE(warn) && n_after == 0L && n_before > 0L) {
+    path_note <- if (!is.null(path) && nzchar(path)) paste0(" (", path, ")") else ""
+    warning(
+      "filter_markers_min_cells: all ", n_before,
+      " marker row(s) removed by min_cells_per_group=", min_cells_per_group,
+      path_note, " (context: ", context,
+      "). See Res_*_Low_cell_* and Res_*_Skipped_celltypes TSVs.",
+      call. = FALSE
+    )
   }
-  markers
+  out
 }
 
-filter_comparison_markers_min_cells <- function(markers, min_cells_per_group) {
-  filter_markers_min_cells(markers, min_cells_per_group)
-}
 
 dego_low_cell_exclusion_path <- function(results_dir, resolution_list, label) {
   file.path(results_dir, paste0("Res_", resolution_list, "_Low_cell_", label, ".tsv"))
@@ -167,7 +291,13 @@ finalize_markers_with_min_cells <- function(markers,
                                             exclusion_label,
                                             markers_filename) {
   min_cells_per_group <- resolve_dego_min_cells_param(min_cells_per_group)
-  markers <- add_cluster_cell_counts_to_markers(markers, idents_counts)
+  out_path <- file.path(results_dir, markers_filename)
+  markers <- add_cluster_cell_counts_to_markers(
+    markers,
+    idents_counts,
+    context = exclusion_label,
+    warn = TRUE
+  )
   excluded_path <- write_low_cell_exclusion_tsv(
     markers = markers,
     min_cells_per_group = min_cells_per_group,
@@ -175,8 +305,14 @@ finalize_markers_with_min_cells <- function(markers,
     resolution_list = resolution_list,
     label = exclusion_label
   )
-  markers <- filter_markers_min_cells(markers, min_cells_per_group)
-  out_path <- file.path(results_dir, markers_filename)
+  markers <- filter_markers_min_cells(
+    markers,
+    min_cells_per_group,
+    context = exclusion_label,
+    path = out_path,
+    warn = TRUE,
+    warn_if_empty = FALSE
+  )
   write.table(markers, file = out_path, sep = "\t", quote = FALSE, row.names = FALSE)
   invisible(list(
     markers = markers,
@@ -219,12 +355,31 @@ finalize_global_interaction_markers <- function(markers,
   )
 }
 
-read_dego_markers_filtered <- function(path, min_cells_per_group) {
+read_dego_markers_filtered <- function(path,
+                                       min_cells_per_group,
+                                       context = NULL) {
   if (!file.exists(path)) {
     stop("Marker file not found: ", path)
   }
   df <- read.delim(path, stringsAsFactors = FALSE)
-  filter_markers_min_cells(df, min_cells_per_group)
+  assert_dego_markers_schema(df, path)
+  ctx <- dego_markers_context_label(path, context)
+  report <- isTRUE(getOption("dego_markers_report_quality", FALSE))
+  if (report && nrow(df) == 0L) {
+    warning(
+      "read_dego_markers_filtered: marker file has 0 rows (context: ",
+      ctx, "; ", path, ")",
+      call. = FALSE
+    )
+  }
+  filter_markers_min_cells(
+    df,
+    min_cells_per_group,
+    context = ctx,
+    path = path,
+    warn = report,
+    warn_if_empty = report
+  )
 }
 
 read_low_cell_exclusion_table <- function(results_dir, resolution_list, label) {
@@ -348,19 +503,6 @@ summarize_dego_min_cells_exclusions <- function(results_dir, resolution_list) {
     ))
   }
   do.call(rbind, rows)
-}
-
-assert_seurat_metadata_column <- function(seurat_obj, column, context = "metadata") {
-  if (!column %in% colnames(seurat_obj@meta.data)) {
-    stop(
-      "Column '", column, "' was not found in Seurat ", context, ". ",
-      "Check cell_type_label_go_module in project_parameters.Config.yaml. ",
-      "Available columns include: ",
-      paste(utils::head(colnames(seurat_obj@meta.data), 40L), collapse = ", "),
-      if (ncol(seurat_obj@meta.data) > 40L) ", ..." else ""
-    )
-  }
-  invisible(column)
 }
 
 ############################################################################################################

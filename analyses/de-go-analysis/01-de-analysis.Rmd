@@ -156,6 +156,7 @@ if (!file.exists(config_util)) {
   config_util <- file.path(root_dir, "analyses", "de-go-analysis", "util", "function-de-go-config.R")
 }
 source(config_util)
+options(dego_markers_report_quality = TRUE)
 
 if (is_dego_param_placeholder(root_dir)) {
   yaml_root <- read_dego_project_yaml(".")
@@ -225,9 +226,9 @@ Comparison mode for this project: **`r dego_mode`** (`dego_condition_comparison_
 
 | Report section | DE question | Included when mode is |
 |----------------|-------------|------------------------|
-| **Overall** | Which genes define each **`r cell_type_label_go`** vs all other cells? | Always |
-| **Global interaction** | For each **`cell_type × condition`** identity, which genes are specific to that group vs **everyone else**? | `global_interaction`, `both` |
-| **Within cell type** | Within one cell type, **`ident.1` vs `ident.2`** on a condition column (direct contrast)? | `within_celltype`, `both` |
+| **Overall** | Which genes define each **`r cell_type_label_go`** label group vs all other cells? | Any (i.e. always included) |
+| **Global interaction** | For each **`cell_type × condition`** identity, which genes are specific to that group vs **all other cells**? | `global_interaction`, `both` |
+| **Within cell type** | Within each cell type, which genes are differing between  **`ident.1` vs `ident.2`** for a given condition column (direct contrast)? | `within_celltype`, `both` |
 
 Seurat input: `cell-types-annotation` → `seurat_obj_cell_types_annotations_all.rds` (used in precompute, not loaded again here unless you knit this Rmd alone without running the module).
 
@@ -276,21 +277,21 @@ datatable(all.markers,
 
 ```{r global-section-prose, echo=FALSE, results='asis', eval=show_global_interaction}
 cat(
-  "\n\nHere, we define cell identities as the interaction between:\n",
-  "   (1) the cell type label (", cell_type_label_go, "), and\n",
-  "   (2) each configured experimental condition column (e.g. ", condition_value1, ").\n\n",
+  "\n\nHere, we define cell identities as the interaction between:\n\n",
+  "1. the cell type label (", cell_type_label_go, "), and\n",
+  "2. each configured experimental condition column (e.g. ", condition_value1, ").\n\n",
   "This creates composite identities of the form `<cell_type>.<condition>`, ",
   "e.g., Amacrine.knock-out, Amacrine.wt, Bipolar.knock-out, Bipolar.wt, etc.\n\n",
   "[FindAllMarkers()](https://satijalab.org/seurat/reference/findallmarkers) ",
   "identifies differentially expressed genes for each `<cell_type>.<condition>` group ",
   "compared to *all other cells* in the dataset, not just the corresponding condition ",
   "within the same cell type.\n\n",
-  "For example:\n",
-  "   - Amacrine.knock-out is compared against all remaining cells, including:\n",
-  "       • Amacrine.wt\n",
-  "       • Bipolar.knock-out\n",
-  "       • Bipolar.wt\n",
-  "       • all other cell types and conditions\n\n",
+  "For example:\n\n",
+  "- Amacrine.knock-out is compared against all remaining cells, including:\n",
+  "    - Amacrine.wt\n",
+  "    - Bipolar.knock-out\n",
+  "    - Bipolar.wt\n",
+  "    - all other cell types and conditions\n\n",
   "This analysis highlights genes specific to a given cell-type/condition combination ",
   "relative to the global cellular background, rather than a direct condition-to-condition ",
   "comparison within the same cell type.\n\n",
@@ -300,7 +301,7 @@ cat(
 )
 if (!show_within_celltype) {
   cat(
-    "\n\n**NOTE**: For direct within–cell-type condition contrasts, set ",
+    "\n\n**NOTE**: To generate direct within-cell-type condition contrasts when running the de-go module, set ",
     "`dego_condition_comparison_mode: \"within_celltype\"` or `\"both\"` in ",
     "`project_parameters.Config.yaml` (see section below).\n\n"
   )
@@ -401,7 +402,7 @@ if (!is.null(condition_value3) && exists("all.markers_condition_value3")) {
 # Differential Expression (DE) within each cell type (condition contrast)
 
 ```{r within-section-banner, echo=FALSE, results='asis', eval=!show_within_celltype}
-cat("\n\n*(This section is omitted for `dego_condition_comparison_mode: \"", dego_mode, "\"` — enable `within_celltype` or `both` to include it.)*\n\n")
+cat("\n\n*(This section is omitted for `dego_condition_comparison_mode: \"", dego_mode, "\"` - enable `within_celltype` or `both` to include it.)*\n\n")
 ```
 
 For each cell type, cells are subset to that type and [FindMarkers()](https://satijalab.org/seurat/reference/findmarkers) compares two condition levels (ident.1 vs ident.2). Cell types with fewer than **`r min_cells_per_group`** cells in either level are skipped (see `Res_*_Skipped_celltypes_*.tsv`). DE is computed in **`run-de-computation.R`** before this report is built.
@@ -429,17 +430,17 @@ cat_within_celltype_contrast_report(contrast_de_v1, all.markers_within_v1, condi
 ```
 
 ```{r within-condition1, echo=TRUE, eval=show_within_celltype}
-skipped_v1 <- if (file.exists(skipped_path("condition_value1"))) {
-  read.delim(skipped_path("condition_value1"), stringsAsFactors = FALSE)
-} else {
-  NULL
-}
 datatable(all.markers_within_v1,
           options = list(pageLength = 5, autoWidth = TRUE, server = TRUE),
           filter = "top")
 ```
 
 ```{r within-skipped-v1, echo=TRUE, eval=show_within_celltype, results='asis'}
+skipped_v1 <- if (file.exists(skipped_path("condition_value1"))) {
+  read.delim(skipped_path("condition_value1"), stringsAsFactors = FALSE)
+} else {
+  NULL
+}
 if (!is.null(skipped_v1) && nrow(skipped_v1) > 0) {
   cat("\n\n### Cell types skipped\n\n")
   print(kable(skipped_v1))
@@ -457,14 +458,21 @@ cat_within_celltype_contrast_report(contrast_de_v2, all.markers_within_v2, condi
 ```
 
 ```{r within-condition2, echo=TRUE, eval=show_within_celltype && !is.null(condition_value2) && !condition_value2 %in% c("NULL", ".", "")}
+datatable(all.markers_within_v2,
+          options = list(pageLength = 5, autoWidth = TRUE, server = TRUE),
+          filter = "top")
+```
+
+```{r within-skipped-v2, echo=TRUE, eval=show_within_celltype && !is.null(condition_value2) && !condition_value2 %in% c("NULL", ".", ""), results='asis'}
 skipped_v2 <- if (file.exists(skipped_path("condition_value2"))) {
   read.delim(skipped_path("condition_value2"), stringsAsFactors = FALSE)
 } else {
   NULL
 }
-datatable(all.markers_within_v2,
-          options = list(pageLength = 5, autoWidth = TRUE, server = TRUE),
-          filter = "top")
+if (!is.null(skipped_v2) && nrow(skipped_v2) > 0) {
+  cat("\n\n### Cell types skipped\n\n")
+  print(kable(skipped_v2))
+}
 ```
 
 ## Within cell type — per `r condition_value3`
@@ -478,14 +486,21 @@ cat_within_celltype_contrast_report(contrast_de_v3, all.markers_within_v3, condi
 ```
 
 ```{r within-condition3, echo=TRUE, eval=show_within_celltype && !is.null(condition_value3) && !condition_value3 %in% c("NULL", ".", "")}
+datatable(all.markers_within_v3,
+          options = list(pageLength = 5, autoWidth = TRUE, server = TRUE),
+          filter = "top")
+```
+
+```{r within-skipped-v3, echo=TRUE, eval=show_within_celltype && !is.null(condition_value3) && !condition_value3 %in% c("NULL", ".", ""), results='asis'}
 skipped_v3 <- if (file.exists(skipped_path("condition_value3"))) {
   read.delim(skipped_path("condition_value3"), stringsAsFactors = FALSE)
 } else {
   NULL
 }
-datatable(all.markers_within_v3,
-          options = list(pageLength = 5, autoWidth = TRUE, server = TRUE),
-          filter = "top")
+if (!is.null(skipped_v3) && nrow(skipped_v3) > 0) {
+  cat("\n\n### Cell types skipped\n\n")
+  print(kable(skipped_v3))
+}
 ```
 
 # Min cell filter — run summary

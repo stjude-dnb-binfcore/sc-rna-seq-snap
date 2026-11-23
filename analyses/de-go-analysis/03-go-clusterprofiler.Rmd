@@ -168,6 +168,7 @@ if (!file.exists(config_util)) {
   config_util <- "util/function-de-go-config.R"
 }
 source(config_util)
+options(dego_markers_report_quality = TRUE)
 
 dego_mode <- normalize_dego_mode_label(dego_condition_comparison_mode)
 min_cells_per_group <- resolve_dego_min_cells_param(min_cells_per_group, root_dir)
@@ -197,11 +198,6 @@ if (!dir.exists(go_plots_dir)) {
 go_plots_dir_overall <- file.path(go_plots_dir, "01-go-clusterprofiler-overall") 
 if (!dir.exists(go_plots_dir_overall)) {
   dir.create(go_plots_dir_overall)}
-
-# Create plots directory
-go_plots_dir_condition_value1 <- file.path(go_plots_dir, "02-go-clusterprofiler-overall-condition1") 
-if (!dir.exists(go_plots_dir_condition_value1)) {
-  dir.create(go_plots_dir_condition_value1)}
 
 # Source functions
 source(paste0(analysis_dir, "/util/function-go-clusterprofiler-markers.R"))
@@ -286,6 +282,10 @@ if (universe_value == "NO"){
 ## Global interaction — per `r condition_value1`
 
 ```{r go-clusterProfiler-condition-value1, fig.width = 15, fig.height = 8, fig.fullwidth = TRUE, echo=TRUE, eval=show_global_interaction}
+go_plots_dir_condition_value1 <- file.path(go_plots_dir, "02-go-clusterprofiler-overall-condition1")
+if (!dir.exists(go_plots_dir_condition_value1)) {
+  dir.create(go_plots_dir_condition_value1)
+}
 all.markers_condition_value1 <- read_dego_markers_for_plots(markers_file_condition_value1)
 top_n_value_condition_value1 <- all.markers_condition_value1 %>% 
   group_by(cluster) %>%
@@ -296,7 +296,7 @@ if (universe_value == "NO"){
   cat("Running GO analysis without universe", "\n")
   ego_results <- run_clusterwise_GO_enrichment_markers(closest_genes_all = top_n_value_condition_value1, 
                                                        OrgDb_value = OrgDb_value, 
-                                                       plots_dir = go_plots_dir_overall,
+                                                       plots_dir = go_plots_dir_condition_value1,
                                                        universe_value = NULL,
                                                        show_number_pathways = show_number_pathways)
   } else {
@@ -332,7 +332,7 @@ if (!is.null(condition_value2)) {
     cat("Running GO analysis without universe", "\n")
     ego_results <- run_clusterwise_GO_enrichment_markers(closest_genes_all = top_n_value_condition_value2, 
                                                        OrgDb_value = OrgDb_value, 
-                                                       plots_dir = go_plots_dir_overall,
+                                                       plots_dir = go_plots_dir_condition_value2,
                                                        universe_value = NULL,
                                                        show_number_pathways = show_number_pathways)
   } else {
@@ -369,7 +369,7 @@ if (!is.null(condition_value3)) {
     cat("Running GO analysis without universe", "\n")
     ego_results <- run_clusterwise_GO_enrichment_markers(closest_genes_all = top_n_value_condition_value3, 
                                                        OrgDb_value = OrgDb_value, 
-                                                       plots_dir = go_plots_dir_overall,
+                                                       plots_dir = go_plots_dir_condition_value3,
                                                        universe_value = NULL,
                                                        show_number_pathways = show_number_pathways)
   } else {

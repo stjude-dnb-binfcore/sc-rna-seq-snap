@@ -13,7 +13,7 @@ Parameters according to the project and analysis strategy will need to be specif
 | Value | What DE computes | Report sections (01 / 02 / 03) |
 |-------|------------------|--------------------------------|
 | `global_interaction` | **Overall** cell types vs rest; **global interaction** (`cell_type × condition` each vs all other cells) | Overall + global interaction |
-| `within_celltype` | **Overall** cell types; **within type** `ident.1` vs `ident.2` per cell type (contrast in `Res_*_Within_contrast_*.tsv`) | Overall + within cell type |
+| `within_celltype` | **Overall** cell types vs rest; **within cell type** `ident.1` vs `ident.2` per cell type (contrast in `Res_*_Within_contrast_*.tsv`) | Overall + within cell type |
 | `both` | All of the above | Full module |
 
 **Pipeline (all modes):** `run-de-computation.R` writes TSVs → `01-de-analysis.Rmd` / volcano / GO **read** those files (script 1 does not re-run `FindAllMarkers`). Modes differ only in **which DE steps run** and **which report sections appear**, not in how the code path works.
@@ -86,6 +86,7 @@ The structure of this folder is as follows:
 └── util
 |   ├── function-create-volcano-plot.R
 |   ├── function-de-global-interaction.R
+|   ├── function-de-go-config.R
 |   ├── function-de-within-celltype-comparison.R
 |___└── function-go-clusterprofiler-markers.R
 ```

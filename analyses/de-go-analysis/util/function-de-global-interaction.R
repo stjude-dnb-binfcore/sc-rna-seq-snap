@@ -59,14 +59,6 @@ normalize_dego_comparison_mode <- function(mode) {
   mode
 }
 
-run_dego_mode_needs_precompute <- function(mode) {
-  normalize_dego_comparison_mode(mode)
-  TRUE
-}
-
-run_dego_mode_runs_global_in_notebook <- function(mode) {
-  FALSE
-}
 
 run_dego_mode_runs_global_interaction_de <- function(mode) {
   mode <- normalize_dego_comparison_mode(mode)

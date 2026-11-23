@@ -63,7 +63,7 @@ create_volcano_plot <- function(all.markers,
     if (all(c("ident1", "ident2") %in% names(df))) {
       plot_subtitle <- paste0(
         "ident.1 ", df$ident1[[1L]], " vs ident.2 ", df$ident2[[1L]],
-        " (avg_log2FC: higher in ident.1)"
+        " (Positive avg_log2FC: higher expression in ident.1)"
       )
     }
 
