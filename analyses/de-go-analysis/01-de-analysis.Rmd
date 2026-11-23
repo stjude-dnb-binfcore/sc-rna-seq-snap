@@ -156,6 +156,7 @@ if (!file.exists(config_util)) {
   config_util <- file.path(root_dir, "analyses", "de-go-analysis", "util", "function-de-go-config.R")
 }
 source(config_util)
+options(dego_markers_report_quality = TRUE)
 
 if (is_dego_param_placeholder(root_dir)) {
   yaml_root <- read_dego_project_yaml(".")

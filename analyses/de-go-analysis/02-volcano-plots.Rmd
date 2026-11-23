@@ -221,6 +221,7 @@ if (!file.exists(config_util)) {
   config_util <- "util/function-de-go-config.R"
 }
 source(config_util)
+options(dego_markers_report_quality = TRUE)
 
 dego_mode <- normalize_dego_mode_label(dego_condition_comparison_mode)
 min_cells_per_group <- resolve_dego_min_cells_param(min_cells_per_group, root_dir)
