@@ -195,6 +195,47 @@ inject_volcano_readRDS_after_meta_load <- function(server_path) {
   invisible(TRUE)
 }
 
+volcano_injected_ggplot_body_lines <- function(v, indent = "    ") {
+  sp <- paste0(indent, "  ")
+  c(
+    paste0(indent, "validate(need(!is.null(de_go_volcano_index) && length(de_go_volcano_index) > 0, "),
+    paste0(sp, "\"No DE tables for volcano (run de-go precompute / run-de-computation).\"))"),
+    paste0(indent, "req(input$", v, "v1contrast)"),
+    paste0(indent, "df0 <- de_go_volcano_index[[input$", v, "v1contrast]]"),
+    paste0(indent, "req(!is.null(df0), nrow(df0) > 0)"),
+    paste0(indent, "df <- df0"),
+    paste0(indent, "if (!is.null(input$", v, "v1ct) && input$", v, "v1ct != \"All\" && \"cluster\" %in% names(df)) {"),
+    paste0(sp, "df <- df[as.character(df$cluster) == input$", v, "v1ct, , drop = FALSE]"),
+    paste0(indent, "}"),
+    paste0(indent, "validate(need(nrow(df) > 0, \"No rows for this selection.\"))"),
+    paste0(indent, "use_adj <- identical(input$", v, "v1y, \"FDR (-log10 adj. p)\") && \"y_neg_log10_padj\" %in% names(df)"),
+    paste0(indent, "df$yplot <- if (use_adj) df$y_neg_log10_padj else df$y_neg_log10_p"),
+    paste0(indent, "fc_cut <- req(input$", v, "v1fc)"),
+    paste0(indent, "p_cut <- req(input$", v, "v1p)"),
+    paste0(indent, "y_metric <- if (use_adj) as.numeric(df$p_val_adj) else as.numeric(df$p_val)"),
+    paste0(indent, "sig <- abs(as.numeric(df$avg_log2FC)) >= fc_cut & y_metric <= p_cut"),
+    paste0(indent, "sig[is.na(sig)] <- FALSE"),
+    paste0(indent, "ggplot2::ggplot(df, ggplot2::aes(avg_log2FC, yplot)) +"),
+    paste0(sp, "ggplot2::geom_point(ggplot2::aes(color = sig), alpha = 0.35, size = ggplot2::rel(1.2), na.rm = TRUE) +"),
+    paste0(sp, "ggplot2::scale_color_manual(values = c(`FALSE` = \"grey70\", `TRUE` = \"firebrick\"), guide = \"none\") +"),
+    paste0(sp, "ggplot2::labs(x = \"avg_log2FC\", y = if (use_adj) \"-log10 FDR\" else \"-log10 p\", "),
+    paste0(sp, "              title = input$", v, "v1contrast) +"),
+    paste0(sp, "ggplot2::theme_bw() + ggplot2::theme(text = ggplot2::element_text(size = 14))")
+  )
+}
+
+volcano_injected_ggsave_content_lines <- function(v, device) {
+  dingbats <- if (identical(device, "pdf")) ", useDingbats = FALSE" else ""
+  c(
+    "    content = function(file) { ggplot2::ggsave(",
+    paste0("      file, device = \"", device, "\", height = input$", v, "v1oup.h, width = input$", v, "v1oup.w", dingbats, ","),
+    "      plot = {",
+    volcano_injected_ggplot_body_lines(v, indent = "        "),
+    "      }",
+    "    ) }"
+  )
+}
+
 inject_volcano_server_observers <- function(server_path, prefix) {
   lines <- readLines(server_path, encoding = "UTF-8", warn = FALSE)
   if (any(grepl("### Interactive DE volcano", lines, fixed = TRUE))) {
@@ -219,31 +260,25 @@ inject_volcano_server_observers <- function(server_path, prefix) {
     paste0("    updateSelectInput(session, \"", v, "v1contrast\", choices = names(de_go_volcano_index), "),
     paste0("                      selected = names(de_go_volcano_index)[[1]])"),
     paste0("  })"),
-    paste0("  output$", v, "v1plot <- renderPlot({"),
-    paste0("    validate(need(!is.null(de_go_volcano_index) && length(de_go_volcano_index) > 0, "),
-    paste0("            \"No DE tables for volcano (run de-go precompute / run-de-computation).\"))"),
-    paste0("    req(input$", v, "v1contrast)"),
-    paste0("    df0 <- de_go_volcano_index[[input$", v, "v1contrast]]"),
-    paste0("    req(!is.null(df0), nrow(df0) > 0)"),
-    paste0("    df <- df0"),
-    paste0("    if (!is.null(input$", v, "v1ct) && input$", v, "v1ct != \"All\" && \"cluster\" %in% names(df)) {"),
-    paste0("      df <- df[as.character(df$cluster) == input$", v, "v1ct, , drop = FALSE]"),
-    paste0("    }"),
-    paste0("    validate(need(nrow(df) > 0, \"No rows for this selection.\"))"),
-    paste0("    use_adj <- identical(input$", v, "v1y, \"FDR (-log10 adj. p)\") && \"y_neg_log10_padj\" %in% names(df)"),
-    paste0("    df$yplot <- if (use_adj) df$y_neg_log10_padj else df$y_neg_log10_p"),
-    paste0("    fc_cut <- req(input$", v, "v1fc)"),
-    paste0("    p_cut <- req(input$", v, "v1p)"),
-    paste0("    y_metric <- if (use_adj) as.numeric(df$p_val_adj) else as.numeric(df$p_val)"),
-    paste0("    sig <- abs(as.numeric(df$avg_log2FC)) >= fc_cut & y_metric <= p_cut"),
-    paste0("    sig[is.na(sig)] <- FALSE"),
-    paste0("    ggplot2::ggplot(df, ggplot2::aes(avg_log2FC, yplot)) +"),
-    paste0("      ggplot2::geom_point(ggplot2::aes(color = sig), alpha = 0.35, size = ggplot2::rel(1.2), na.rm = TRUE) +"),
-    paste0("      ggplot2::scale_color_manual(values = c(`FALSE` = \"grey70\", `TRUE` = \"firebrick\"), guide = \"none\") +"),
-    paste0("      ggplot2::labs(x = \"avg_log2FC\", y = if (use_adj) \"-log10 FDR\" else \"-log10 p\", "),
-    paste0("                    title = input$", v, "v1contrast) +"),
-    paste0("      ggplot2::theme_bw() + ggplot2::theme(text = ggplot2::element_text(size = 14))"),
-    paste0("  })"),
+    paste0("  output$", v, "v1oup <- renderPlot({"),
+    volcano_injected_ggplot_body_lines(v),
+    "  })",
+    paste0("  output$", v, "v1oup.ui <- renderUI({"),
+    paste0("    plotOutput(\"", v, "v1oup\", height = \"600px\", "),
+    paste0("               brush = brushOpts(\"", v, "v1brush\", resetOnNew = TRUE))"),
+    "  })",
+    paste0("  output$", v, "v1oup.pdf <- downloadHandler("),
+    "    filename = function() {",
+    paste0("      paste0(\"", v, "\", \"volcano_\", input$", v, "v1contrast, \".pdf\")"),
+    "    },",
+    volcano_injected_ggsave_content_lines(v, "pdf"),
+    "  )",
+    paste0("  output$", v, "v1oup.png <- downloadHandler("),
+    "    filename = function() {",
+    paste0("      paste0(\"", v, "\", \"volcano_\", input$", v, "v1contrast, \".png\")"),
+    "    },",
+    volcano_injected_ggsave_content_lines(v, "png"),
+    "  )",
     paste0("  output$", v, "v1ct_ui <- renderUI({"),
     paste0("    if (is.null(de_go_volcano_index) || length(de_go_volcano_index) == 0) return(NULL)"),
     paste0("    req(input$", v, "v1contrast)"),
@@ -309,8 +344,15 @@ volcano_dynamic_tab_lines <- function(prefix) {
     "      ),",
     "      column(",
     "        9,",
-    paste0("        plotOutput(\"", v, "v1plot\", height = \"600px\", "),
-    paste0("                   brush = brushOpts(\"", v, "v1brush\", resetOnNew = TRUE)),"),
+    paste0("        uiOutput(\"", v, "v1oup.ui\"),"),
+    paste0("        downloadButton(\"", v, "v1oup.pdf\", \"Download PDF\"),"),
+    paste0("        downloadButton(\"", v, "v1oup.png\", \"Download PNG\"), br(),"),
+    "        div(style=\"display:inline-block\",",
+    paste0("            numericInput(\"", v, "v1oup.h\", \"PDF / PNG height:\", width = \"138px\", "),
+    "                         min = 4, max = 20, value = 8, step = 0.5)),",
+    "        div(style=\"display:inline-block\",",
+    paste0("            numericInput(\"", v, "v1oup.w\", \"PDF / PNG width:\", width = \"138px\", "),
+    "                         min = 4, max = 20, value = 10, step = 0.5)), br(),",
     paste0("        DTOutput(\"", v, "v1table\")"),
     "      )",
     "    )",

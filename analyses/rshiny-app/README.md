@@ -52,6 +52,6 @@ The structure of this folder is as follows:
 ├── README.md
 ├── run-rshiny-app.sh
 └── util
-    ├── makeShinyFiles_assay.R
-    └── function-attach-dego-shiny-app.R
+    ├── function-attach-dego-shiny-app.R
+    └── makeShinyFiles_assay.R
 ```
