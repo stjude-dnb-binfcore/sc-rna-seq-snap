@@ -33,6 +33,9 @@ sample_prefix:
   - DYE
   - ABC-
   - XYZ_
+cellranger_version: "cellranger/9.0.1"  # Options: cellranger/9.0.1 (default); cellranger/8.0.1 (for compatibility with older versions of CellRanger)
+
+
 
 # `./analyses/upstream-analysis`
 print_pdf_seurat_multiple_samples: "YES" # Options: "YES" (default ALWAYS), for `02B_run_seurat_qc_multiple_samples.R`
